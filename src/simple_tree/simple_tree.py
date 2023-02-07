@@ -15,7 +15,7 @@ class regressionTree():
         rule=""
     ):
         # Saving attributes
-        self.min_samples_split = min_samples_split # test
+        self.min_samples_split = min_samples_split
         self.max_depth = max_depth
         self.depth = depth
         self.node_type = node_type
