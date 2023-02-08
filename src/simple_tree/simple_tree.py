@@ -1,8 +1,10 @@
 # Data handling and math
 import pandas as pd
 import numpy as np
+import copy
 
-class regressionTree():
+
+class RegressionTree:
     """
     Class to grow a regression decision tree
     """
@@ -11,153 +13,81 @@ class regressionTree():
         min_samples_split=20,
         max_depth=2,
         depth=0,
-        node_type='root',
-        rule=""
     ):
         self.min_samples_split = min_samples_split
         self.max_depth = max_depth
         self.depth = depth
-        self.node_type = node_type
-        self.rule = rule
 
-    def fit(self,X,y):
-        """
-        Recursive method to fit the decision tree
-        """
-        # Store data in node
+    def fit(self, X, y):
+        """Recursive method to fit the decision tree"""
         if type(X) == pd.DataFrame:
-            self.X = X
-        else:
-            self.X = pd.DataFrame(X, columns = [f'feature_{i}' for i in range(0,X.shape[1])])
-        self.y = y
-        self.ymean = self.y.mean()
+            X = X.values
+        if type(y) == pd.Series:
+            y = y.values
+        self.yhat = y.mean()
+        self.mse = ((y-self.yhat)**2).mean()
         self.n = len(y)
 
-        # Check terminal node conditions
         if (self.depth >= self.max_depth) or (self.n <= self.min_samples_split):
             self.left = None
             self.right = None
-            self.node_type = 'terminal'
         else:
-            # Find best split
-            df = X.copy()
-            df['y'] = y
-            self.splitting_feature, self.threshold = self.find_best_split(df.drop('y',axis = 1),
-                                                                     df['y'])
+            self.feature, self.threshold = self.find_split(X, y)
+            index_left = X[:,self.feature]<self.threshold
 
-            # Split data
-            df_left = df[df[self.splitting_feature]<=self.threshold].copy()
-            df_right = df[df[self.splitting_feature]>self.threshold].copy()
-
-            # Create left node
-            self.left = regressionTree(
+            self.left = RegressionTree(
                         min_samples_split=self.min_samples_split,
                         max_depth=self.max_depth,
                         depth=self.depth + 1,
-                        node_type='left_node',
-                        rule=f"{self.splitting_feature} < {round(self.threshold, 3)}"
                         )
-            self.left.fit(df_left.drop('y',axis = 1),
-                          df_left['y'])
+            self.right = copy.copy(self.left)
 
-            # Create right node
-            self.right = regressionTree(
-                        min_samples_split=self.min_samples_split,
-                        max_depth=self.max_depth,
-                        depth=self.depth + 1,
-                        node_type='right_node',
-                        rule=f"{self.splitting_feature} >= {round(self.threshold, 3)}"
-                        )
-            self.right.fit(df_right.drop('y',axis = 1),
-                           df_right['y'])
+            self.left.fit(X[index_left], y[index_left])
+            self.right.fit(X[~index_left], y[~index_left])
 
-    def find_best_split(self,X,y) -> tuple:
-        """
-        Given the X features and y targets calculates the best split
-        for a decision tree
-        """
-        # Create a dataset for spliting
-        df = X.copy()
-        df['y'] = y
+    def find_split(self, X, y) -> tuple:
+        """Calculate the best split for a decision tree"""
+        mse_best = self.mse
 
-        mse_best = np.inf
-        best_splitting_feature = X.columns[0]
-        best_threshold = X[best_splitting_feature].max()+1
-
-        for feature in X.columns:
-            # Get candidate values
-            values = np.sort(X[feature].copy().drop_duplicates().values)
+        for feature in range(0,X.shape[1]):
+            values = np.sort(np.unique(X[:,feature]))
             numbers_between_values = np.convolve(values, np.ones(2), 'valid') / 2
             threshold_candidates = numbers_between_values[1:-1]
 
             for threshold in threshold_candidates:
-                # Getting the left and right ys
-                y_left  = df.loc[df[feature]<threshold,'y']
-                y_right = df.loc[df[feature]>=threshold,'y']
+                index_left = X[:,feature]<threshold
 
-                # Check if this leads to too few values in the daughter nodes
-                if (len(y_left)>= self.min_samples_split) and (len(y_right)>= self.min_samples_split):
-                    # Calculate mean squared error
-                    mse_left = np.mean((y_left - y_left.mean())**2)
-                    mse_right = np.mean((y_right - y_right.mean())**2)
-                    mse_split = mse_left + mse_right
-
-                    # Checking if this is the best split so far
-                    if mse_split < mse_best:
-                        best_splitting_feature = feature
+                if (sum(index_left)>=self.min_samples_split) and (sum(~index_left)>=self.min_samples_split):
+                    sse_left = ((y[index_left] - y[index_left].mean())**2).sum()
+                    sse_right = ((y[~index_left] - y[~index_left].mean())**2).sum()
+                    mse = (sse_left + sse_right)/len(y)
+                    if mse < mse_best:
+                        mse_best = mse
+                        best_feature = feature
                         best_threshold = threshold
 
-                        # Setting the best gain to the current one
-                        mse_best = mse_split
+        return (best_feature, best_threshold)
 
-        return (best_splitting_feature, best_threshold)
+    def predict(self,X):
+        """Recursive method to predict from new of features"""
+        if type(X) == pd.DataFrame:
+            X = X.values
 
-    def predict(self,XTest):
-        """
-        Recursive method to predict from new of features
-        """
-        # Making a df from the data
-        df = XTest.copy()
-        nTest = len(df)
-
-        # If terminal node - output value
         if self.left is None:
-            df['Y'] = self.ymean
-            return df['Y']
+            y_hat = np.ones(len(X))*self.yhat
+            return y_hat
         else:
-            # For left-goers
-            yhat_left = self.left.predict(df.loc[df[self.splitting_feature]<self.threshold])
-            df.loc[df[self.splitting_feature]<self.threshold,'Y'] = yhat_left
+            # Index split
+            index_left = X[:,self.feature]<self.threshold
+            y_hat = np.ones(len(X))
+            y_hat[index_left] = self.left.predict(X[index_left])
+            y_hat[~index_left] =  self.right.predict(X[~index_left])
 
-            # For right-goers
-            yhat_right = self.right.predict(df.loc[df[self.splitting_feature]>=self.threshold])
-            df.loc[df[self.splitting_feature]>=self.threshold,'Y'] = yhat_right
+            return y_hat
 
-            return df['Y']
+if __name__ == '__main__':
+    X = np.array([[1,2,3,4,5,6,7,8,9,10],[0,1,2,3,0,1,2,3,0,1]])
+    y = np.array([10,10,20,20,10,1,1,2,2,1,1])
 
-    def print_info(self, width=4):
-        """
-        Method to print the infromation about the tree
-        """
-        # Defining the number of spaces
-        const = int(self.depth * width ** 1.5)
-        spaces = "-" * const
-
-        if self.node_type == 'root':
-            print("Root")
-        else:
-            print(f"|{spaces} Split rule: {self.rule}")
-        print(f"{' ' * const}   | Count of observations in node: {self.n}")
-        print(f"{' ' * const}   | Prediction of node: {round(self.ymean, 3)}")
-
-    def print_tree(self):
-        """
-        Prints the whole tree from the current node to the bottom
-        """
-        self.print_info()
-
-        if self.left is not None:
-            self.left.print_tree()
-
-        if self.right is not None:
-            self.right.print_tree()
+    tree = RegressionTree(max_depth=3)
+    tree.fit(X = X, y = y)
