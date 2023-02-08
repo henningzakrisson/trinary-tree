@@ -85,9 +85,25 @@ class RegressionTree:
 
             return y_hat
 
-if __name__ == '__main__':
-    X = np.array([[1,2,3,4,5,6,7,8,9,10],[0,1,2,3,0,1,2,3,0,1]])
-    y = np.array([10,10,20,20,10,1,1,2,2,1,1])
+    def print(self):
+        hspace = '---'*self.depth
+        print(hspace+f'Number of observations: {self.n}')
+        print(hspace+f'Response estimate: {np.round(self.yhat,2)}')
+        if self.left is not None:
+            print(hspace+f'if {self.feature} <  {np.round(self.threshold,2)}:')
+            self.left.print()
 
-    tree = RegressionTree(max_depth=3)
+            print(hspace+f'if {self.feature} >= {np.round(self.threshold,2)}:')
+            self.right.print()
+
+if __name__ == '__main__':
+    n = 1000
+    x0 = np.arange(0,n)
+    x1 = np.tile(np.arange(n/10),10)
+    X = np.stack([x0,x1]).T
+    y = 10 * (x0>=n/2) + 2 * (x1>=(n/10)/2) + np.random.normal(0,0.001,len(X))
+
+    tree = RegressionTree(max_depth=4, min_samples_split = 1)
     tree.fit(X = X, y = y)
+
+    tree.print()
