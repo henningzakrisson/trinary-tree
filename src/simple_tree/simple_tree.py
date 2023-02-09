@@ -13,10 +13,12 @@ class RegressionTree:
         min_samples_split=20,
         max_depth=2,
         depth=0,
+        missing_rule = 'majority'
     ):
         self.min_samples_split = min_samples_split
         self.max_depth = max_depth
         self.depth = depth
+        self.missing_rule = missing_rule
 
     def fit(self, X, y):
         """Recursive method to fit the decision tree"""
@@ -37,12 +39,12 @@ class RegressionTree:
             self.left = None
             self.right = None
         else:
-            self.feature, self.threshold, self.default_rule = self.find_split(X, y)
+            self.feature, self.threshold, self.default_split = self.find_split(X, y)
             if self.feature is None:
                 self.left = None
                 self.right = None
             else:
-                if self.default_rule == 'left':
+                if self.default_split == 'left':
                     index_left = (X[:,self.feature]<self.threshold)|np.isnan(X[:,self.feature])
                 else:
                     index_left = (X[:,self.feature]<self.threshold)
@@ -51,6 +53,7 @@ class RegressionTree:
                             min_samples_split=self.min_samples_split,
                             max_depth=self.max_depth,
                             depth=self.depth + 1,
+                            missing_rule= self.missing_rule
                             )
                 self.right = copy.copy(self.left)
 
@@ -62,7 +65,7 @@ class RegressionTree:
         mse_best = self.mse
         best_feature = None
         best_threshold = None
-        default_rule = None
+        best_default_split = 'right'
 
         for feature in range(0,X.shape[1]):
             values = np.sort(np.unique(X[:,feature]))
@@ -70,25 +73,42 @@ class RegressionTree:
             threshold_candidates = numbers_between_values[1:-1]
 
             for threshold in threshold_candidates:
-                index_left = X[:,feature]<threshold
+                if self.missing_rule == 'majority' or (self.missing_rule == 'mia' and sum(np.isnan(X[:,feature]))==0):
+                    index_left = X[:,feature]<threshold
+                    if (sum(index_left)>=self.min_samples_split) and (sum(~index_left)>=self.min_samples_split):
+                        sse_left = ((y[index_left] - y[index_left].mean())**2).sum()
+                        sse_right = ((y[~index_left] - y[~index_left].mean())**2).sum()
+                        mse = (sse_left + sse_right)/len(y)
+                        if mse < mse_best:
+                            mse_best = mse
+                            best_feature = feature
+                            best_threshold = threshold
 
-                if (sum(index_left)>=self.min_samples_split) and (sum(~index_left)>=self.min_samples_split):
-                    sse_left = ((y[index_left] - y[index_left].mean())**2).sum()
-                    sse_right = ((y[~index_left] - y[~index_left].mean())**2).sum()
-                    mse = (sse_left + sse_right)/len(y)
-                    if mse < mse_best:
-                        mse_best = mse
-                        best_feature = feature
-                        best_threshold = threshold
+                elif self.missing_rule == 'mia':
+                    for default_split in ['left','right']:
+                        if default_split == 'left':
+                            index_left = (X[:,feature]<threshold)|np.isnan(X[:,feature])
+                        else:
+                            index_left = (X[:,feature]<threshold)
+                        if (sum(index_left)>=self.min_samples_split) and (sum(~index_left)>=self.min_samples_split):
+                            sse_left = ((y[index_left] - y[index_left].mean())**2).sum()
+                            sse_right = ((y[~index_left] - y[~index_left].mean())**2).sum()
+                            mse = (sse_left + sse_right)/len(y)
+                            if mse < mse_best:
+                                mse_best = mse
+                                best_feature = feature
+                                best_threshold = threshold
+                                best_default_split = default_split
 
-        if best_feature is not None:
-            index_left = X[:,best_feature]<best_threshold
-            if sum(index_left) > sum(~index_left):
-                default_rule = 'left'
-            else:
-                default_rule = 'right'
+        if self.missing_rule == 'majority':
+            if best_feature is not None:
+                index_left = X[:,best_feature]<best_threshold
+                if sum(index_left) > sum(~index_left):
+                    best_default_split = 'left'
+                else:
+                    best_default_split = 'right'
 
-        return (best_feature, best_threshold, default_rule)
+        return (best_feature, best_threshold, best_default_split)
 
     def predict(self,X):
         """Recursive method to predict from new of features"""
@@ -99,7 +119,7 @@ class RegressionTree:
             y_hat = np.ones(len(X))*self.yhat
             return y_hat
         else:
-            if self.default_rule == 'left':
+            if self.default_split == 'left':
                     index_left = (X[:,self.feature]<self.threshold)|np.isnan(X[:,self.feature])
             else:
                     index_left = (X[:,self.feature]<self.threshold)
@@ -116,7 +136,7 @@ class RegressionTree:
         if self.left is not None:
             left_rule  = f'if {self.feature} <  {np.round(self.threshold,2)}'
             right_rule = f'if {self.feature} >=  {np.round(self.threshold,2)}'
-            if self.default_rule=='left':
+            if self.default_split=='left':
                 left_rule += ' or n/a'
             else:
                 right_rule += ' or n/a'

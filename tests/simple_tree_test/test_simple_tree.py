@@ -49,5 +49,18 @@ class RegressionTreeTest(unittest.TestCase):
         self.assertEqual((df_tot.loc[~df_tot['y'].isna(),'y_hat'].round(2)==df_tot.loc[~df_tot['y'].isna(),'y'].round(2)).sum().sum(),
                          sum(~df_tot['y'].isna()))
 
+    def test_default_mia(self):
+        from src.simple_tree.simple_tree import RegressionTree
+        df = pd.read_csv('data/test_data_mia.csv',index_col = 0)
+
+        max_depth = 2
+        tree = tree = RegressionTree(max_depth = max_depth,
+                                     missing_rule='mia')
+        tree.fit(df[['X_0','X_1']],df['y'])
+
+        df['y_hat'] = tree.predict(df[['X_0','X_1']])
+
+        self.assertEqual((df['y_hat']==df['y']).sum(),len(df))
+
 if __name__ == '__main__':
     unittest.main()
