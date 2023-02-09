@@ -24,6 +24,11 @@ class RegressionTree:
             X = X.values
         if type(y) == pd.Series:
             y = y.values
+
+        to_keep = ~np.isnan(y)
+        X = X[to_keep]
+        y = y[to_keep]
+
         self.yhat = y.mean()
         self.mse = ((y-self.yhat)**2).mean()
         self.n = len(y)
@@ -32,12 +37,15 @@ class RegressionTree:
             self.left = None
             self.right = None
         else:
-            self.feature, self.threshold = self.find_split(X, y)
+            self.feature, self.threshold, self.default_rule = self.find_split(X, y)
             if self.feature is None:
                 self.left = None
                 self.right = None
             else:
-                index_left = X[:,self.feature]<self.threshold
+                if self.default_rule == 'left':
+                    index_left = (X[:,self.feature]<self.threshold)|np.isnan(X[:,self.feature])
+                else:
+                    index_left = (X[:,self.feature]<self.threshold)
 
                 self.left = RegressionTree(
                             min_samples_split=self.min_samples_split,
@@ -54,6 +62,7 @@ class RegressionTree:
         mse_best = self.mse
         best_feature = None
         best_threshold = None
+        default_rule = None
 
         for feature in range(0,X.shape[1]):
             values = np.sort(np.unique(X[:,feature]))
@@ -72,7 +81,14 @@ class RegressionTree:
                         best_feature = feature
                         best_threshold = threshold
 
-        return (best_feature, best_threshold)
+        if best_feature is not None:
+            index_left = X[:,best_feature]<best_threshold
+            if sum(index_left) > sum(~index_left):
+                default_rule = 'left'
+            else:
+                default_rule = 'right'
+
+        return (best_feature, best_threshold, default_rule)
 
     def predict(self,X):
         """Recursive method to predict from new of features"""
@@ -83,8 +99,10 @@ class RegressionTree:
             y_hat = np.ones(len(X))*self.yhat
             return y_hat
         else:
-            # Index split
-            index_left = X[:,self.feature]<self.threshold
+            if self.default_rule == 'left':
+                    index_left = (X[:,self.feature]<self.threshold)|np.isnan(X[:,self.feature])
+            else:
+                    index_left = (X[:,self.feature]<self.threshold)
             y_hat = np.ones(len(X))
             y_hat[index_left] = self.left.predict(X[index_left])
             y_hat[~index_left] =  self.right.predict(X[~index_left])
@@ -96,10 +114,16 @@ class RegressionTree:
         print(hspace+f'Number of observations: {self.n}')
         print(hspace+f'Response estimate: {np.round(self.yhat,2)}')
         if self.left is not None:
-            print(hspace+f'if {self.feature} <  {np.round(self.threshold,2)}:')
+            left_rule  = f'if {self.feature} <  {np.round(self.threshold,2)}'
+            right_rule = f'if {self.feature} >=  {np.round(self.threshold,2)}'
+            if self.default_rule=='left':
+                left_rule += ' or n/a'
+            else:
+                right_rule += ' or n/a'
+            print(hspace+f'{left_rule}:')
             self.left.print()
 
-            print(hspace+f'if {self.feature} >= {np.round(self.threshold,2)}:')
+            print(hspace+f'{right_rule}:')
             self.right.print()
 
 if __name__ == '__main__':
