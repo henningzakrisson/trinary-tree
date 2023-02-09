@@ -33,21 +33,27 @@ class RegressionTree:
             self.right = None
         else:
             self.feature, self.threshold = self.find_split(X, y)
-            index_left = X[:,self.feature]<self.threshold
+            if self.feature is None:
+                self.left = None
+                self.right = None
+            else:
+                index_left = X[:,self.feature]<self.threshold
 
-            self.left = RegressionTree(
-                        min_samples_split=self.min_samples_split,
-                        max_depth=self.max_depth,
-                        depth=self.depth + 1,
-                        )
-            self.right = copy.copy(self.left)
+                self.left = RegressionTree(
+                            min_samples_split=self.min_samples_split,
+                            max_depth=self.max_depth,
+                            depth=self.depth + 1,
+                            )
+                self.right = copy.copy(self.left)
 
-            self.left.fit(X[index_left], y[index_left])
-            self.right.fit(X[~index_left], y[~index_left])
+                self.left.fit(X[index_left], y[index_left])
+                self.right.fit(X[~index_left], y[~index_left])
 
     def find_split(self, X, y) -> tuple:
         """Calculate the best split for a decision tree"""
         mse_best = self.mse
+        best_feature = None
+        best_threshold = None
 
         for feature in range(0,X.shape[1]):
             values = np.sort(np.unique(X[:,feature]))
@@ -101,9 +107,9 @@ if __name__ == '__main__':
     x0 = np.arange(0,n)
     x1 = np.tile(np.arange(n/10),10)
     X = np.stack([x0,x1]).T
-    y = 10 * (x0>=n/2) + 2 * (x1>=(n/10)/2) + np.random.normal(0,0.001,len(X))
+    y = 10 * (x0>=n/2) + 2 * (x1>=(n/10)/2)
 
-    tree = RegressionTree(max_depth=4, min_samples_split = 1)
+    tree = RegressionTree(max_depth=5, min_samples_split = 1)
     tree.fit(X = X, y = y)
 
     tree.print()
