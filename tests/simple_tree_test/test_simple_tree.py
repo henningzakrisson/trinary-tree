@@ -33,21 +33,18 @@ class RegressionTreeTest(unittest.TestCase):
         self.assertEqual((df_hat[f'tree_{max_depth}'].round(3)==df[f'tree_{2}'].round(3)).sum().sum(),
                          len(df))
 
-    def test_default_splitting_rule(self):
+    def test_default_majority(self):
         from src.simple_tree.simple_tree import RegressionTree
-        df = pd.read_csv('data/test_data.csv',index_col = 0)
-        df_missing = pd.read_csv('data/test_data_missing.csv',index_col = 0)
-
-        df_tot = pd.concat([df,df_missing]).reset_index()
+        df = pd.read_csv('data/test_data_majority.csv',index_col = 0)
 
         max_depth = 2
         tree = tree = RegressionTree(max_depth = max_depth)
-        tree.fit(df_tot[['X_0','X_1']],df_tot['y'])
+        tree.fit(df[['X_0','X_1']],df['y'])
 
-        df_tot['y_hat'] = tree.predict(df_tot[['X_0','X_1']])
+        df['y_hat'] = tree.predict(df[['X_0','X_1']])
 
-        self.assertEqual((df_tot.loc[~df_tot['y'].isna(),'y_hat'].round(2)==df_tot.loc[~df_tot['y'].isna(),'y'].round(2)).sum().sum(),
-                         sum(~df_tot['y'].isna()))
+        self.assertEqual((df.loc[~df['y'].isna(),'y_hat'].round(1)==df.loc[~df['y'].isna(),'y_hat_exp'].round(1)).sum().sum(),
+                         sum(~df['y'].isna()))
 
     def test_default_mia(self):
         from src.simple_tree.simple_tree import RegressionTree

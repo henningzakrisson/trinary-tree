@@ -71,7 +71,7 @@ class RegressionTree:
 
             for threshold in threshold_candidates:
                 if self.missing_rule == 'majority' or (self.missing_rule == 'mia' and sum(np.isnan(X[:,feature]))==0):
-                    default_split = 'left' if np.mean(X[:,feature]<threshold)>0.5 else 'right'
+                    default_split = 'left' if sum(X[:,feature]<threshold)>sum(X[:,feature]>=threshold) else 'right'
                     sse = self._calculate_split_sse(X,y,feature,threshold,default_split)
                     if sse < sse_best:
                         sse_best = sse
