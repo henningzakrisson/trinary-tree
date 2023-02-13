@@ -33,7 +33,6 @@ class RegressionTree:
         """Recursive method to fit the decision tree"""
         X = X.values if isinstance(X,pd.DataFrame) else X
         y = y.values if isinstance(y,pd.Series) else y
-
         X, y = X[~np.isnan(y)], y[~np.isnan(y)]
 
         self.yhat = y.mean()
@@ -51,9 +50,7 @@ class RegressionTree:
         else:
             index_left = (X[:,self.feature]<self.threshold)
 
-        self.left = self._initiate_daughter_node()
-        self.right = self._initiate_daughter_node()
-
+        self.left, self.right = self._initiate_daughter_nodes()
         self.left.fit(X[index_left], y[index_left])
         self.right.fit(X[~index_left], y[~index_left])
 
@@ -88,7 +85,7 @@ class RegressionTree:
                             best_threshold = threshold
                             best_default_split = default_split
 
-        return (best_feature, best_threshold, best_default_split)
+        return best_feature, best_threshold, best_default_split
 
     def _calculate_split_sse(self,X,y,feature,threshold,default_split):
         if default_split == 'left':
@@ -104,13 +101,15 @@ class RegressionTree:
         sse_right = ((y[~index_left] - y[~index_left].mean())**2).sum()
         return sse_left + sse_right
 
-    def _initiate_daughter_node(self):
-        return RegressionTree(
+    def _initiate_daughter_nodes(self):
+        left = RegressionTree(
                     min_samples_split=self.min_samples_split,
                     max_depth=self.max_depth,
                     depth=self.depth + 1,
                     missing_rule= self.missing_rule
                     )
+        right = copy.copy(left)
+        return left, right
 
     def predict(self,X):
         """Recursive method to predict from new of features"""
