@@ -75,6 +75,11 @@ class RegressionTree:
             for threshold in threshold_candidates:
                 if self.missing_rule == 'majority' or (self.missing_rule == 'mia' and sum(np.isnan(X[:,feature]))==0):
                     index_left = X[:,feature]<threshold
+                    if sum(index_left) > sum(~index_left):
+                        default_split = 'left'
+                        index_left = (X[:,feature]<threshold)|np.isnan(X[:,feature])
+                    else:
+                        default_split = 'right'
                     if (sum(index_left)>=self.min_samples_split) and (sum(~index_left)>=self.min_samples_split):
                         sse_left = ((y[index_left] - y[index_left].mean())**2).sum()
                         sse_right = ((y[~index_left] - y[~index_left].mean())**2).sum()
@@ -83,6 +88,7 @@ class RegressionTree:
                             mse_best = mse
                             best_feature = feature
                             best_threshold = threshold
+                            best_default_split = default_split
 
                 elif self.missing_rule == 'mia':
                     for default_split in ['left','right']:
@@ -99,14 +105,6 @@ class RegressionTree:
                                 best_feature = feature
                                 best_threshold = threshold
                                 best_default_split = default_split
-
-        if self.missing_rule == 'majority':
-            if best_feature is not None:
-                index_left = X[:,best_feature]<best_threshold
-                if sum(index_left) > sum(~index_left):
-                    best_default_split = 'left'
-                else:
-                    best_default_split = 'right'
 
         return (best_feature, best_threshold, best_default_split)
 
