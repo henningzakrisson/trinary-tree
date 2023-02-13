@@ -114,22 +114,22 @@ class RegressionTree:
 
     def predict(self,X):
         """Recursive method to predict from new of features"""
-        if type(X) == pd.DataFrame:
-            X = X.values
+        X = X.values if isinstance(X,pd.DataFrame) else X
+        y_hat = np.ones(len(X))*np.nan
 
         if self.left is None:
-            y_hat = np.ones(len(X))*self.yhat
+            y_hat[:] = self.yhat
             return y_hat
-        else:
-            if self.default_split == 'left':
-                    index_left = (X[:,self.feature]<self.threshold)|np.isnan(X[:,self.feature])
-            else:
-                    index_left = (X[:,self.feature]<self.threshold)
-            y_hat = np.ones(len(X))
-            y_hat[index_left] = self.left.predict(X[index_left])
-            y_hat[~index_left] =  self.right.predict(X[~index_left])
 
-            return y_hat
+        if self.default_split == 'left':
+            index_left = (X[:,self.feature]<self.threshold)|np.isnan(X[:,self.feature])
+        else:
+            index_left = (X[:,self.feature]<self.threshold)
+
+        y_hat[index_left] = self.left.predict(X[index_left])
+        y_hat[~index_left] = self.right.predict(X[~index_left])
+
+        return y_hat
 
     def print(self):
         hspace = '---'*self.depth
