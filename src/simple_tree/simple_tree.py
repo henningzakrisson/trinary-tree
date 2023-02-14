@@ -1,4 +1,6 @@
 # Data handling and math
+import itertools
+
 import pandas as pd
 import numpy as np
 import copy
@@ -20,112 +22,114 @@ class RegressionTree:
         self.depth = depth
         self.missing_rule = missing_rule
 
+        self.n = 0
+        self.yhat = None
+        self.sse = None
+        self.feature = None
+        self.threshold = None
+        self.default_split = None
+        self.left = None
+        self.right = None
+
     def fit(self, X, y):
         """Recursive method to fit the decision tree"""
-        if type(X) == pd.DataFrame:
-            X = X.values
-        if type(y) == pd.Series:
-            y = y.values
-
-        to_keep = ~np.isnan(y)
-        X = X[to_keep]
-        y = y[to_keep]
+        X = X.values if isinstance(X,pd.DataFrame) else X
+        y = y.values if isinstance(y,pd.Series) else y
+        X, y = X[~np.isnan(y)], y[~np.isnan(y)]
 
         self.yhat = y.mean()
-        self.mse = ((y-self.yhat)**2).mean()
+        self.sse = ((y-self.yhat)**2).sum()
         self.n = len(y)
 
         if (self.depth >= self.max_depth) or (self.n <= self.min_samples_split):
-            self.left = None
-            self.right = None
-        else:
-            self.feature, self.threshold, self.default_split = self.find_split(X, y)
-            if self.feature is None:
-                self.left = None
-                self.right = None
-            else:
-                if self.default_split == 'left':
-                    index_left = (X[:,self.feature]<self.threshold)|np.isnan(X[:,self.feature])
-                else:
-                    index_left = (X[:,self.feature]<self.threshold)
+            return
 
-                self.left = RegressionTree(
-                            min_samples_split=self.min_samples_split,
-                            max_depth=self.max_depth,
-                            depth=self.depth + 1,
-                            missing_rule= self.missing_rule
-                            )
-                self.right = copy.copy(self.left)
+        self.feature, self.threshold, self.default_split = self._find_split(X, y)
+        if self.feature is None:
+            return
 
-                self.left.fit(X[index_left], y[index_left])
-                self.right.fit(X[~index_left], y[~index_left])
+        index_left = (X[:, self.feature] < self.threshold)
+        if self.default_split == 'left':
+            index_left |= np.isnan(X[:, self.feature])
 
-    def find_split(self, X, y) -> tuple:
+        self.left, self.right = self._initiate_daughter_nodes()
+        self.left.fit(X[index_left], y[index_left])
+        self.right.fit(X[~index_left], y[~index_left])
+
+    def _find_split(self, X, y) -> tuple:
         """Calculate the best split for a decision tree"""
-        mse_best = self.mse
-        best_feature = None
-        best_threshold = None
-        best_default_split = 'right'
+        sse_best = self.sse
+        best_feature, best_threshold, best_default_split = None, None, None
+        split_candidates = self._get_split_candidates(X)
 
-        for feature in range(0,X.shape[1]):
-            values = np.sort(np.unique(X[:,feature]))
-            numbers_between_values = np.convolve(values, np.ones(2), 'valid') / 2
-            threshold_candidates = numbers_between_values[1:-1]
+        for feature, threshold, default_split in split_candidates:
+            sse = self._calculate_split_sse(X,y,feature,threshold,default_split)
+            if sse < sse_best:
+                sse_best = sse
+                best_feature, best_threshold, best_default_split = feature, threshold, default_split
 
-            for threshold in threshold_candidates:
-                if self.missing_rule == 'majority' or (self.missing_rule == 'mia' and sum(np.isnan(X[:,feature]))==0):
-                    index_left = X[:,feature]<threshold
-                    if sum(index_left) > sum(~index_left):
-                        default_split = 'left'
-                        index_left = (X[:,feature]<threshold)|np.isnan(X[:,feature])
-                    else:
-                        default_split = 'right'
-                    if (sum(index_left)>=self.min_samples_split) and (sum(~index_left)>=self.min_samples_split):
-                        sse_left = ((y[index_left] - y[index_left].mean())**2).sum()
-                        sse_right = ((y[~index_left] - y[~index_left].mean())**2).sum()
-                        mse = (sse_left + sse_right)/len(y)
-                        if mse < mse_best:
-                            mse_best = mse
-                            best_feature = feature
-                            best_threshold = threshold
-                            best_default_split = default_split
+        return best_feature, best_threshold, best_default_split
 
-                elif self.missing_rule == 'mia':
-                    for default_split in ['left','right']:
-                        if default_split == 'left':
-                            index_left = (X[:,feature]<threshold)|np.isnan(X[:,feature])
-                        else:
-                            index_left = (X[:,feature]<threshold)
-                        if (sum(index_left)>=self.min_samples_split) and (sum(~index_left)>=self.min_samples_split):
-                            sse_left = ((y[index_left] - y[index_left].mean())**2).sum()
-                            sse_right = ((y[~index_left] - y[~index_left].mean())**2).sum()
-                            mse = (sse_left + sse_right)/len(y)
-                            if mse < mse_best:
-                                mse_best = mse
-                                best_feature = feature
-                                best_threshold = threshold
-                                best_default_split = default_split
+    def _get_split_candidates(self,X):
+        features = [feature for feature in range(X.shape[1]) if sum(np.isnan(X[:,feature]))<len(X)]
+        thresholds = [self._get_threshold_candidates(X[:,feature]) for feature in features]
 
-        return (best_feature, best_threshold, best_default_split)
+        if self.missing_rule == 'mia':
+            default_splits = ['left','right']
+            combinations = [list(itertools.product([features[feature]],thresholds[feature],default_splits)) for feature in features]
+            return list(itertools.chain.from_iterable(combinations))
+
+        elif self.missing_rule == 'majority':
+            feature_threshold_combinations = [list(itertools.product([features[feature]],thresholds[feature])) for feature in features]
+            feature_threshold_candidates = list(itertools.chain.from_iterable(feature_threshold_combinations))
+            default_splits = ['left' if sum(X[:,feature]<threshold)>sum(X[:,feature]>=threshold) else 'right' for feature,threshold in feature_threshold_candidates]
+            return [feature_threshold +(default_rule,) for feature_threshold,default_rule in zip(feature_threshold_candidates,default_splits)]
+
+    def _get_threshold_candidates(self,X):
+        values = np.sort(np.unique(X[~np.isnan(X)]))
+        numbers_between_values = np.convolve(values, np.ones(2), 'valid') / 2
+        return numbers_between_values
+
+    def _calculate_split_sse(self,X,y,feature,threshold,default_split):
+        index_left = (X[:, feature] < threshold)
+        if default_split == 'left':
+            index_left |= np.isnan(X[:, feature])
+
+        # To avoid hyperparameter-illegal splits
+        if (sum(index_left)<self.min_samples_split) or (sum(~index_left)<self.min_samples_split):
+            return self.sse
+
+        sse_left = ((y[index_left] - y[index_left].mean())**2).sum()
+        sse_right = ((y[~index_left] - y[~index_left].mean())**2).sum()
+        return sse_left + sse_right
+
+    def _initiate_daughter_nodes(self):
+        left = RegressionTree(
+                    min_samples_split=self.min_samples_split,
+                    max_depth=self.max_depth,
+                    depth=self.depth + 1,
+                    missing_rule= self.missing_rule
+                    )
+        right = copy.copy(left)
+        return left, right
 
     def predict(self,X):
         """Recursive method to predict from new of features"""
-        if type(X) == pd.DataFrame:
-            X = X.values
+        X = X.values if isinstance(X,pd.DataFrame) else X
+        y_hat = np.ones(len(X))*np.nan
 
         if self.left is None:
-            y_hat = np.ones(len(X))*self.yhat
+            y_hat[:] = self.yhat
             return y_hat
-        else:
-            if self.default_split == 'left':
-                    index_left = (X[:,self.feature]<self.threshold)|np.isnan(X[:,self.feature])
-            else:
-                    index_left = (X[:,self.feature]<self.threshold)
-            y_hat = np.ones(len(X))
-            y_hat[index_left] = self.left.predict(X[index_left])
-            y_hat[~index_left] =  self.right.predict(X[~index_left])
 
-            return y_hat
+        index_left = (X[:, self.feature] < self.threshold)
+        if self.default_split == 'left':
+            index_left |= np.isnan(X[:, self.feature])
+
+        y_hat[index_left] = self.left.predict(X[index_left])
+        y_hat[~index_left] = self.right.predict(X[~index_left])
+
+        return y_hat
 
     def print(self):
         hspace = '---'*self.depth
