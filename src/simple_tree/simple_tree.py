@@ -1,4 +1,6 @@
 # Data handling and math
+import itertools
+
 import pandas as pd
 import numpy as np
 import copy
@@ -45,10 +47,10 @@ class RegressionTree:
         self.feature, self.threshold, self.default_split = self._find_split(X, y)
         if self.feature is None:
             return
+
+        index_left = (X[:, self.feature] < self.threshold)
         if self.default_split == 'left':
-            index_left = (X[:,self.feature]<self.threshold)|np.isnan(X[:,self.feature])
-        else:
-            index_left = (X[:,self.feature]<self.threshold)
+            index_left |= np.isnan(X[:, self.feature])
 
         self.left, self.right = self._initiate_daughter_nodes()
         self.left.fit(X[index_left], y[index_left])
@@ -57,41 +59,41 @@ class RegressionTree:
     def _find_split(self, X, y) -> tuple:
         """Calculate the best split for a decision tree"""
         sse_best = self.sse
-        best_feature = None
-        best_threshold = None
-        best_default_split = 'right'
+        best_feature, best_threshold, best_default_split = None, None, None
+        split_candidates = self._get_split_candidates(X)
 
-        for feature in range(0,X.shape[1]):
-            values = np.sort(np.unique(X[:,feature]))
-            numbers_between_values = np.convolve(values, np.ones(2), 'valid') / 2
-            threshold_candidates = numbers_between_values[1:-1]
-
-            for threshold in threshold_candidates:
-                if self.missing_rule == 'majority' or (self.missing_rule == 'mia' and sum(np.isnan(X[:,feature]))==0):
-                    default_split = 'left' if sum(X[:,feature]<threshold)>sum(X[:,feature]>=threshold) else 'right'
-                    sse = self._calculate_split_sse(X,y,feature,threshold,default_split)
-                    if sse < sse_best:
-                        sse_best = sse
-                        best_feature = feature
-                        best_threshold = threshold
-                        best_default_split = default_split
-
-                elif self.missing_rule == 'mia':
-                    for default_split in ['left','right']:
-                        sse = self._calculate_split_sse(X,y,feature,threshold,default_split)
-                        if sse < sse_best:
-                            sse_best = sse
-                            best_feature = feature
-                            best_threshold = threshold
-                            best_default_split = default_split
+        for feature, threshold, default_split in split_candidates:
+            sse = self._calculate_split_sse(X,y,feature,threshold,default_split)
+            if sse < sse_best:
+                sse_best = sse
+                best_feature, best_threshold, best_default_split = feature, threshold, default_split
 
         return best_feature, best_threshold, best_default_split
 
+    def _get_split_candidates(self,X):
+        features = [feature for feature in range(X.shape[1]) if sum(np.isnan(X[:,feature]))<len(X)]
+        thresholds = [self._get_threshold_candidates(X[:,feature]) for feature in features]
+
+        if self.missing_rule == 'mia':
+            default_splits = ['left','right']
+            combinations = [list(itertools.product([features[feature]],thresholds[feature],default_splits)) for feature in features]
+            return list(itertools.chain.from_iterable(combinations))
+
+        elif self.missing_rule == 'majority':
+            feature_threshold_combinations = [list(itertools.product([features[feature]],thresholds[feature])) for feature in features]
+            feature_threshold_candidates = list(itertools.chain.from_iterable(feature_threshold_combinations))
+            default_splits = ['left' if sum(X[:,feature]<threshold)>sum(X[:,feature]>=threshold) else 'right' for feature,threshold in feature_threshold_candidates]
+            return [feature_threshold +(default_rule,) for feature_threshold,default_rule in zip(feature_threshold_candidates,default_splits)]
+
+    def _get_threshold_candidates(self,X):
+        values = np.sort(np.unique(X[~np.isnan(X)]))
+        numbers_between_values = np.convolve(values, np.ones(2), 'valid') / 2
+        return numbers_between_values
+
     def _calculate_split_sse(self,X,y,feature,threshold,default_split):
+        index_left = (X[:, feature] < threshold)
         if default_split == 'left':
-            index_left = (X[:,feature]<threshold)|np.isnan(X[:,feature])
-        else:
-            index_left = (X[:,feature]<threshold)
+            index_left |= np.isnan(X[:, feature])
 
         # To avoid hyperparameter-illegal splits
         if (sum(index_left)<self.min_samples_split) or (sum(~index_left)<self.min_samples_split):
@@ -120,10 +122,9 @@ class RegressionTree:
             y_hat[:] = self.yhat
             return y_hat
 
+        index_left = (X[:, self.feature] < self.threshold)
         if self.default_split == 'left':
-            index_left = (X[:,self.feature]<self.threshold)|np.isnan(X[:,self.feature])
-        else:
-            index_left = (X[:,self.feature]<self.threshold)
+            index_left |= np.isnan(X[:, self.feature])
 
         y_hat[index_left] = self.left.predict(X[index_left])
         y_hat[~index_left] = self.right.predict(X[~index_left])
