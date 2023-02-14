@@ -5,6 +5,11 @@ import pandas as pd
 import numpy as np
 import copy
 
+class MissingValuesInRespnonse(Exception):
+    pass
+
+class CantPrintUnfittedTree(Exception):
+    pass
 
 class RegressionTree:
     """
@@ -33,9 +38,11 @@ class RegressionTree:
 
     def fit(self, X, y):
         """Recursive method to fit the decision tree"""
+        if sum(np.isnan(y))!=0:
+            raise MissingValuesInRespnonse("n/a not allowed in response (y)")
+
         X = X.values if isinstance(X,pd.DataFrame) else X
         y = y.values if isinstance(y,pd.Series) else y
-        X, y = X[~np.isnan(y)], y[~np.isnan(y)]
 
         self.yhat = y.mean()
         self.sse = ((y-self.yhat)**2).sum()
@@ -132,6 +139,10 @@ class RegressionTree:
         return y_hat
 
     def print(self):
+        """ Print the tree structure"""
+        if self.yhat is None:
+            raise CantPrintUnfittedTree("Can't print tree before fitting to data")
+
         hspace = '---'*self.depth
         print(hspace+f'Number of observations: {self.n}')
         print(hspace+f'Response estimate: {np.round(self.yhat,2)}')

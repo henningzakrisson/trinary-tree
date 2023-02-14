@@ -39,7 +39,7 @@ class RegressionTreeTest(unittest.TestCase):
 
         max_depth = 2
         tree = tree = RegressionTree(max_depth = max_depth)
-        tree.fit(df[['X_0','X_1']],df['y'])
+        tree.fit(df.loc[~df['y'].isna(),['X_0','X_1']],df.loc[~df['y'].isna(),'y'])
 
         df['y_hat'] = tree.predict(df[['X_0','X_1']])
 
@@ -53,7 +53,7 @@ class RegressionTreeTest(unittest.TestCase):
         max_depth = 2
         tree = tree = RegressionTree(max_depth = max_depth,
                                      missing_rule='mia')
-        tree.fit(df[['X_0','X_1']],df['y'])
+        tree.fit(df.loc[~df['y'].isna(),['X_0','X_1']],df.loc[~df['y'].isna(),'y'])
 
         df['y_hat'] = tree.predict(df[['X_0','X_1']])
 
