@@ -2,14 +2,14 @@ import unittest
 import pandas as pd
 import numpy as np
 
-class RegressionTreeTest(unittest.TestCase):
+class BinaryRegressionTreeTest(unittest.TestCase):
     def test_responses(self):
-        from src.simple_tree.simple_tree import RegressionTree
+        from src.binary_tree.binary_tree import BinaryRegressionTree
         df = pd.read_csv('data/test_data.csv',index_col = 0)
 
         df_hat = df[['y','X_0','X_1']].copy()
         for max_depth in [1,2]:
-            tree = RegressionTree(max_depth = max_depth)
+            tree = BinaryRegressionTree(max_depth = max_depth)
             tree.fit(df[['X_0','X_1']],df['y'])
             y_hat = tree.predict(df_hat[['X_0','X_1']])
 
@@ -20,12 +20,12 @@ class RegressionTreeTest(unittest.TestCase):
                          len(columns) * len(df))
 
     def test_no_more_splits(self):
-        from src.simple_tree.simple_tree import RegressionTree
+        from src.binary_tree.binary_tree import BinaryRegressionTree
         df = pd.read_csv('data/test_data.csv',index_col = 0)
 
         df_hat = df[['y','X_0','X_1']].copy()
         max_depth = 10
-        tree = RegressionTree(max_depth = max_depth)
+        tree = BinaryRegressionTree(max_depth = max_depth)
         tree.fit(df[['X_0','X_1']],df['y'])
         y_hat = tree.predict(df_hat[['X_0','X_1']])
 
@@ -35,11 +35,11 @@ class RegressionTreeTest(unittest.TestCase):
                          len(df))
 
     def test_default_majority(self):
-        from src.simple_tree.simple_tree import RegressionTree
+        from src.binary_tree.binary_tree import BinaryRegressionTree
         df = pd.read_csv('data/test_data_majority.csv',index_col = 0)
 
         max_depth = 2
-        tree = RegressionTree(max_depth = max_depth)
+        tree = BinaryRegressionTree(max_depth = max_depth)
         tree.fit(df.loc[~df['y'].isna(),['X_0','X_1']],df.loc[~df['y'].isna(),'y'])
 
         df['y_hat'] = tree.predict(df[['X_0','X_1']])
@@ -48,11 +48,11 @@ class RegressionTreeTest(unittest.TestCase):
                          sum(~df['y'].isna()))
 
     def test_default_mia(self):
-        from src.simple_tree.simple_tree import RegressionTree
+        from src.binary_tree.binary_tree import BinaryRegressionTree
         df = pd.read_csv('data/test_data_mia.csv',index_col = 0)
 
         max_depth = 2
-        tree = RegressionTree(max_depth = max_depth,
+        tree = BinaryRegressionTree(max_depth = max_depth,
                                      missing_rule='mia')
         tree.fit(df.loc[~df['y'].isna(),['X_0','X_1']],df.loc[~df['y'].isna(),'y'])
 
@@ -60,14 +60,14 @@ class RegressionTreeTest(unittest.TestCase):
 
         self.assertEqual((df['y_hat']==df['y']).sum(),len(df))
 
-    def test_feature_importance(self):
-        from src.simple_tree.simple_tree import RegressionTree
+    def test_feature_importance_train(self):
+        from src.binary_tree.binary_tree import BinaryRegressionTree
         x0 = np.arange(1,100)
         x1 = np.ones(len(x0))
         X = np.stack([x0,x1]).T
         y = 10 * (x0>50)
 
-        tree = RegressionTree(max_depth=2)
+        tree = BinaryRegressionTree(max_depth=2)
         tree.fit(X,y)
         feature_importance = tree.feature_importance()
 
