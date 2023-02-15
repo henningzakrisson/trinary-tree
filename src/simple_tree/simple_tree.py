@@ -1,6 +1,5 @@
 # Data handling and math
 import itertools
-
 import pandas as pd
 import numpy as np
 import copy
@@ -20,21 +19,25 @@ class RegressionTree:
         min_samples_split=20,
         max_depth=2,
         depth=0,
-        missing_rule = 'majority'
+        missing_rule = 'majority',
+        node_index = 0
     ):
         self.min_samples_split = min_samples_split
         self.max_depth = max_depth
         self.depth = depth
         self.missing_rule = missing_rule
+        self.node_index = node_index
 
         self.n = 0
         self.yhat = None
         self.sse = None
         self.feature = None
+        self.available_features = []
         self.threshold = None
         self.default_split = None
         self.left = None
         self.right = None
+        self.node_importance = 0
 
     def fit(self, X, y):
         """Recursive method to fit the decision tree"""
@@ -44,6 +47,7 @@ class RegressionTree:
         X = X.values if isinstance(X,pd.DataFrame) else X
         y = y.values if isinstance(y,pd.Series) else y
 
+        self.available_features = np.arange(X.shape[1])
         self.yhat = y.mean()
         self.sse = ((y-self.yhat)**2).sum()
         self.n = len(y)
@@ -62,6 +66,8 @@ class RegressionTree:
         self.left, self.right = self._initiate_daughter_nodes()
         self.left.fit(X[index_left], y[index_left])
         self.right.fit(X[~index_left], y[~index_left])
+
+        self.node_importance = self._calculate_importance()
 
     def _find_split(self, X, y) -> tuple:
         """Calculate the best split for a decision tree"""
@@ -115,10 +121,36 @@ class RegressionTree:
                     min_samples_split=self.min_samples_split,
                     max_depth=self.max_depth,
                     depth=self.depth + 1,
-                    missing_rule= self.missing_rule
+                    missing_rule= self.missing_rule,
+                    node_index = 2*self.node_index
                     )
-        right = copy.copy(left)
+        right = RegressionTree(
+                    min_samples_split=self.min_samples_split,
+                    max_depth=self.max_depth,
+                    depth=self.depth + 1,
+                    missing_rule= self.missing_rule,
+                    node_index = 2*self.node_index + 1
+                    )
         return left, right
+
+    def _calculate_importance(self):
+        return self.sse - (self.left.n*self.left.sse + self.right.n*self.right.sse)/self.n
+
+    def feature_importance(self):
+        node_importances = self._get_node_importances(node_importances = {feature: [] for feature in self.available_features})
+        total_importances = {feature: sum(node_importances[feature]) for feature in node_importances}
+        feature_importances = {feature: total_importances[feature]/sum(total_importances.values()) for feature in total_importances}
+        return feature_importances
+
+    def _get_node_importances(self, node_importances):
+        if self.feature is not None:
+            node_importances[self.feature].append(self.node_importance)
+        if self.left is not None:
+            node_importances = self.left._get_node_importances(node_importances = node_importances)
+        if self.right is not None:
+            node_importances = self.right._get_node_importances(node_importances = node_importances)
+
+        return node_importances
 
     def predict(self,X):
         """Recursive method to predict from new of features"""
