@@ -1,14 +1,9 @@
-# Data handling and math
 import itertools
 import pandas as pd
 import numpy as np
 import copy
 
-class MissingValuesInRespnonse(Exception):
-    pass
-
-class CantPrintUnfittedTree(Exception):
-    pass
+from src.exceptions import MissingValuesInRespnonse,CantPrintUnfittedTree
 
 class BinaryRegressionTree:
     """
@@ -19,14 +14,14 @@ class BinaryRegressionTree:
         min_samples_split=20,
         max_depth=2,
         depth=0,
-        missing_rule = 'majority',
-        node_index = 0
+        node_index = 0,
+        missing_rule = 'majority'
     ):
         self.min_samples_split = min_samples_split
         self.max_depth = max_depth
         self.depth = depth
-        self.missing_rule = missing_rule
         self.node_index = node_index
+        self.missing_rule = missing_rule
 
         self.n = 0
         self.yhat = None
@@ -121,15 +116,15 @@ class BinaryRegressionTree:
                     min_samples_split=self.min_samples_split,
                     max_depth=self.max_depth,
                     depth=self.depth + 1,
-                    missing_rule= self.missing_rule,
-                    node_index = 2*self.node_index
+                    node_index = 2*self.node_index,
+                    missing_rule= self.missing_rule
                     )
         right = BinaryRegressionTree(
                     min_samples_split=self.min_samples_split,
                     max_depth=self.max_depth,
                     depth=self.depth + 1,
-                    missing_rule= self.missing_rule,
-                    node_index = 2*self.node_index + 1
+                    node_index = 2*self.node_index + 1,
+                    missing_rule= self.missing_rule
                     )
         return left, right
 
