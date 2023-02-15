@@ -10,9 +10,9 @@ class MissingValuesInRespnonse(Exception):
 class CantPrintUnfittedTree(Exception):
     pass
 
-class RegressionTree:
+class BinaryRegressionTree:
     """
-    Class to grow a regression decision tree
+    Class to grow a binary regression decision tree
     """
     def __init__(
         self,
@@ -41,7 +41,7 @@ class RegressionTree:
 
     def fit(self, X, y):
         """Recursive method to fit the decision tree"""
-        if sum(np.isnan(y))!=0:
+        if np.any(np.isnan(y)):
             raise MissingValuesInRespnonse("n/a not allowed in response (y)")
 
         X = X.values if isinstance(X,pd.DataFrame) else X
@@ -117,14 +117,14 @@ class RegressionTree:
         return sse_left + sse_right
 
     def _initiate_daughter_nodes(self):
-        left = RegressionTree(
+        left = BinaryRegressionTree(
                     min_samples_split=self.min_samples_split,
                     max_depth=self.max_depth,
                     depth=self.depth + 1,
                     missing_rule= self.missing_rule,
                     node_index = 2*self.node_index
                     )
-        right = RegressionTree(
+        right = BinaryRegressionTree(
                     min_samples_split=self.min_samples_split,
                     max_depth=self.max_depth,
                     depth=self.depth + 1,
@@ -198,7 +198,7 @@ if __name__ == '__main__':
     X = np.stack([x0,x1]).T
     y = 10 * (x0>=n/2) + 2 * (x1>=(n/10)/2)
 
-    tree = RegressionTree(max_depth=5, min_samples_split = 1)
+    tree = BinaryRegressionTree(max_depth=5, min_samples_split = 1)
     tree.fit(X = X, y = y)
 
     tree.print()
