@@ -2,6 +2,8 @@ import unittest
 import pandas as pd
 import numpy as np
 
+from src.exceptions_and_warnings.custom_warnings import MissingFeatureWarning,ExtraFeatureWarning
+
 class BinaryRegressionTreeTest(unittest.TestCase):
     def test_responses(self):
         from src.binary_tree.binary_tree import BinaryRegressionTree
@@ -60,7 +62,7 @@ class BinaryRegressionTreeTest(unittest.TestCase):
 
         self.assertEqual((df['y_hat']==df['y']).sum(),len(df))
 
-    def test_feature_importance_train(self):
+    def test_feature_importance(self):
         from src.binary_tree.binary_tree import BinaryRegressionTree
         x0 = np.arange(1,100)
         x1 = np.ones(len(x0))
@@ -73,6 +75,35 @@ class BinaryRegressionTreeTest(unittest.TestCase):
 
         self.assertEqual(feature_importance[0],1)
         self.assertEqual(feature_importance[1],0)
+
+    def test_missing_feature_warning(self):
+        from src.binary_tree.binary_tree import BinaryRegressionTree
+        x0 = np.arange(1,100)
+        x1 = np.ones(len(x0))
+        x2 = np.tile(np.arange(0,10),10)[:-1]
+        X = np.stack([x0,x1,x2]).T
+        y = 10 * (x0>50) + 2 * (x2>5)
+
+        tree = BinaryRegressionTree(max_depth=2)
+        tree.fit(X,y)
+
+        with self.assertWarns(MissingFeatureWarning):
+            y_hat = tree.predict(X[:,:2])
+
+    def test_redundant_feature_warning(self):
+        from src.binary_tree.binary_tree import BinaryRegressionTree
+        x0 = np.arange(1,100)
+        x1 = np.ones(len(x0))
+        x2 = np.tile(np.arange(0,10),10)[:-1]
+        X = np.stack([x0,x1]).T
+        y = 10 * (x0>50) + 2
+
+        tree = BinaryRegressionTree(max_depth=2)
+        tree.fit(X,y)
+
+        with self.assertWarns(ExtraFeatureWarning):
+            X_extra = np.c_[X,x2]
+            y_hat = tree.predict(X_extra)
 
 if __name__ == '__main__':
     unittest.main()

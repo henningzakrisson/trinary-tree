@@ -1,14 +1,12 @@
 # Data handling and math
 import itertools
+import warnings
+
 import pandas as pd
 import numpy as np
 import copy
-
-class MissingValuesInRespnonse(Exception):
-    pass
-
-class CantPrintUnfittedTree(Exception):
-    pass
+from src.exceptions_and_warnings.custom_exceptions import MissingValuesInRespnonse, CantPrintUnfittedTree
+from src.exceptions_and_warnings.custom_warnings import MissingFeatureWarning, ExtraFeatureWarning
 
 class BinaryRegressionTree:
     """
@@ -155,6 +153,13 @@ class BinaryRegressionTree:
     def predict(self,X):
         """Recursive method to predict from new of features"""
         X = X.values if isinstance(X,pd.DataFrame) else X
+        if X.shape[1] < len(self.available_features):
+            warnings.warn('Covariate matrix missing features - filling with n/a',MissingFeatureWarning)
+            X_fill = np.ones((len(X), len(self.available_features) - X.shape[1]))
+            X = np.c_[X, X_fill]
+        elif X.shape[1] > len(self.available_features):
+            warnings.warn('Covariate matrix contains redundant features',ExtraFeatureWarning)
+
         y_hat = np.ones(len(X))*np.nan
 
         if self.left is None:
