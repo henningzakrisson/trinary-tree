@@ -32,7 +32,7 @@ class TrinaryRegressionTree:
         self.left = None
         self.middle = None
         self.right = None
-        #self.node_importance = 0
+        self.node_importance = 0
 
     def fit(self, X, y, X_true = None, y_true = None):
         """Recursive method to fit the decision tree
@@ -84,8 +84,7 @@ class TrinaryRegressionTree:
             index_middle_true = np.isnan(X_true[:,self.feature])
             self.middle.fit(X_middle, y, X_true = X_true[index_middle_true], y_true = y_true[index_middle_true])
 
-        # TODO: add node importance calculation
-        #self.node_importance = self._calculate_importance()
+        self.node_importance = self._calculate_importance()
 
     def _find_split(self, X, y) -> tuple:
         """"Calculate the best split for a decision tree"""
@@ -152,6 +151,28 @@ class TrinaryRegressionTree:
                     )
         return left, middle, right
 
+    def _calculate_importance(self):
+        if self.n_true ==0:
+            return 0
+        else:
+            return self.sse_true - (self.left.n_true*self.left.sse_true + self.right.n_true*self.right.sse_true)/self.n_true
+
+    def feature_importance(self):
+        node_importances = self._get_node_importances(node_importances = {feature: [] for feature in self.available_features})
+        total_importances = {feature: sum(node_importances[feature]) for feature in node_importances}
+        feature_importances = {feature: total_importances[feature]/sum(total_importances.values()) for feature in total_importances}
+        return feature_importances
+
+    def _get_node_importances(self, node_importances):
+        if self.feature is not None:
+            node_importances[self.feature].append(self.node_importance)
+        if self.left is not None:
+            node_importances = self.left._get_node_importances(node_importances = node_importances)
+        if self.right is not None:
+            node_importances = self.right._get_node_importances(node_importances = node_importances)
+
+        return node_importances
+
 
     def predict(self,X):
         """Recursive method to predict from new of features"""
@@ -217,3 +238,5 @@ if __name__ == '__main__':
     tree.fit(X = X, y = y)
 
     tree.print()
+
+    print(tree.feature_importance())
