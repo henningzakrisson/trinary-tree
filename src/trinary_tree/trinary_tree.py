@@ -34,18 +34,33 @@ class TrinaryRegressionTree:
         self.right = None
         #self.node_importance = 0
 
-    def fit(self, X, y):
-        """Recursive method to fit the decision tree"""
-        if np.any(np.isnan(y)):
-            raise MissingValuesInRespnonse("n/a not allowed in response (y)")
+    def fit(self, X, y, X_true = None, y_true = None):
+        """Recursive method to fit the decision tree
 
+        X_true, y_true corresponds to training data ending up in this node
+        X, y corresponds to training data
+        They are equal for all non-middle nodes
+        """
         X = X.values if isinstance(X,pd.DataFrame) else X
         y = y.values if isinstance(y,pd.Series) else y
+
+        # If true dataset not provided, training set is true dataset
+        if X_true is None:
+            X_true = X
+            y_true = y
+        else:
+            X_true = X_true.values if isinstance(X_true,pd.DataFrame) else X_true
+            y_true = y_true.values if isinstance(y_true,pd.Series) else y_true
+
+        if np.any(np.isnan(y)) or np.any(np.isnan(y_true)):
+            raise MissingValuesInRespnonse("n/a not allowed in response (y)")
 
         self.available_features = np.arange(X.shape[1])
         self.yhat = y.mean()
         self.sse = ((y-self.yhat)**2).sum()
+        self.sse_true = ((y_true-self.yhat)**2).sum()
         self.n = len(y)
+        self.n_true = len(y_true)
 
         if (self.depth >= self.max_depth) or (self.n <= self.min_samples_split):
             return
@@ -55,7 +70,6 @@ class TrinaryRegressionTree:
             return
 
         index_left = X[:, self.feature] < self.threshold
-        index_middle = np.isnan(X[:,self.feature])
         index_right = X[:, self.feature] >= self.threshold
 
         self.left, self.middle, self.right = self._initiate_daughter_nodes()
@@ -64,7 +78,11 @@ class TrinaryRegressionTree:
 
         X_middle = X.copy()
         X_middle[:,self.feature] = np.nan
-        self.middle.fit(X_middle, y)
+        if (len(X_true)==0) or (len(y_true)==0):
+            self.middle.fit(X_middle, y, X_true = X_true, y_true = y_true)
+        else:
+            index_middle_true = np.isnan(X_true[:,self.feature])
+            self.middle.fit(X_middle, y, X_true = X_true[index_middle_true], y_true = y_true[index_middle_true])
 
         # TODO: add node importance calculation
         #self.node_importance = self._calculate_importance()
@@ -167,8 +185,9 @@ class TrinaryRegressionTree:
             raise CantPrintUnfittedTree("Can't print tree before fitting to data")
 
         hspace = '---'*self.depth
-        print(hspace+f'Number of observations: {self.n}')
+        print(hspace+f'Number of observations: {self.n_true}')
         print(hspace+f'Response estimate: {np.round(self.yhat,2)}')
+        print(hspace+f'SSE: {np.round(self.sse_true,2)}')
         if self.left is not None:
             left_rule  = f'if {self.feature} <  {np.round(self.threshold,2)}'
             middle_rule = f'if {self.feature} n/a'
@@ -194,7 +213,7 @@ if __name__ == '__main__':
     mask = mask.reshape(X.shape)
     X[mask] = np.nan
 
-    tree = TrinaryRegressionTree(max_depth=3, min_samples_split = 1)
+    tree = TrinaryRegressionTree(max_depth=2, min_samples_split = 1)
     tree.fit(X = X, y = y)
 
     tree.print()

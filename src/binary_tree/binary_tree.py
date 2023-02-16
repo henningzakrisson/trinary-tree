@@ -181,6 +181,7 @@ class BinaryRegressionTree:
         hspace = '---'*self.depth
         print(hspace+f'Number of observations: {self.n}')
         print(hspace+f'Response estimate: {np.round(self.yhat,2)}')
+        print(hspace+f'SSE: {np.round(self.sse,2)}')
         if self.left is not None:
             left_rule  = f'if {self.feature} <  {np.round(self.threshold,2)}'
             right_rule = f'if {self.feature} >=  {np.round(self.threshold,2)}'
