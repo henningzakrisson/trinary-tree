@@ -168,13 +168,10 @@ class RegressionTree:
             List of tuples containing (feature,threshold,default_split)-configurations to try
         """
         features = [
-            feature
-            for feature in X.columns
-            if X[feature].isna().sum() < len(X)
+            feature for feature in X.columns if X[feature].isna().sum() < len(X)
         ]
         thresholds = {
-            feature: self._get_threshold_candidates(X[feature])
-            for feature in features
+            feature: self._get_threshold_candidates(X[feature]) for feature in features
         }
 
         if self.missing_rule == "mia":
@@ -382,8 +379,10 @@ class RegressionTree:
             response predictions y_hat as a numpy array (m x 1)
         """
         X = pd.DataFrame(X) if isinstance(X, np.ndarray) else X
-        missing_features = [feature for feature in self.available_features if feature not in X.columns]
-        if len(missing_features)>0:
+        missing_features = [
+            feature for feature in self.available_features if feature not in X.columns
+        ]
+        if len(missing_features) > 0:
             warnings.warn(
                 f"Covariate matrix missing features {missing_features} - filling with n/a",
                 MissingFeatureWarning,
@@ -391,15 +390,17 @@ class RegressionTree:
             for feature in missing_features:
                 X[feature] = np.nan
 
-        extra_features = [feature for feature in X.columns if feature not in self.available_features]
-        if len(extra_features)>0:
+        extra_features = [
+            feature for feature in X.columns if feature not in self.available_features
+        ]
+        if len(extra_features) > 0:
             warnings.warn(
                 f"Covariate matrix missing features {extra_features} - filling with n/a",
                 ExtraFeatureWarning,
             )
-            X = X.drop(extra_features, axis = 1)
+            X = X.drop(extra_features, axis=1)
 
-        y_hat = pd.Series(index = X.index, dtype = float)
+        y_hat = pd.Series(index=X.index, dtype=float)
 
         if self.left is None:
             y_hat.loc[:] = self.yhat
@@ -449,7 +450,7 @@ class RegressionTree:
 
 
 if __name__ == "__main__":
-    """ Main function just to make the code run- and debuggable. Don't mind."""
+    """Main function just to make the code run- and debuggable. Don't mind."""
     seed = 12
     np.random.seed(seed)
     n = 1000  # number of data points
