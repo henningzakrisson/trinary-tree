@@ -99,5 +99,16 @@ class RegressionTreeTest(unittest.TestCase):
             X_extra = np.c_[X,x2]
             y_hat = tree.predict(X_extra)
 
+    def test_trinary_tree(self):
+        df_train = pd.read_csv('data/train_data_trinary.csv',index_col = 0)
+        df_test = pd.read_csv('data/test_data_trinary.csv',index_col=0)
+
+        tree = RegressionTree(max_depth = 2, missing_rule= 'trinary')
+        tree.fit(df_train[['X_0','X_1']],df_train['y'])
+
+        df_test['y_hat'] = tree.predict(df_test[['X_0','X_1']])
+
+        self.assertEqual((df_test['y']==df_test['y_hat']).sum(),len(df_test))
+
 if __name__ == '__main__':
     unittest.main()
