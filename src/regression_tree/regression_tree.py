@@ -75,26 +75,18 @@ class RegressionTree:
         Raises:
             MissingValuesInResponse: Can not fit to missing responses, thus errors out
         """
-        X = X.values if isinstance(X, pd.DataFrame) else X
-        y = y.values if isinstance(y, pd.Series) else y
+        X = pd.DataFrame(X) if isinstance(X, np.ndarray) else X
+        y = pd.Series(y) if isinstance(y, np.ndarray) else y
 
         # If true dataset not provided, training set is true dataset
         if X_true is None:
             X_true = X
             y_true = y
-        else:
-            X_true = X_true.values if isinstance(X_true, pd.DataFrame) else X_true
-            y_true = y_true.values if isinstance(y_true, pd.Series) else y_true
 
         if np.any(np.isnan(y)) or np.any(np.isnan(y_true)):
             raise MissingValuesInResponse("n/a not allowed in response (y)")
 
-        X = X.values if isinstance(X, pd.DataFrame) else X
-        y = y.values if isinstance(y, pd.Series) else y
-
-        self.available_features = np.arange(
-            X.shape[1]
-        )  # This means all features  in the input
+        self.available_features = X.columns  # This means all features  in the input
         self.yhat = y.mean()
         self.sse = ((y - self.yhat) ** 2).sum()
         self.sse_true = ((y_true - self.yhat) ** 2).sum()
@@ -111,28 +103,28 @@ class RegressionTree:
 
         # Send data to daughter nodes
         self.left, self.middle, self.right = self._initiate_daughter_nodes()
-        index_left = X[:, self.feature] < self.threshold
-        index_right = X[:, self.feature] >= self.threshold
+        index_left = X[self.feature] < self.threshold
+        index_right = X[self.feature] >= self.threshold
         if self.default_split == "left":
-            index_left |= np.isnan(X[:, self.feature])
+            index_left |= X[self.feature].isna()
         elif self.default_split == "right":
-            index_right |= np.isnan(X[:, self.feature])
-        self.left.fit(X[index_left], y[index_left])
-        self.right.fit(X[index_right], y[index_right])
+            index_right |= X[self.feature].isna()
+        self.left.fit(X.loc[index_left], y.loc[index_left])
+        self.right.fit(X.loc[index_right], y.loc[index_right])
 
         # For the trinary strategy
         if self.middle is not None:
             X_middle = X.copy()
-            X_middle[:, self.feature] = np.nan
+            X_middle[self.feature] = np.nan
             if (len(X_true) == 0) or (len(y_true) == 0):
                 self.middle.fit(X_middle, y, X_true=X_true, y_true=y_true)
             else:
-                index_middle_true = np.isnan(X_true[:, self.feature])
+                index_middle_true = X_true[self.feature].isna()
                 self.middle.fit(
                     X_middle,
                     y,
-                    X_true=X_true[index_middle_true],
-                    y_true=y_true[index_middle_true],
+                    X_true=X_true.loc[index_middle_true],
+                    y_true=y_true.loc[index_middle_true],
                 )
 
         self.node_importance = self._calculate_importance()
@@ -177,11 +169,11 @@ class RegressionTree:
         """
         features = [
             feature
-            for feature in range(X.shape[1])
-            if sum(np.isnan(X[:, feature])) < len(X)
+            for feature in X.columns
+            if X[feature].isna().sum() < len(X)
         ]
         thresholds = {
-            feature: self._get_threshold_candidates(X[:, feature])
+            feature: self._get_threshold_candidates(X[feature])
             for feature in features
         }
 
@@ -206,7 +198,7 @@ class RegressionTree:
             )
             default_splits = [
                 "left"
-                if sum(X[:, feature] < threshold) > sum(X[:, feature] >= threshold)
+                if sum(X[feature] < threshold) > sum(X[feature] >= threshold)
                 else "right"
                 for feature, threshold in feature_threshold_candidates
             ]
@@ -232,16 +224,15 @@ class RegressionTree:
          values between all unique non-missing datapoints
 
         Args:
-            x: Covariate vector for one certain feature
+            x: Covariate vector for one certain feature as a pandas Series
 
         Returns:
             numpy array or list of relevant thresholds
         """
-        if np.all(np.isnan(x)):
+        if np.all(x.isna()):
             return []
-        values = np.sort(np.unique(x[~np.isnan(x)]))
-        numbers_between_values = np.convolve(values, np.ones(2), "valid") / 2
-        return numbers_between_values
+        else:
+            return x.drop_duplicates().sort_values().rolling(2).mean().dropna().values
 
     def _calculate_split_sse(self, X, y, feature, threshold, default_split):
         """Calculates the sum of squared errors for this split
@@ -256,14 +247,14 @@ class RegressionTree:
         Returns:
             Total sse of this split for all daughter nodes
         """
-        index_left = X[:, feature] < threshold
-        index_right = X[:, feature] >= threshold
+        index_left = X[feature] < threshold
+        index_right = X[feature] >= threshold
         if default_split == "left":
-            index_left |= np.isnan(X[:, feature])
+            index_left |= X[feature].isna()
         elif default_split == "right":
-            index_right |= np.isnan(X[:, feature])
+            index_right |= X[feature].isna()
         elif default_split == "middle":
-            index_middle = np.isnan(X[:, feature])
+            index_middle = X[feature].isna()
 
         # To avoid hyperparameter-illegal splits
         if (sum(index_left) < self.min_samples_split) or (
@@ -271,10 +262,10 @@ class RegressionTree:
         ):
             return self.sse
 
-        sse_left = ((y[index_left] - y[index_left].mean()) ** 2).sum()
-        sse_right = ((y[index_right] - y[index_right].mean()) ** 2).sum()
+        sse_left = ((y.loc[index_left] - y.loc[index_left].mean()) ** 2).sum()
+        sse_right = ((y.loc[index_right] - y.loc[index_right].mean()) ** 2).sum()
         if default_split == "middle" and sum(index_middle) > 0:
-            sse_middle = ((y[index_middle] - y[index_middle].mean()) ** 2).sum()
+            sse_middle = ((y.loc[index_middle] - y.loc[index_middle].mean()) ** 2).sum()
         else:
             sse_middle = 0
         return sse_left + sse_middle + sse_right
@@ -390,37 +381,42 @@ class RegressionTree:
         Returns:
             response predictions y_hat as a numpy array (m x 1)
         """
-        X = X.values if isinstance(X, pd.DataFrame) else X
-        if X.shape[1] < len(self.available_features):
+        X = pd.DataFrame(X) if isinstance(X, np.ndarray) else X
+        missing_features = [feature for feature in self.available_features if feature not in X.columns]
+        if len(missing_features)>0:
             warnings.warn(
-                "Covariate matrix missing features - filling with n/a",
+                f"Covariate matrix missing features {missing_features} - filling with n/a",
                 MissingFeatureWarning,
             )
-            X_fill = np.ones((len(X), len(self.available_features) - X.shape[1]))
-            X = np.c_[X, X_fill]
-        elif X.shape[1] > len(self.available_features):
-            warnings.warn(
-                "Covariate matrix contains redundant features", ExtraFeatureWarning
-            )
+            for feature in missing_features:
+                X[feature] = np.nan
 
-        y_hat = np.ones(len(X)) * np.nan
+        extra_features = [feature for feature in X.columns if feature not in self.available_features]
+        if len(extra_features)>0:
+            warnings.warn(
+                f"Covariate matrix missing features {extra_features} - filling with n/a",
+                ExtraFeatureWarning,
+            )
+            X = X.drop(extra_features, axis = 1)
+
+        y_hat = pd.Series(index = X.index, dtype = float)
 
         if self.left is None:
-            y_hat[:] = self.yhat
+            y_hat.loc[:] = self.yhat
             return y_hat
 
-        index_left = X[:, self.feature] < self.threshold
-        index_right = X[:, self.feature] >= self.threshold
+        index_left = X[self.feature] < self.threshold
+        index_right = X[self.feature] >= self.threshold
         if self.default_split == "left":
-            index_left |= np.isnan(X[:, self.feature])
+            index_left |= X[self.feature].isna()
         elif self.default_split == "right":
-            index_right |= np.isnan(X[:, self.feature])
+            index_right |= X[self.feature].isna()
         elif self.default_split == "middle":
-            index_middle = np.isnan(X[:, self.feature])
-            y_hat[index_middle] = self.middle.predict(X[index_middle])
+            index_middle = X[self.feature].isna()
+            y_hat.loc[index_middle] = self.middle.predict(X.loc[index_middle])
 
-        y_hat[index_left] = self.left.predict(X[index_left])
-        y_hat[index_right] = self.right.predict(X[index_right])
+        y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
+        y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
 
         return y_hat
 
