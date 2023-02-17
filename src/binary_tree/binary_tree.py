@@ -81,10 +81,10 @@ class BinaryRegressionTree:
 
     def _get_split_candidates(self,X):
         features = [feature for feature in range(X.shape[1]) if sum(np.isnan(X[:,feature]))<len(X)]
-        thresholds = [self._get_threshold_candidates(X[:,feature]) for feature in features]
+        thresholds = {feature:self._get_threshold_candidates(X[:,feature]) for feature in features}
 
         if self.missing_rule == 'mia':
-            default_splits = ['left','right']
+            default_splits = ['right','left'] # This order to ensure right is default split
             combinations = [list(itertools.product([feature],thresholds[feature],default_splits)) for feature in features]
             return list(itertools.chain.from_iterable(combinations))
 
@@ -196,13 +196,49 @@ class BinaryRegressionTree:
             self.right.print()
 
 if __name__ == '__main__':
-    n = 1000
-    x0 = np.arange(0,n)
-    x1 = np.tile(np.arange(n/10),10)
-    X = np.stack([x0,x1]).T
-    y = 10 * (x0>=n/2) + 2 * (x1>=(n/10)/2)
+    seed = 12
+    np.random.seed(seed)
+    n = 1000 # number of data points
+    p = 5 # Covariate dimension
 
-    tree = BinaryRegressionTree(max_depth=5, min_samples_split = 1)
-    tree.fit(X = X, y = y)
+    # Feature vector
+    X = np.random.normal(0,1,(n,p))
 
-    tree.print()
+    # Response dependence on covariates
+    beta = np.arange(p)
+    mu = X @ beta
+
+    # Reponse
+    y = np.random.normal(mu)
+
+    # Missing value share
+    missing_fraction = 0.9
+    missing_index = np.random.binomial(1,missing_fraction,X.shape) == 1
+    X[missing_index] = np.nan
+
+    # Test train split
+    test_index = np.random.choice(np.arange(n),int(n/10))
+    X_train, X_test = X[~test_index], X[test_index]
+    y_train, y_test = y[~test_index], y[test_index]
+
+    # Tree hyperparameters
+    max_depth = 4
+    min_samples_split = 10
+
+    # Create trees
+    tree_maj = BinaryRegressionTree(max_depth = max_depth,
+                                    min_samples_split = min_samples_split,
+                                    missing_rule = 'majority')
+    tree_mia = BinaryRegressionTree(max_depth = max_depth,
+                                    min_samples_split = min_samples_split,
+                                    missing_rule = 'mia')
+    tree_maj.fit(X_train,y_train)
+    tree_mia.fit(X_train,y_train)
+
+    # Test data sse
+    y_test_hat_maj = tree_maj.predict(X_test)
+    y_test_hat_mia = tree_mia.predict(X_test)
+    sse_test_maj = sum((y_test_hat_maj - y_test)**2)
+    sse_test_mia = sum((y_test_hat_mia - y_test)**2)
+    pd.Series(data = [sse_test_maj,sse_test_mia],
+              index = ['majority','mia'])/len(y_test)
