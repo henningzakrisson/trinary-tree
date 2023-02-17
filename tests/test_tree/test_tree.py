@@ -105,6 +105,17 @@ class RegressionTreeTest(unittest.TestCase):
             msg="Response prediction for trinary tree not as expected",
         )
 
+    def test_tree_cat(self):
+        """ Test for categorical input"""
+        df = pd.read_csv("data/test_data_cat.csv", index_col=0)
+        X = df.drop('y',axis=1)
+        y = df['y']
+        tree = RegressionTree(max_depth = 4, min_samples_split = 1)
+        tree.fit(X, y)
+        y_hat = tree.predict(X)
+
+        self.assertEqual((y==y_hat).sum(),len(y),msg = "Categorical data prediction not correct for all datapoints")
+
     def test_feature_importance(self):
         """Test feature importance values of very simple example"""
         x0 = np.arange(1, 100)

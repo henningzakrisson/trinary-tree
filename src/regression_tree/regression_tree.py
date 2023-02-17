@@ -51,8 +51,10 @@ class RegressionTree:
         self.sse = None
         self.sse_true = None
         self.feature = None
+        self.feature_type = None
         self.available_features = []
-        self.threshold = None
+        self.threshold = None # For continous features
+        self.sets = None # Dict with left/right keys for categorical features
         self.default_split = None
         self.left = None
         self.middle = None
@@ -97,18 +99,28 @@ class RegressionTree:
         if (self.depth >= self.max_depth) or (self.n <= self.min_samples_split):
             return
 
-        self.feature, self.threshold, self.default_split = self._find_split(X, y)
+        # Find splitting parameters
+        self.feature, splitter, self.default_split = self._find_split(X, y)
+
         if self.feature is None:
             return
-
-        # Send data to daughter nodes
-        self.left, self.middle, self.right = self._initiate_daughter_nodes()
-        index_left = X[self.feature] < self.threshold
-        index_right = X[self.feature] >= self.threshold
+        elif X[self.feature].dtype == 'float':
+            self.feature_type = 'float'
+            self.threshold = splitter
+            index_left = X[self.feature] < self.threshold
+            index_right = X[self.feature] >= self.threshold
+        elif X[self.feature].dtype == 'object':
+            self.feature_type = 'object'
+            self.sets = splitter
+            index_left = X[self.feature].isin(self.sets['left'])
+            index_right = X[self.feature].isin(self.sets['right'])
         if self.default_split == "left":
             index_left |= X[self.feature].isna()
         elif self.default_split == "right":
             index_right |= X[self.feature].isna()
+
+        # Send data to daughter nodes
+        self.left, self.middle, self.right = self._initiate_daughter_nodes()
         self.left.fit(X.loc[index_left], y.loc[index_left])
         self.right.fit(X.loc[index_right], y.loc[index_right])
 
@@ -116,16 +128,13 @@ class RegressionTree:
         if self.middle is not None:
             X_middle = X.copy()
             X_middle[self.feature] = np.nan
-            if (len(X_true) == 0) or (len(y_true) == 0):
-                self.middle.fit(X_middle, y, X_true=X_true, y_true=y_true)
-            else:
-                index_middle_true = X_true[self.feature].isna()
-                self.middle.fit(
-                    X_middle,
-                    y,
-                    X_true=X_true.loc[index_middle_true],
-                    y_true=y_true.loc[index_middle_true],
-                )
+            index_middle_true = X_true[self.feature].isna()
+            self.middle.fit(
+                X_middle,
+                y,
+                X_true=X_true.loc[index_middle_true],
+                y_true=y_true.loc[index_middle_true],
+            )
 
         self.node_importance = self._calculate_importance()
 
@@ -138,25 +147,25 @@ class RegressionTree:
 
         Returns:
             best_feature: feature to split by for minimum sse
-            best_threshold: threshold to split feature by for minimum sse
+            best_splitter: threshold or left-category-set to split feature by for minimum sse
             best_default split: node to send missing values to
         """
         # Initiate here in order to not grow more if this sse is not beaten
         sse_best = self.sse
-        best_feature, best_threshold, best_default_split = None, None, None
+        best_feature, best_splitter, best_default_split = None, None, None
         split_candidates = self._get_split_candidates(X)
 
-        for feature, threshold, default_split in split_candidates:
-            sse = self._calculate_split_sse(X, y, feature, threshold, default_split)
+        for feature, splitter, default_split in split_candidates:
+            sse = self._calculate_split_sse(X, y, feature, splitter, default_split)
             if sse < sse_best:
                 sse_best = sse
-                best_feature, best_threshold, best_default_split = (
+                best_feature, best_splitter, best_default_split = (
                     feature,
-                    threshold,
+                    splitter,
                     default_split,
                 )
 
-        return best_feature, best_threshold, best_default_split
+        return best_feature, best_splitter, best_default_split
 
     def _get_split_candidates(self, X):
         """Get a set of candidates to test in order to find the optimal split
@@ -165,13 +174,13 @@ class RegressionTree:
             X: covariate vector
 
         Returns:
-            List of tuples containing (feature,threshold,default_split)-configurations to try
+            List of tuples containing (feature,splitter,default_split)-configurations to try
         """
         features = [
             feature for feature in X.columns if X[feature].isna().sum() < len(X)
         ]
-        thresholds = {
-            feature: self._get_threshold_candidates(X[feature]) for feature in features
+        splitters = {
+            feature: self._get_splitter_candidates(X[feature]) for feature in features
         }
 
         if self.missing_rule == "mia":
@@ -180,45 +189,60 @@ class RegressionTree:
                 "left",
             ]  # This order to ensure right is default split
             combinations = [
-                list(itertools.product([feature], thresholds[feature], default_splits))
+                list(itertools.product([feature], splitters[feature], default_splits))
                 for feature in features
             ]
             return list(itertools.chain.from_iterable(combinations))
 
         elif self.missing_rule == "majority":
-            feature_threshold_combinations = [
-                list(itertools.product([feature], thresholds[feature]))
+            feature_splitter_combinations = [
+                list(itertools.product([feature], splitters[feature]))
                 for feature in features
             ]
-            feature_threshold_candidates = list(
-                itertools.chain.from_iterable(feature_threshold_combinations)
+            feature_splitter_candidates = list(
+                itertools.chain.from_iterable(feature_splitter_combinations)
             )
             default_splits = [
-                "left"
-                if sum(X[feature] < threshold) > sum(X[feature] >= threshold)
-                else "right"
-                for feature, threshold in feature_threshold_candidates
+                self._get_majority_rule(X,feature,splitter)
+                for feature, splitter in feature_splitter_candidates
             ]
             return [
-                feature_threshold + (default_rule,)
-                for feature_threshold, default_rule in zip(
-                    feature_threshold_candidates, default_splits
+                feature_spitter + (default_split,)
+                for feature_spitter, default_split in zip(
+                    feature_splitter_candidates, default_splits
                 )
             ]
 
         elif self.missing_rule == "trinary":
             default_splits = ["middle"]
             combinations = [
-                list(itertools.product([feature], thresholds[feature], default_splits))
+                list(itertools.product([feature], splitters[feature], default_splits))
                 for feature in features
             ]
             return list(itertools.chain.from_iterable(combinations))
 
-    def _get_threshold_candidates(self, x):
-        """Get potential candidates for thresholds
+    def _get_majority_rule(self,X,feature,splitter):
+        """ Get which node the majority of the nodes go to for this split candidate
 
-        All values that split the data in a unique way is found by looking at
-         values between all unique non-missing datapoints
+        Args:
+            X: covariate vector
+            feature: feature to split on
+            splitter: threshold or sets
+
+        Return:
+            list of 'left' or 'right' depending on which node gets the most data
+        """
+        if isinstance(splitter,float):
+            return 'left' if sum(X[feature] < splitter) > sum(X[feature] >= splitter) else 'right'
+        elif isinstance(splitter,dict):
+            return 'left' if sum(X[feature].isin(splitter['left'])) > sum(X[feature].isin(splitter['right'])) else 'right'
+
+    def _get_splitter_candidates(self, x):
+        """Get potential candidates for splitters
+
+        For continous variables, all values that split the data in a unique way is found by looking at
+         values between all unique non-missing datapoints. For categorical variables, all possible
+         ways to split the set of unique categories are tried.
 
         Args:
             x: Covariate vector for one certain feature as a pandas Series
@@ -228,24 +252,34 @@ class RegressionTree:
         """
         if np.all(x.isna()):
             return []
-        else:
-            return x.drop_duplicates().sort_values().rolling(2).mean().dropna().values
+        elif x.dtype == 'float':
+            values = x.drop_duplicates()
+            return values.sort_values().rolling(2).mean().dropna().values
+        elif x.dtype == 'object':
+            values = x.dropna().unique()
+            left_sets = list(itertools.chain.from_iterable(itertools.combinations(values, r) for r in range(1,len(values))))
+            right_sets = [[value for value in values if value not in left_set] for left_set in left_sets]
+            return [{'left': left_set, 'right': right_set} for left_set, right_set in zip(left_sets,right_sets)]
 
-    def _calculate_split_sse(self, X, y, feature, threshold, default_split):
+    def _calculate_split_sse(self, X, y, feature, splitter, default_split):
         """Calculates the sum of squared errors for this split
 
         Args:
             X: covariate vector
             y: response vector
             feature: feature of X to split data on
-            threshold: value of feature to split data by
+            splitter: threshold or set of categories that will go to the left node
             default_split: node to put missing values in
 
         Returns:
             Total sse of this split for all daughter nodes
         """
-        index_left = X[feature] < threshold
-        index_right = X[feature] >= threshold
+        if X[feature].dtype == 'float':
+            index_left = X[feature] < splitter
+            index_right = X[feature] >= splitter
+        elif X[feature].dtype == 'object':
+            index_left = X[feature].isin(splitter['left'])
+            index_right = X[feature].isin(splitter['right'])
         if default_split == "left":
             index_left |= X[feature].isna()
         elif default_split == "right":
@@ -261,10 +295,11 @@ class RegressionTree:
 
         sse_left = ((y.loc[index_left] - y.loc[index_left].mean()) ** 2).sum()
         sse_right = ((y.loc[index_right] - y.loc[index_right].mean()) ** 2).sum()
-        if default_split == "middle" and sum(index_middle) > 0:
-            sse_middle = ((y.loc[index_middle] - y.loc[index_middle].mean()) ** 2).sum()
+        if default_split == 'middle':
+            sse_middle = ((y.loc[index_middle] - self.yhat) ** 2).sum()
         else:
             sse_middle = 0
+
         return sse_left + sse_middle + sse_right
 
     def _initiate_daughter_nodes(self):
@@ -406,8 +441,12 @@ class RegressionTree:
             y_hat.loc[:] = self.yhat
             return y_hat
 
-        index_left = X[self.feature] < self.threshold
-        index_right = X[self.feature] >= self.threshold
+        if self.feature_type == 'float':
+            index_left = X[self.feature] < self.threshold
+            index_right = X[self.feature] >= self.threshold
+        elif self.feature_type == 'object':
+            index_left = X[self.feature].isin(self.sets['left'])
+            index_right = X[self.feature].isin(self.sets['right'])
         if self.default_split == "left":
             index_left |= X[self.feature].isna()
         elif self.default_split == "right":
@@ -431,8 +470,12 @@ class RegressionTree:
         print(hspace + f"Response estimate: {np.round(self.yhat,2)}")
         print(hspace + f"SSE: {np.round(self.sse,2)}")
         if self.left is not None:
-            left_rule = f"if {self.feature} <  {np.round(self.threshold,2)}"
-            right_rule = f"if {self.feature} >=  {np.round(self.threshold,2)}"
+            if self.feature_type == 'float':
+                left_rule = f"if {self.feature} <  {np.round(self.threshold,2)}"
+                right_rule = f"if {self.feature} >=  {np.round(self.threshold,2)}"
+            elif self.feature_type == 'object':
+                left_rule = f"if {self.feature} is "+ ", ".join(self.sets['left'])
+                right_rule = f"if {self.feature} is "+ ", ".join(self.sets['right'])
             if self.default_split == "middle":
                 middle_rule = f"if {self.feature} n/a"
             elif self.default_split == "left":
@@ -448,23 +491,19 @@ class RegressionTree:
             print(hspace + f"{right_rule}:")
             self.right.print()
 
-
 if __name__ == "__main__":
-    """Main function just to make the code run- and debuggable. Don't mind."""
+    """Main function to make the file run- and debuggable."""
     seed = 12
     np.random.seed(seed)
-    n = 1000  # number of data points
-    p = 5  # Covariate dimension
+    n = 5000  # number of data points
 
     # Feature vector
-    X = np.random.normal(0, 1, (n, p))
-
-    # Response dependence on covariates
-    beta = np.arange(p)
-    mu = X @ beta
-
+    X = pd.DataFrame()
+    X['feature_0'] =  np.linspace(0,100,n)
+    X['another_feature'] = np.tile(np.linspace(0,100,int(n/10)),10)
+    X['cat_feature'] = (['a'] * int(n*0.2)) + (['b'] * int(n*0.2)) + (['c'] * int(n*0.3)) + (['d'] * int(n*0.3))
     # Reponse
-    y = np.random.normal(mu)
+    y = 10*(X['cat_feature'].isin(['a','c']) + 2 * (X['another_feature'] >2) + 5 * ((X['another_feature'] > 2)&X['feature_0'] <= 20))
 
     # Missing value share
     missing_fraction = 0.5
@@ -472,9 +511,9 @@ if __name__ == "__main__":
     X[missing_index] = np.nan
 
     # Test train split
-    test_index = np.random.choice(np.arange(n), int(n / 10))
-    X_train, X_test = X[~test_index], X[test_index]
-    y_train, y_test = y[~test_index], y[test_index]
+    test_index = np.random.binomial(1,0.2,len(X))==1
+    X_train, X_test = X.loc[~test_index], X.loc[test_index]
+    y_train, y_test = y.loc[~test_index], y.loc[test_index]
 
     # Tree hyperparameters
     max_depth = 4
