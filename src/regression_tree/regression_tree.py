@@ -449,6 +449,7 @@ class RegressionTree:
 
 
 if __name__ == "__main__":
+    """ Main function just to make the code run- and debuggable. Don't mind."""
     seed = 12
     np.random.seed(seed)
     n = 1000  # number of data points
