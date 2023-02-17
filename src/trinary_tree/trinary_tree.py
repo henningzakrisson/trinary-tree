@@ -102,7 +102,7 @@ class TrinaryRegressionTree:
 
     def _get_split_candidates(self,X):
         features = [feature for feature in range(X.shape[1]) if sum(np.isnan(X[:,feature]))<len(X)]
-        thresholds = [self._get_threshold_candidates(X[:,feature]) for feature in range(X.shape[1])]
+        thresholds = {feature:self._get_threshold_candidates(X[:,feature]) for feature in features}
         combinations = [list(itertools.product([feature],thresholds[feature])) for feature in features]
         return list(itertools.chain.from_iterable(combinations))
 
