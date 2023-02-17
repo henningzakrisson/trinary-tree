@@ -2,11 +2,18 @@ import itertools
 import warnings
 import pandas as pd
 import numpy as np
-from src.exceptions_and_warnings.custom_exceptions import MissingValuesInResponse, CantPrintUnfittedTree
-from src.exceptions_and_warnings.custom_warnings import MissingFeatureWarning, ExtraFeatureWarning
+from src.exceptions_and_warnings.custom_exceptions import (
+    MissingValuesInResponse,
+    CantPrintUnfittedTree,
+)
+from src.exceptions_and_warnings.custom_warnings import (
+    MissingFeatureWarning,
+    ExtraFeatureWarning,
+)
+
 
 class RegressionTree:
-    """ Module for regression trees with three different ways of handling missing data
+    """Module for regression trees with three different ways of handling missing data
 
     The missing data strategies are:
      - Majority rule: missing datapoints go to the node with the most training data
@@ -14,12 +21,13 @@ class RegressionTree:
       which improved the loss the most in the training data
      - Trinary split: Creates a third node for missing values, which inherits data and output from mother node
     """
+
     def __init__(
         self,
         min_samples_split=20,
         max_depth=2,
         depth=0,
-        missing_rule = 'majority',
+        missing_rule="majority",
     ):
         """Initiate the tree
 
@@ -51,7 +59,7 @@ class RegressionTree:
         self.right = None
         self.node_importance = 0
 
-    def fit(self, X, y, X_true = None, y_true = None):
+    def fit(self, X, y, X_true=None, y_true=None):
         """Recursive method to fit the decision tree.
 
         Will call itself to create daughter nodes if applicable.
@@ -67,27 +75,29 @@ class RegressionTree:
         Raises:
             MissingValuesInResponse: Can not fit to missing responses, thus errors out
         """
-        X = X.values if isinstance(X,pd.DataFrame) else X
-        y = y.values if isinstance(y,pd.Series) else y
+        X = X.values if isinstance(X, pd.DataFrame) else X
+        y = y.values if isinstance(y, pd.Series) else y
 
         # If true dataset not provided, training set is true dataset
         if X_true is None:
             X_true = X
             y_true = y
         else:
-            X_true = X_true.values if isinstance(X_true,pd.DataFrame) else X_true
-            y_true = y_true.values if isinstance(y_true,pd.Series) else y_true
+            X_true = X_true.values if isinstance(X_true, pd.DataFrame) else X_true
+            y_true = y_true.values if isinstance(y_true, pd.Series) else y_true
 
         if np.any(np.isnan(y)) or np.any(np.isnan(y_true)):
             raise MissingValuesInResponse("n/a not allowed in response (y)")
 
-        X = X.values if isinstance(X,pd.DataFrame) else X
-        y = y.values if isinstance(y,pd.Series) else y
+        X = X.values if isinstance(X, pd.DataFrame) else X
+        y = y.values if isinstance(y, pd.Series) else y
 
-        self.available_features = np.arange(X.shape[1]) # This means all features  in the input
+        self.available_features = np.arange(
+            X.shape[1]
+        )  # This means all features  in the input
         self.yhat = y.mean()
-        self.sse = ((y-self.yhat)**2).sum()
-        self.sse_true = ((y_true-self.yhat)**2).sum()
+        self.sse = ((y - self.yhat) ** 2).sum()
+        self.sse_true = ((y_true - self.yhat) ** 2).sum()
         self.n = len(y)
         self.n_true = len(y_true)
 
@@ -103,9 +113,9 @@ class RegressionTree:
         self.left, self.middle, self.right = self._initiate_daughter_nodes()
         index_left = X[:, self.feature] < self.threshold
         index_right = X[:, self.feature] >= self.threshold
-        if self.default_split == 'left':
+        if self.default_split == "left":
             index_left |= np.isnan(X[:, self.feature])
-        elif self.default_split == 'right':
+        elif self.default_split == "right":
             index_right |= np.isnan(X[:, self.feature])
         self.left.fit(X[index_left], y[index_left])
         self.right.fit(X[index_right], y[index_right])
@@ -113,15 +123,17 @@ class RegressionTree:
         # For the trinary strategy
         if self.middle is not None:
             X_middle = X.copy()
-            X_middle[:,self.feature] = np.nan
-            if (len(X_true)==0) or (len(y_true)==0):
-                self.middle.fit(X_middle, y, X_true = X_true, y_true = y_true)
+            X_middle[:, self.feature] = np.nan
+            if (len(X_true) == 0) or (len(y_true) == 0):
+                self.middle.fit(X_middle, y, X_true=X_true, y_true=y_true)
             else:
-                index_middle_true = np.isnan(X_true[:,self.feature])
-                self.middle.fit(X_middle,
-                                y,
-                                X_true = X_true[index_middle_true],
-                                y_true = y_true[index_middle_true])
+                index_middle_true = np.isnan(X_true[:, self.feature])
+                self.middle.fit(
+                    X_middle,
+                    y,
+                    X_true=X_true[index_middle_true],
+                    y_true=y_true[index_middle_true],
+                )
 
         self.node_importance = self._calculate_importance()
 
@@ -143,14 +155,18 @@ class RegressionTree:
         split_candidates = self._get_split_candidates(X)
 
         for feature, threshold, default_split in split_candidates:
-            sse = self._calculate_split_sse(X,y,feature,threshold,default_split)
+            sse = self._calculate_split_sse(X, y, feature, threshold, default_split)
             if sse < sse_best:
                 sse_best = sse
-                best_feature, best_threshold, best_default_split = feature, threshold, default_split
+                best_feature, best_threshold, best_default_split = (
+                    feature,
+                    threshold,
+                    default_split,
+                )
 
         return best_feature, best_threshold, best_default_split
 
-    def _get_split_candidates(self,X):
+    def _get_split_candidates(self, X):
         """Get a set of candidates to test in order to find the optimal split
 
         Args:
@@ -159,26 +175,57 @@ class RegressionTree:
         Returns:
             List of tuples containing (feature,threshold,default_split)-configurations to try
         """
-        features = [feature for feature in range(X.shape[1]) if sum(np.isnan(X[:,feature]))<len(X)]
-        thresholds = {feature:self._get_threshold_candidates(X[:,feature]) for feature in features}
+        features = [
+            feature
+            for feature in range(X.shape[1])
+            if sum(np.isnan(X[:, feature])) < len(X)
+        ]
+        thresholds = {
+            feature: self._get_threshold_candidates(X[:, feature])
+            for feature in features
+        }
 
-        if self.missing_rule == 'mia':
-            default_splits = ['right','left'] # This order to ensure right is default split
-            combinations = [list(itertools.product([feature],thresholds[feature],default_splits)) for feature in features]
+        if self.missing_rule == "mia":
+            default_splits = [
+                "right",
+                "left",
+            ]  # This order to ensure right is default split
+            combinations = [
+                list(itertools.product([feature], thresholds[feature], default_splits))
+                for feature in features
+            ]
             return list(itertools.chain.from_iterable(combinations))
 
-        elif self.missing_rule == 'majority':
-            feature_threshold_combinations = [list(itertools.product([feature],thresholds[feature])) for feature in features]
-            feature_threshold_candidates = list(itertools.chain.from_iterable(feature_threshold_combinations))
-            default_splits = ['left' if sum(X[:,feature]<threshold)>sum(X[:,feature]>=threshold) else 'right' for feature,threshold in feature_threshold_candidates]
-            return [feature_threshold +(default_rule,) for feature_threshold,default_rule in zip(feature_threshold_candidates,default_splits)]
+        elif self.missing_rule == "majority":
+            feature_threshold_combinations = [
+                list(itertools.product([feature], thresholds[feature]))
+                for feature in features
+            ]
+            feature_threshold_candidates = list(
+                itertools.chain.from_iterable(feature_threshold_combinations)
+            )
+            default_splits = [
+                "left"
+                if sum(X[:, feature] < threshold) > sum(X[:, feature] >= threshold)
+                else "right"
+                for feature, threshold in feature_threshold_candidates
+            ]
+            return [
+                feature_threshold + (default_rule,)
+                for feature_threshold, default_rule in zip(
+                    feature_threshold_candidates, default_splits
+                )
+            ]
 
-        elif self.missing_rule == 'trinary':
-            default_splits = ['middle']
-            combinations = [list(itertools.product([feature],thresholds[feature],default_splits)) for feature in features]
+        elif self.missing_rule == "trinary":
+            default_splits = ["middle"]
+            combinations = [
+                list(itertools.product([feature], thresholds[feature], default_splits))
+                for feature in features
+            ]
             return list(itertools.chain.from_iterable(combinations))
 
-    def _get_threshold_candidates(self,x):
+    def _get_threshold_candidates(self, x):
         """Get potential candidates for thresholds
 
         All values that split the data in a unique way is found by looking at
@@ -193,10 +240,10 @@ class RegressionTree:
         if np.all(np.isnan(x)):
             return []
         values = np.sort(np.unique(x[~np.isnan(x)]))
-        numbers_between_values = np.convolve(values, np.ones(2), 'valid') / 2
+        numbers_between_values = np.convolve(values, np.ones(2), "valid") / 2
         return numbers_between_values
 
-    def _calculate_split_sse(self,X,y,feature,threshold,default_split):
+    def _calculate_split_sse(self, X, y, feature, threshold, default_split):
         """Calculates the sum of squared errors for this split
 
         Args:
@@ -210,79 +257,103 @@ class RegressionTree:
             Total sse of this split for all daughter nodes
         """
         index_left = X[:, feature] < threshold
-        index_right = X[:,feature] >= threshold
-        if default_split == 'left':
+        index_right = X[:, feature] >= threshold
+        if default_split == "left":
             index_left |= np.isnan(X[:, feature])
-        elif default_split == 'right':
+        elif default_split == "right":
             index_right |= np.isnan(X[:, feature])
-        elif default_split == 'middle':
+        elif default_split == "middle":
             index_middle = np.isnan(X[:, feature])
 
         # To avoid hyperparameter-illegal splits
-        if (sum(index_left)<self.min_samples_split) or (sum(index_right)<self.min_samples_split):
+        if (sum(index_left) < self.min_samples_split) or (
+            sum(index_right) < self.min_samples_split
+        ):
             return self.sse
 
-        sse_left = ((y[index_left] - y[index_left].mean())**2).sum()
-        sse_right = ((y[index_right] - y[index_right].mean())**2).sum()
-        if default_split == 'middle' and sum(index_middle)>0:
-            sse_middle = ((y[index_middle] - y[index_middle].mean())**2).sum()
+        sse_left = ((y[index_left] - y[index_left].mean()) ** 2).sum()
+        sse_right = ((y[index_right] - y[index_right].mean()) ** 2).sum()
+        if default_split == "middle" and sum(index_middle) > 0:
+            sse_middle = ((y[index_middle] - y[index_middle].mean()) ** 2).sum()
         else:
             sse_middle = 0
         return sse_left + sse_middle + sse_right
 
     def _initiate_daughter_nodes(self):
-        """ Create daughter nodes
+        """Create daughter nodes
 
         Return:
             tuple of three RegressionTrees. The one in the middle is None for non-trinary trees.
         """
         left = RegressionTree(
-                    min_samples_split=self.min_samples_split,
-                    max_depth=self.max_depth,
-                    depth=self.depth + 1,
-                    missing_rule= self.missing_rule,
-                    )
+            min_samples_split=self.min_samples_split,
+            max_depth=self.max_depth,
+            depth=self.depth + 1,
+            missing_rule=self.missing_rule,
+        )
         right = RegressionTree(
-                    min_samples_split=self.min_samples_split,
-                    max_depth=self.max_depth,
-                    depth=self.depth + 1,
-                    missing_rule= self.missing_rule,
-                    )
+            min_samples_split=self.min_samples_split,
+            max_depth=self.max_depth,
+            depth=self.depth + 1,
+            missing_rule=self.missing_rule,
+        )
 
-        if self.missing_rule == 'trinary':
+        if self.missing_rule == "trinary":
             middle = RegressionTree(
-                    min_samples_split=self.min_samples_split,
-                    max_depth=self.max_depth,
-                    depth=self.depth + 1,
-                    missing_rule= self.missing_rule,
-                    )
+                min_samples_split=self.min_samples_split,
+                max_depth=self.max_depth,
+                depth=self.depth + 1,
+                missing_rule=self.missing_rule,
+            )
         else:
             middle = None
         return left, middle, right
 
     def _calculate_importance(self):
-        """"Calculate node importance for the split in this node
+        """ "Calculate node importance for the split in this node
 
         Return:
             Node importance as a float
         """
         # If no values of the training data actually end up here it is of no importance
-        if self.n_true ==0:
+        if self.n_true == 0:
             return 0
-        elif self.default_split == 'trinary':
-            return self.sse_true - (self.left.n_true*self.left.sse_true + self.middle.n_true*self.middle.sse_true + self.right.n_true*self.right.sse_true)/self.n_true
+        elif self.default_split == "trinary":
+            return (
+                self.sse_true
+                - (
+                    self.left.n_true * self.left.sse_true
+                    + self.middle.n_true * self.middle.sse_true
+                    + self.right.n_true * self.right.sse_true
+                )
+                / self.n_true
+            )
         else:
-            return self.sse_true - (self.left.n_true*self.left.sse_true + self.right.n_true*self.right.sse_true)/self.n_true
+            return (
+                self.sse_true
+                - (
+                    self.left.n_true * self.left.sse_true
+                    + self.right.n_true * self.right.sse_true
+                )
+                / self.n_true
+            )
 
     def feature_importance(self):
-        """ Calculate feature importance for all features in X
+        """Calculate feature importance for all features in X
 
         Return:
             dict with keys corresponding to feature and values corresponding to their feature importances. Sums to 1.
         """
-        node_importances = self._get_node_importances(node_importances = {feature: [] for feature in self.available_features})
-        total_importances = {feature: sum(node_importances[feature]) for feature in node_importances}
-        feature_importances = {feature: total_importances[feature]/sum(total_importances.values()) for feature in total_importances}
+        node_importances = self._get_node_importances(
+            node_importances={feature: [] for feature in self.available_features}
+        )
+        total_importances = {
+            feature: sum(node_importances[feature]) for feature in node_importances
+        }
+        feature_importances = {
+            feature: total_importances[feature] / sum(total_importances.values())
+            for feature in total_importances
+        }
         return feature_importances
 
     def _get_node_importances(self, node_importances):
@@ -293,18 +364,24 @@ class RegressionTree:
 
         Return:
             dict with keys corresponding to feature and values corresponding to their feature importances.
-            """
+        """
         if self.feature is not None:
             node_importances[self.feature].append(self.node_importance)
         if self.left is not None:
-            node_importances = self.left._get_node_importances(node_importances = node_importances)
+            node_importances = self.left._get_node_importances(
+                node_importances=node_importances
+            )
         if self.right is not None:
-            node_importances = self.right._get_node_importances(node_importances = node_importances)
+            node_importances = self.right._get_node_importances(
+                node_importances=node_importances
+            )
         if self.middle is not None:
-            node_importances = self.middle._get_node_importances(node_importances = node_importances)
+            node_importances = self.middle._get_node_importances(
+                node_importances=node_importances
+            )
         return node_importances
 
-    def predict(self,X):
+    def predict(self, X):
         """Recursive method to predict from new of features
 
         Args:
@@ -313,15 +390,20 @@ class RegressionTree:
         Returns:
             response predictions y_hat as a numpy array (m x 1)
         """
-        X = X.values if isinstance(X,pd.DataFrame) else X
+        X = X.values if isinstance(X, pd.DataFrame) else X
         if X.shape[1] < len(self.available_features):
-            warnings.warn('Covariate matrix missing features - filling with n/a',MissingFeatureWarning)
+            warnings.warn(
+                "Covariate matrix missing features - filling with n/a",
+                MissingFeatureWarning,
+            )
             X_fill = np.ones((len(X), len(self.available_features) - X.shape[1]))
             X = np.c_[X, X_fill]
         elif X.shape[1] > len(self.available_features):
-            warnings.warn('Covariate matrix contains redundant features',ExtraFeatureWarning)
+            warnings.warn(
+                "Covariate matrix contains redundant features", ExtraFeatureWarning
+            )
 
-        y_hat = np.ones(len(X))*np.nan
+        y_hat = np.ones(len(X)) * np.nan
 
         if self.left is None:
             y_hat[:] = self.yhat
@@ -329,12 +411,12 @@ class RegressionTree:
 
         index_left = X[:, self.feature] < self.threshold
         index_right = X[:, self.feature] >= self.threshold
-        if self.default_split == 'left':
+        if self.default_split == "left":
             index_left |= np.isnan(X[:, self.feature])
-        elif self.default_split == 'right':
+        elif self.default_split == "right":
             index_right |= np.isnan(X[:, self.feature])
-        elif self.default_split == 'middle':
-            index_middle = np.isnan(X[:,self.feature])
+        elif self.default_split == "middle":
+            index_middle = np.isnan(X[:, self.feature])
             y_hat[index_middle] = self.middle.predict(X[index_middle])
 
         y_hat[index_left] = self.left.predict(X[index_left])
@@ -343,40 +425,41 @@ class RegressionTree:
         return y_hat
 
     def print(self):
-        """ Print the tree structure"""
+        """Print the tree structure"""
         if self.yhat is None:
             raise CantPrintUnfittedTree("Can't print tree before fitting to data")
 
-        hspace = '---'*self.depth
-        print(hspace+f'Number of observations: {self.n}')
-        print(hspace+f'Response estimate: {np.round(self.yhat,2)}')
-        print(hspace+f'SSE: {np.round(self.sse,2)}')
+        hspace = "---" * self.depth
+        print(hspace + f"Number of observations: {self.n}")
+        print(hspace + f"Response estimate: {np.round(self.yhat,2)}")
+        print(hspace + f"SSE: {np.round(self.sse,2)}")
         if self.left is not None:
-            left_rule  = f'if {self.feature} <  {np.round(self.threshold,2)}'
-            right_rule = f'if {self.feature} >=  {np.round(self.threshold,2)}'
-            if self.default_split == 'middle':
-                middle_rule = f'if {self.feature} n/a'
-            elif self.default_split=='left':
-                left_rule += ' or n/a'
+            left_rule = f"if {self.feature} <  {np.round(self.threshold,2)}"
+            right_rule = f"if {self.feature} >=  {np.round(self.threshold,2)}"
+            if self.default_split == "middle":
+                middle_rule = f"if {self.feature} n/a"
+            elif self.default_split == "left":
+                left_rule += " or n/a"
             else:
-                right_rule += ' or n/a'
+                right_rule += " or n/a"
 
-            print(hspace+f'{left_rule}:')
+            print(hspace + f"{left_rule}:")
             self.left.print()
-            if self.default_split == 'middle':
-                print(hspace+f'{middle_rule}:')
+            if self.default_split == "middle":
+                print(hspace + f"{middle_rule}:")
                 self.middle.print()
-            print(hspace+f'{right_rule}:')
+            print(hspace + f"{right_rule}:")
             self.right.print()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     seed = 12
     np.random.seed(seed)
-    n = 1000 # number of data points
-    p = 5 # Covariate dimension
+    n = 1000  # number of data points
+    p = 5  # Covariate dimension
 
     # Feature vector
-    X = np.random.normal(0,1,(n,p))
+    X = np.random.normal(0, 1, (n, p))
 
     # Response dependence on covariates
     beta = np.arange(p)
@@ -387,11 +470,11 @@ if __name__ == '__main__':
 
     # Missing value share
     missing_fraction = 0.5
-    missing_index = np.random.binomial(1,missing_fraction,X.shape) == 1
+    missing_index = np.random.binomial(1, missing_fraction, X.shape) == 1
     X[missing_index] = np.nan
 
     # Test train split
-    test_index = np.random.choice(np.arange(n),int(n/10))
+    test_index = np.random.choice(np.arange(n), int(n / 10))
     X_train, X_test = X[~test_index], X[test_index]
     y_train, y_test = y[~test_index], y[test_index]
 
@@ -400,35 +483,47 @@ if __name__ == '__main__':
     min_samples_split = 10
 
     # Create trees
-    tree_maj = RegressionTree(max_depth = max_depth,
-                                    min_samples_split = min_samples_split,
-                                    missing_rule = 'majority')
-    tree_mia = RegressionTree(max_depth = max_depth,
-                                    min_samples_split = min_samples_split,
-                                    missing_rule = 'mia')
-    tree_tri = RegressionTree(max_depth = max_depth,
-                                    min_samples_split = min_samples_split,
-                                    missing_rule = 'trinary')
-    tree_maj.fit(X_train,y_train)
-    tree_mia.fit(X_train,y_train)
-    tree_tri.fit(X_train,y_train)
+    tree_maj = RegressionTree(
+        max_depth=max_depth,
+        min_samples_split=min_samples_split,
+        missing_rule="majority",
+    )
+    tree_mia = RegressionTree(
+        max_depth=max_depth, min_samples_split=min_samples_split, missing_rule="mia"
+    )
+    tree_tri = RegressionTree(
+        max_depth=max_depth, min_samples_split=min_samples_split, missing_rule="trinary"
+    )
+    tree_maj.fit(X_train, y_train)
+    tree_mia.fit(X_train, y_train)
+    tree_tri.fit(X_train, y_train)
 
     # Train data sse
     y_train_hat_maj = tree_maj.predict(X_train)
     y_train_hat_mia = tree_mia.predict(X_train)
     y_train_hat_tri = tree_tri.predict(X_train)
-    sse_train_maj = sum((y_train_hat_maj - y_train)**2)
-    sse_train_mia = sum((y_train_hat_mia - y_train)**2)
-    sse_train_tri = sum((y_train_hat_tri - y_train)**2)
-    print(pd.Series(data = [sse_train_maj,sse_train_mia,sse_train_tri],
-              index = ['majority','mia','trinary'])/len(y_train))
+    sse_train_maj = sum((y_train_hat_maj - y_train) ** 2)
+    sse_train_mia = sum((y_train_hat_mia - y_train) ** 2)
+    sse_train_tri = sum((y_train_hat_tri - y_train) ** 2)
+    print(
+        pd.Series(
+            data=[sse_train_maj, sse_train_mia, sse_train_tri],
+            index=["majority", "mia", "trinary"],
+        )
+        / len(y_train)
+    )
 
     # Test data sse
     y_test_hat_maj = tree_maj.predict(X_test)
     y_test_hat_mia = tree_mia.predict(X_test)
     y_test_hat_tri = tree_tri.predict(X_test)
-    sse_test_maj = sum((y_test_hat_maj - y_test)**2)
-    sse_test_mia = sum((y_test_hat_mia - y_test)**2)
-    sse_test_tri = sum((y_test_hat_tri - y_test)**2)
-    print(pd.Series(data = [sse_test_maj,sse_test_mia,sse_test_tri],
-              index = ['majority','mia','trinary'])/len(y_test))
+    sse_test_maj = sum((y_test_hat_maj - y_test) ** 2)
+    sse_test_mia = sum((y_test_hat_mia - y_test) ** 2)
+    sse_test_tri = sum((y_test_hat_tri - y_test) ** 2)
+    print(
+        pd.Series(
+            data=[sse_test_maj, sse_test_mia, sse_test_tri],
+            index=["majority", "mia", "trinary"],
+        )
+        / len(y_test)
+    )
