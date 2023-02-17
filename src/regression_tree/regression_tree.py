@@ -2,12 +2,17 @@ import itertools
 import warnings
 import pandas as pd
 import numpy as np
-from src.exceptions_and_warnings.custom_exceptions import MissingValuesInRespnonse, CantPrintUnfittedTree
+from src.exceptions_and_warnings.custom_exceptions import MissingValuesInResponse, CantPrintUnfittedTree
 from src.exceptions_and_warnings.custom_warnings import MissingFeatureWarning, ExtraFeatureWarning
 
 class RegressionTree:
-    """
-    Class to grow a binary regression decision tree
+    """ Module for regression trees with three different ways of handling missing data
+
+    The missing data strategies are:
+     - Majority rule: missing datapoints go to the node with the most training data
+     - Missing Incorporated in Attributes (MIA): missing datapoints go to the node
+      which improved the loss the most in the training data
+     - Trinary split: Creates a third node for missing values, which inherits data and output from mother node
     """
     def __init__(
         self,
@@ -16,6 +21,17 @@ class RegressionTree:
         depth=0,
         missing_rule = 'majority',
     ):
+        """Initiate the tree
+
+        Args:
+            min_samples_split: number of datapoints as minimum to allow for daughter nodes (-1)
+            max_depth: number of levels allowed in the tree
+            depth: current depth. root node has depth 0
+            missing_rule: strategy to handle missing values
+
+        Returns:
+            RegressionTree object (which is a node. Can be a root node, a daughter node and/or a terminal node).
+        """
         self.min_samples_split = min_samples_split
         self.max_depth = max_depth
         self.depth = depth
@@ -36,11 +52,20 @@ class RegressionTree:
         self.node_importance = 0
 
     def fit(self, X, y, X_true = None, y_true = None):
-        """Recursive method to fit the decision tree
+        """Recursive method to fit the decision tree.
 
-        X_true, y_true corresponds to training data ending up in this node
-        X, y corresponds to training data
-        They are equal for all non-middle nodes
+        Will call itself to create daughter nodes if applicable.
+
+        Args:
+            X: covariate vector (n x p). numpy array or pandas DataFrame.
+            y: response vector (n x 1). numpy array or pandas Series.
+            X_true: covariate vector (n x p) of data that ends up in this node
+            during training. Only applicable for trinary trees - for others, X_true = X
+            y_true: response vector (n x 1) of data that ends up in this node
+            during training. Only applicable for trinary trees - for others, y_true = y
+
+        Raises:
+            MissingValuesInResponse: Can not fit to missing responses, thus errors out
         """
         X = X.values if isinstance(X,pd.DataFrame) else X
         y = y.values if isinstance(y,pd.Series) else y
@@ -54,18 +79,19 @@ class RegressionTree:
             y_true = y_true.values if isinstance(y_true,pd.Series) else y_true
 
         if np.any(np.isnan(y)) or np.any(np.isnan(y_true)):
-            raise MissingValuesInRespnonse("n/a not allowed in response (y)")
+            raise MissingValuesInResponse("n/a not allowed in response (y)")
 
         X = X.values if isinstance(X,pd.DataFrame) else X
         y = y.values if isinstance(y,pd.Series) else y
 
-        self.available_features = np.arange(X.shape[1])
+        self.available_features = np.arange(X.shape[1]) # This means all features  in the input
         self.yhat = y.mean()
         self.sse = ((y-self.yhat)**2).sum()
         self.sse_true = ((y_true-self.yhat)**2).sum()
         self.n = len(y)
         self.n_true = len(y_true)
 
+        # Check pruning conditions
         if (self.depth >= self.max_depth) or (self.n <= self.min_samples_split):
             return
 
@@ -73,17 +99,18 @@ class RegressionTree:
         if self.feature is None:
             return
 
+        # Send data to daughter nodes
+        self.left, self.middle, self.right = self._initiate_daughter_nodes()
         index_left = X[:, self.feature] < self.threshold
         index_right = X[:, self.feature] >= self.threshold
         if self.default_split == 'left':
             index_left |= np.isnan(X[:, self.feature])
         elif self.default_split == 'right':
             index_right |= np.isnan(X[:, self.feature])
-
-        self.left, self.middle, self.right = self._initiate_daughter_nodes()
         self.left.fit(X[index_left], y[index_left])
         self.right.fit(X[index_right], y[index_right])
 
+        # For the trinary strategy
         if self.middle is not None:
             X_middle = X.copy()
             X_middle[:,self.feature] = np.nan
@@ -99,7 +126,18 @@ class RegressionTree:
         self.node_importance = self._calculate_importance()
 
     def _find_split(self, X, y) -> tuple:
-        """Calculate the best split for a decision tree"""
+        """Calculate the best split for a decision tree
+
+        Args:
+            X: Covariates to choose from
+            y: response to fit nodes to
+
+        Returns:
+            best_feature: feature to split by for minimum sse
+            best_threshold: threshold to split feature by for minimum sse
+            best_default split: node to send missing values to
+        """
+        # Initiate here in order to not grow more if this sse is not beaten
         sse_best = self.sse
         best_feature, best_threshold, best_default_split = None, None, None
         split_candidates = self._get_split_candidates(X)
@@ -113,6 +151,14 @@ class RegressionTree:
         return best_feature, best_threshold, best_default_split
 
     def _get_split_candidates(self,X):
+        """Get a set of candidates to test in order to find the optimal split
+
+        Args:
+            X: covariate vector
+
+        Returns:
+            List of tuples containing (feature,threshold,default_split)-configurations to try
+        """
         features = [feature for feature in range(X.shape[1]) if sum(np.isnan(X[:,feature]))<len(X)]
         thresholds = {feature:self._get_threshold_candidates(X[:,feature]) for feature in features}
 
@@ -132,14 +178,37 @@ class RegressionTree:
             combinations = [list(itertools.product([feature],thresholds[feature],default_splits)) for feature in features]
             return list(itertools.chain.from_iterable(combinations))
 
-    def _get_threshold_candidates(self,X):
-        if np.all(np.isnan(X)):
+    def _get_threshold_candidates(self,x):
+        """Get potential candidates for thresholds
+
+        All values that split the data in a unique way is found by looking at
+         values between all unique non-missing datapoints
+
+        Args:
+            x: Covariate vector for one certain feature
+
+        Returns:
+            numpy array or list of relevant thresholds
+        """
+        if np.all(np.isnan(x)):
             return []
-        values = np.sort(np.unique(X[~np.isnan(X)]))
+        values = np.sort(np.unique(x[~np.isnan(x)]))
         numbers_between_values = np.convolve(values, np.ones(2), 'valid') / 2
         return numbers_between_values
 
     def _calculate_split_sse(self,X,y,feature,threshold,default_split):
+        """Calculates the sum of squared errors for this split
+
+        Args:
+            X: covariate vector
+            y: response vector
+            feature: feature of X to split data on
+            threshold: value of feature to split data by
+            default_split: node to put missing values in
+
+        Returns:
+            Total sse of this split for all daughter nodes
+        """
         index_left = X[:, feature] < threshold
         index_right = X[:,feature] >= threshold
         if default_split == 'left':
@@ -162,6 +231,11 @@ class RegressionTree:
         return sse_left + sse_middle + sse_right
 
     def _initiate_daughter_nodes(self):
+        """ Create daughter nodes
+
+        Return:
+            tuple of three RegressionTrees. The one in the middle is None for non-trinary trees.
+        """
         left = RegressionTree(
                     min_samples_split=self.min_samples_split,
                     max_depth=self.max_depth,
@@ -187,6 +261,12 @@ class RegressionTree:
         return left, middle, right
 
     def _calculate_importance(self):
+        """"Calculate node importance for the split in this node
+
+        Return:
+            Node importance as a float
+        """
+        # If no values of the training data actually end up here it is of no importance
         if self.n_true ==0:
             return 0
         elif self.default_split == 'trinary':
@@ -195,12 +275,25 @@ class RegressionTree:
             return self.sse_true - (self.left.n_true*self.left.sse_true + self.right.n_true*self.right.sse_true)/self.n_true
 
     def feature_importance(self):
+        """ Calculate feature importance for all features in X
+
+        Return:
+            dict with keys corresponding to feature and values corresponding to their feature importances. Sums to 1.
+        """
         node_importances = self._get_node_importances(node_importances = {feature: [] for feature in self.available_features})
         total_importances = {feature: sum(node_importances[feature]) for feature in node_importances}
         feature_importances = {feature: total_importances[feature]/sum(total_importances.values()) for feature in total_importances}
         return feature_importances
 
     def _get_node_importances(self, node_importances):
+        """Get node importances for this node and all its daughters
+
+        Args:
+            node_importances: dict with keys corresponding to feature and values corresponding to their node importances.
+
+        Return:
+            dict with keys corresponding to feature and values corresponding to their feature importances.
+            """
         if self.feature is not None:
             node_importances[self.feature].append(self.node_importance)
         if self.left is not None:
@@ -212,7 +305,14 @@ class RegressionTree:
         return node_importances
 
     def predict(self,X):
-        """Recursive method to predict from new of features"""
+        """Recursive method to predict from new of features
+
+        Args:
+            Covariate vector X (m x p) of same secondary dimension as training covariate vector
+
+        Returns:
+            response predictions y_hat as a numpy array (m x 1)
+        """
         X = X.values if isinstance(X,pd.DataFrame) else X
         if X.shape[1] < len(self.available_features):
             warnings.warn('Covariate matrix missing features - filling with n/a',MissingFeatureWarning)
