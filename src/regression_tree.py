@@ -161,89 +161,25 @@ class RegressionTree:
         # Initiate here in order to not grow more if this sse is not beaten
         sse_best = self.sse
         best_feature, best_splitter, best_default_split = None, None, None
-        split_candidates = self._get_split_candidates(X)
 
-        for feature, splitter, default_split in split_candidates:
-            sse = self._calculate_split_sse(X, y, feature, splitter, default_split)
-            if sse < sse_best:
-                sse_best = sse
-                best_feature, best_splitter, best_default_split = (
-                    feature,
-                    splitter,
-                    default_split,
-                )
-
-        return best_feature, best_splitter, best_default_split
-
-    def _get_split_candidates(self, X):
-        """Get a set of candidates to test in order to find the optimal split
-
-        Args:
-            X: covariate vector
-
-        Returns:
-            List of tuples containing (feature,splitter,default_split)-configurations to try
-        """
         features = [
             feature for feature in X.columns if X[feature].isna().sum() < len(X)
         ]
-        splitters = {
-            feature: self._get_splitter_candidates(X[feature]) for feature in features
-        }
+        for feature in features:
+            splitters = self._get_splitter_candidates(X[feature])
+            for splitter in splitters:
+                default_splits = self._get_default_split_candidates(X,feature,splitter)
+                for default_split in default_splits:
+                    sse = self._calculate_split_sse(X, y, feature, splitter, default_split)
+                    if sse < sse_best:
+                        sse_best = sse
+                        best_feature, best_splitter, best_default_split = (
+                            feature,
+                            splitter,
+                            default_split,
+                        )
 
-        if self.missing_rule == "mia":
-            default_splits = [
-                "right",
-                "left",
-            ]  # This order to ensure right is default split
-            combinations = [
-                list(itertools.product([feature], splitters[feature], default_splits))
-                for feature in features
-            ]
-            return list(itertools.chain.from_iterable(combinations))
-
-        elif self.missing_rule == "majority":
-            feature_splitter_combinations = [
-                list(itertools.product([feature], splitters[feature]))
-                for feature in features
-            ]
-            feature_splitter_candidates = list(
-                itertools.chain.from_iterable(feature_splitter_combinations)
-            )
-            default_splits = [
-                self._get_majority_rule(X,feature,splitter)
-                for feature, splitter in feature_splitter_candidates
-            ]
-            return [
-                feature_spitter + (default_split,)
-                for feature_spitter, default_split in zip(
-                    feature_splitter_candidates, default_splits
-                )
-            ]
-
-        elif self.missing_rule == "trinary":
-            default_splits = ["middle"]
-            combinations = [
-                list(itertools.product([feature], splitters[feature], default_splits))
-                for feature in features
-            ]
-            return list(itertools.chain.from_iterable(combinations))
-
-    def _get_majority_rule(self,X,feature,splitter):
-        """ Get which node the majority of the nodes go to for this split candidate
-
-        Args:
-            X: covariate vector
-            feature: feature to split on
-            splitter: threshold or sets
-
-        Return:
-            list of 'left' or 'right' depending on which node gets the most data
-        """
-        if isinstance(splitter,float):
-            return 'left' if sum(X[feature] < splitter) > sum(X[feature] >= splitter) else 'right'
-        elif isinstance(splitter,dict):
-            return 'left' if sum(X[feature].isin(splitter['left'])) > sum(X[feature].isin(splitter['right'])) else 'right'
+        return best_feature, best_splitter, best_default_split
 
     def _get_splitter_candidates(self, x):
         """Get potential candidates for splitters
@@ -268,6 +204,27 @@ class RegressionTree:
             left_sets = list(itertools.chain.from_iterable(itertools.combinations(values, r) for r in range(1,len(values))))
             right_sets = [[value for value in values if value not in left_set] for left_set in left_sets]
             return [{'left': left_set, 'right': right_set} for left_set, right_set in zip(left_sets,right_sets)]
+
+    def _get_default_split_candidates(self,X,feature,splitter):
+        """ Get default split candidates given the rule, covariates and features
+
+        Args:
+            X: covariate vector
+            feature: feature to split on
+            splitter: threshold or sets
+
+        Return:
+            list of 'left' or 'right' depending on which node gets the most data
+        """
+        if (self.missing_rule == 'majority') or ((self.missing_rule == 'majority') & (X[feature].isna().sum()==0)):
+            if isinstance(splitter,float):
+                return ['left'] if sum(X[feature] < splitter) > sum(X[feature] >= splitter) else ['right']
+            elif isinstance(splitter,dict):
+                return ['left'] if sum(X[feature].isin(splitter['left'])) > sum(X[feature].isin(splitter['right'])) else ['right']
+        elif self.missing_rule == 'mia':
+            return ['left','right']
+        elif self.missing_rule == 'trinary':
+            return ['middle']
 
     def _calculate_split_sse(self, X, y, feature, splitter, default_split):
         """Calculates the sum of squared errors for this split
