@@ -216,7 +216,7 @@ class RegressionTree:
         Return:
             list of 'left' or 'right' depending on which node gets the most data
         """
-        if (self.missing_rule == 'majority') or ((self.missing_rule == 'majority') & (X[feature].isna().sum()==0)):
+        if (self.missing_rule == 'majority') or ((self.missing_rule == 'mia') & (X[feature].isna().sum()==0)):
             if isinstance(splitter,float):
                 return ['left'] if sum(X[feature] < splitter) > sum(X[feature] >= splitter) else ['right']
             elif isinstance(splitter,dict):
