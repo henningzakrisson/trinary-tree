@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 import numpy as np
-from src.regression_tree.regression_tree import RegressionTree
+from src.regression_tree import RegressionTree
 
 from src.exceptions_and_warnings.custom_warnings import (
     MissingFeatureWarning,
