@@ -77,8 +77,7 @@ class RegressionTree:
         Raises:
             MissingValuesInResponse: Can not fit to missing responses, thus errors out
         """
-        X = pd.DataFrame(X) if isinstance(X, np.ndarray) else X
-        y = pd.Series(y) if isinstance(y, np.ndarray) else y
+        X, y = self._fix_datatypes(X,y)
 
         # If true dataset not provided, training set is true dataset
         if X_true is None:
@@ -137,6 +136,15 @@ class RegressionTree:
             )
 
         self.node_importance = self._calculate_importance()
+
+    def _fix_datatypes(self,X,y):
+        X = pd.DataFrame(X) if isinstance(X, np.ndarray) else X
+        for feature in X:
+            if X[feature].dtype == 'int':
+                X[feature] = X[feature].astype(float)
+        y = pd.Series(y) if isinstance(y, np.ndarray) else y
+
+        return X,y
 
     def _find_split(self, X, y) -> tuple:
         """Calculate the best split for a decision tree
