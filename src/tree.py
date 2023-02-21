@@ -12,8 +12,8 @@ from src.exceptions_and_warnings.custom_warnings import (
 )
 
 
-class RegressionTree:
-    """Module for regression trees with three different ways of handling missing data
+class Tree:
+    """Module for classification and regression trees with three different ways of handling missing data
 
     The missing data strategies are:
      - Majority rule: missing datapoints go to the node with the most training data
@@ -38,7 +38,7 @@ class RegressionTree:
             missing_rule: strategy to handle missing values
 
         Returns:
-            RegressionTree object (which is a node. Can be a root node, a daughter node and/or a terminal node).
+            Tree object (which is a node. Can be a root node, a daughter node and/or a terminal node).
         """
         self.min_samples_split = min_samples_split
         self.max_depth = max_depth
@@ -47,9 +47,9 @@ class RegressionTree:
 
         self.n = 0
         self.n_true = 0
-        self.yhat = None
-        self.sse = None
-        self.sse_true = None
+        self.y_hat = None
+        self.loss = None
+        self.loss_true = None
         self.feature = None
         self.feature_type = None
         self.available_features = []
@@ -84,15 +84,16 @@ class RegressionTree:
             X_true = X
             y_true = y
 
-        if np.any(np.isnan(y)) or np.any(np.isnan(y_true)):
+        if np.any(y.isna()) or np.any(y.isna()):
             raise MissingValuesInResponse("n/a not allowed in response (y)")
 
         self.available_features = X.columns  # This means all features  in the input
-        self.yhat = y.mean()
-        self.sse = ((y - self.yhat) ** 2).sum()
-        self.sse_true = ((y_true - self.yhat) ** 2).sum()
         self.n = len(y)
         self.n_true = len(y_true)
+
+        self.y_hat = y.mean() if y.dtype == 'float' else y.mode().values[0]
+        self.loss = self._calculate_loss(y, self.y_hat)
+        self.loss_true = self._calculate_loss(y_true, self.y_hat)
 
         # Check pruning conditions
         if (self.depth >= self.max_depth) or (self.n <= self.min_samples_split):
@@ -154,12 +155,12 @@ class RegressionTree:
             y: response to fit nodes to
 
         Returns:
-            best_feature: feature to split by for minimum sse
-            best_splitter: threshold or left-category-set to split feature by for minimum sse
+            best_feature: feature to split by for minimum loss
+            best_splitter: threshold or left-category-set to split feature by for minimum loss
             best_default split: node to send missing values to
         """
-        # Initiate here in order to not grow more if this sse is not beaten
-        sse_best = self.sse
+        # Initiate here in order to not grow more if this loss is not beaten
+        loss_best = self.loss
         best_feature, best_splitter, best_default_split = None, None, None
 
         features = [
@@ -172,11 +173,11 @@ class RegressionTree:
                     X, feature, splitter
                 )
                 for default_split in default_splits:
-                    sse = self._calculate_split_sse(
+                    loss = self._calculate_split_loss(
                         X, y, feature, splitter, default_split
                     )
-                    if sse < sse_best:
-                        sse_best = sse
+                    if loss < loss_best:
+                        loss_best = loss
                         best_feature, best_splitter, best_default_split = (
                             feature,
                             splitter,
@@ -251,7 +252,7 @@ class RegressionTree:
         elif self.missing_rule == "trinary":
             return ["middle"]
 
-    def _calculate_split_sse(self, X, y, feature, splitter, default_split):
+    def _calculate_split_loss(self, X, y, feature, splitter, default_split):
         """Calculates the sum of squared errors for this split
 
         Args:
@@ -262,7 +263,7 @@ class RegressionTree:
             default_split: node to put missing values in
 
         Returns:
-            Total sse of this split for all daughter nodes
+            Total loss of this split for all daughter nodes
         """
         if X[feature].dtype == "float":
             index_left = X[feature] < splitter
@@ -281,30 +282,53 @@ class RegressionTree:
         if (sum(index_left) < self.min_samples_split) or (
             sum(index_right) < self.min_samples_split
         ):
-            return self.sse
+            return self.loss
 
-        sse_left = ((y.loc[index_left] - y.loc[index_left].mean()) ** 2).sum()
-        sse_right = ((y.loc[index_right] - y.loc[index_right].mean()) ** 2).sum()
+
+        loss_left = self._calculate_loss(y = y.loc[index_left])
+        loss_right = self._calculate_loss(y = y.loc[index_right])
         if default_split == "middle":
-            sse_middle = ((y.loc[index_middle] - self.yhat) ** 2).sum()
+            loss_middle = self._calculate_loss(y = y.loc[index_middle])
         else:
-            sse_middle = 0
+            loss_middle = 0
 
-        return sse_left + sse_middle + sse_right
+        return loss_left + loss_middle + loss_right
+
+    def _calculate_loss(self,y,y_hat = None):
+        """ Calculate the loss of the response set
+
+        Gini if classification problem, sse if regression
+
+        Args:
+            y: response pd.Series
+            y_hat: response estimate. If None, will be calculated as mean/mode
+
+        Returns:
+            loss as a float
+            """
+        if len(y)==0:
+            return 0
+        elif y.dtype == 'float':
+            y_hat = y.mean() if not y_hat else y_hat
+            return  (y - y_hat).pow(2).sum()
+        else:
+            y_hat = y.mode().values[0] if not y_hat else y_hat
+            p =  (y==y_hat).mean()
+            return p * (1 - p)
 
     def _initiate_daughter_nodes(self):
         """Create daughter nodes
 
         Return:
-            tuple of three RegressionTrees. The one in the middle is None for non-trinary trees.
+            tuple of three Trees. The one in the middle is None for non-trinary trees.
         """
-        left = RegressionTree(
+        left = Tree(
             min_samples_split=self.min_samples_split,
             max_depth=self.max_depth,
             depth=self.depth + 1,
             missing_rule=self.missing_rule,
         )
-        right = RegressionTree(
+        right = Tree(
             min_samples_split=self.min_samples_split,
             max_depth=self.max_depth,
             depth=self.depth + 1,
@@ -312,7 +336,7 @@ class RegressionTree:
         )
 
         if self.missing_rule == "trinary":
-            middle = RegressionTree(
+            middle = Tree(
                 min_samples_split=self.min_samples_split,
                 max_depth=self.max_depth,
                 depth=self.depth + 1,
@@ -333,20 +357,20 @@ class RegressionTree:
             return 0
         elif self.default_split == "trinary":
             return (
-                self.sse_true
+                self.loss_true
                 - (
-                    self.left.n_true * self.left.sse_true
-                    + self.middle.n_true * self.middle.sse_true
-                    + self.right.n_true * self.right.sse_true
+                    self.left.n_true * self.left.loss_true
+                    + self.middle.n_true * self.middle.loss_true
+                    + self.right.n_true * self.right.loss_true
                 )
                 / self.n_true
             )
         else:
             return (
-                self.sse_true
+                self.loss_true
                 - (
-                    self.left.n_true * self.left.sse_true
-                    + self.right.n_true * self.right.sse_true
+                    self.left.n_true * self.left.loss_true
+                    + self.right.n_true * self.right.loss_true
                 )
                 / self.n_true
             )
@@ -428,7 +452,7 @@ class RegressionTree:
         y_hat = pd.Series(index=X.index, dtype=float)
 
         if self.left is None:
-            y_hat.loc[:] = self.yhat
+            y_hat.loc[:] = self.y_hat
             return y_hat
 
         if self.feature_type == "float":
@@ -452,13 +476,16 @@ class RegressionTree:
 
     def print(self):
         """Print the tree structure"""
-        if self.yhat is None:
+        if self.y_hat is None:
             raise CantPrintUnfittedTree("Can't print tree before fitting to data")
 
         hspace = "---" * self.depth
         print(hspace + f"Number of observations: {self.n}")
-        print(hspace + f"Response estimate: {np.round(self.yhat,2)}")
-        print(hspace + f"SSE: {np.round(self.sse,2)}")
+        if isinstance(self.y_hat,float):
+            print(hspace + f"Response estimate: {np.round(self.y_hat,2)}")
+        else:
+            print(hspace + f"Response estimate: {self.y_hat}")
+        print(hspace + f"loss: {np.round(self.loss,2)}")
         if self.left is not None:
             if self.feature_type == "float":
                 left_rule = f"if {self.feature} <  {np.round(self.threshold,2)}"
@@ -520,46 +547,46 @@ if __name__ == "__main__":
     min_samples_split = 10
 
     # Create trees
-    tree_maj = RegressionTree(
+    tree_maj = Tree(
         max_depth=max_depth,
         min_samples_split=min_samples_split,
         missing_rule="majority",
     )
-    tree_mia = RegressionTree(
+    tree_mia = Tree(
         max_depth=max_depth, min_samples_split=min_samples_split, missing_rule="mia"
     )
-    tree_tri = RegressionTree(
+    tree_tri = Tree(
         max_depth=max_depth, min_samples_split=min_samples_split, missing_rule="trinary"
     )
     tree_maj.fit(X_train, y_train)
     tree_mia.fit(X_train, y_train)
     tree_tri.fit(X_train, y_train)
 
-    # Train data sse
+    # Train data loss
     y_train_hat_maj = tree_maj.predict(X_train)
     y_train_hat_mia = tree_mia.predict(X_train)
     y_train_hat_tri = tree_tri.predict(X_train)
-    sse_train_maj = sum((y_train_hat_maj - y_train) ** 2)
-    sse_train_mia = sum((y_train_hat_mia - y_train) ** 2)
-    sse_train_tri = sum((y_train_hat_tri - y_train) ** 2)
+    loss_train_maj = sum((y_train_hat_maj - y_train) ** 2)
+    loss_train_mia = sum((y_train_hat_mia - y_train) ** 2)
+    loss_train_tri = sum((y_train_hat_tri - y_train) ** 2)
     print(
         pd.Series(
-            data=[sse_train_maj, sse_train_mia, sse_train_tri],
+            data=[loss_train_maj, loss_train_mia, loss_train_tri],
             index=["majority", "mia", "trinary"],
         )
         / len(y_train)
     )
 
-    # Test data sse
+    # Test data loss
     y_test_hat_maj = tree_maj.predict(X_test)
     y_test_hat_mia = tree_mia.predict(X_test)
     y_test_hat_tri = tree_tri.predict(X_test)
-    sse_test_maj = sum((y_test_hat_maj - y_test) ** 2)
-    sse_test_mia = sum((y_test_hat_mia - y_test) ** 2)
-    sse_test_tri = sum((y_test_hat_tri - y_test) ** 2)
+    loss_test_maj = sum((y_test_hat_maj - y_test) ** 2)
+    loss_test_mia = sum((y_test_hat_mia - y_test) ** 2)
+    loss_test_tri = sum((y_test_hat_tri - y_test) ** 2)
     print(
         pd.Series(
-            data=[sse_test_maj, sse_test_mia, sse_test_tri],
+            data=[loss_test_maj, loss_test_mia, loss_test_tri],
             index=["majority", "mia", "trinary"],
         )
         / len(y_test)
