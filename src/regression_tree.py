@@ -53,8 +53,8 @@ class RegressionTree:
         self.feature = None
         self.feature_type = None
         self.available_features = []
-        self.threshold = None # For continous features
-        self.sets = None # Dict with left/right keys for categorical features
+        self.threshold = None  # For continous features
+        self.sets = None  # Dict with left/right keys for categorical features
         self.default_split = None
         self.left = None
         self.middle = None
@@ -77,7 +77,7 @@ class RegressionTree:
         Raises:
             MissingValuesInResponse: Can not fit to missing responses, thus errors out
         """
-        X, y = self._fix_datatypes(X,y)
+        X, y = self._fix_datatypes(X, y)
 
         # If true dataset not provided, training set is true dataset
         if X_true is None:
@@ -103,16 +103,16 @@ class RegressionTree:
 
         if self.feature is None:
             return
-        elif X[self.feature].dtype == 'float':
-            self.feature_type = 'float'
+        elif X[self.feature].dtype == "float":
+            self.feature_type = "float"
             self.threshold = splitter
             index_left = X[self.feature] < self.threshold
             index_right = X[self.feature] >= self.threshold
-        elif X[self.feature].dtype == 'object':
-            self.feature_type = 'object'
+        elif X[self.feature].dtype == "object":
+            self.feature_type = "object"
             self.sets = splitter
-            index_left = X[self.feature].isin(self.sets['left'])
-            index_right = X[self.feature].isin(self.sets['right'])
+            index_left = X[self.feature].isin(self.sets["left"])
+            index_right = X[self.feature].isin(self.sets["right"])
         if self.default_split == "left":
             index_left |= X[self.feature].isna()
         elif self.default_split == "right":
@@ -137,14 +137,14 @@ class RegressionTree:
 
         self.node_importance = self._calculate_importance()
 
-    def _fix_datatypes(self,X,y):
+    def _fix_datatypes(self, X, y):
         X = pd.DataFrame(X) if isinstance(X, np.ndarray) else X
         for feature in X:
-            if X[feature].dtype == 'int':
+            if X[feature].dtype == "int":
                 X[feature] = X[feature].astype(float)
         y = pd.Series(y) if isinstance(y, np.ndarray) else y
 
-        return X,y
+        return X, y
 
     def _find_split(self, X, y) -> tuple:
         """Calculate the best split for a decision tree
@@ -168,9 +168,13 @@ class RegressionTree:
         for feature in features:
             splitters = self._get_splitter_candidates(X[feature])
             for splitter in splitters:
-                default_splits = self._get_default_split_candidates(X,feature,splitter)
+                default_splits = self._get_default_split_candidates(
+                    X, feature, splitter
+                )
                 for default_split in default_splits:
-                    sse = self._calculate_split_sse(X, y, feature, splitter, default_split)
+                    sse = self._calculate_split_sse(
+                        X, y, feature, splitter, default_split
+                    )
                     if sse < sse_best:
                         sse_best = sse
                         best_feature, best_splitter, best_default_split = (
@@ -196,17 +200,27 @@ class RegressionTree:
         """
         if np.all(x.isna()):
             return []
-        elif x.dtype == 'float':
+        elif x.dtype == "float":
             values = x.drop_duplicates()
             return values.sort_values().rolling(2).mean().dropna().values
-        elif x.dtype == 'object':
+        elif x.dtype == "object":
             values = x.dropna().unique()
-            left_sets = list(itertools.chain.from_iterable(itertools.combinations(values, r) for r in range(1,len(values))))
-            right_sets = [[value for value in values if value not in left_set] for left_set in left_sets]
-            return [{'left': left_set, 'right': right_set} for left_set, right_set in zip(left_sets,right_sets)]
+            left_sets = list(
+                itertools.chain.from_iterable(
+                    itertools.combinations(values, r) for r in range(1, len(values))
+                )
+            )
+            right_sets = [
+                [value for value in values if value not in left_set]
+                for left_set in left_sets
+            ]
+            return [
+                {"left": left_set, "right": right_set}
+                for left_set, right_set in zip(left_sets, right_sets)
+            ]
 
-    def _get_default_split_candidates(self,X,feature,splitter):
-        """ Get default split candidates given the rule, covariates and features
+    def _get_default_split_candidates(self, X, feature, splitter):
+        """Get default split candidates given the rule, covariates and features
 
         Args:
             X: covariate vector
@@ -216,15 +230,26 @@ class RegressionTree:
         Return:
             list of 'left' or 'right' depending on which node gets the most data
         """
-        if (self.missing_rule == 'majority') or ((self.missing_rule == 'mia') & (X[feature].isna().sum()==0)):
-            if isinstance(splitter,float):
-                return ['left'] if sum(X[feature] < splitter) > sum(X[feature] >= splitter) else ['right']
-            elif isinstance(splitter,dict):
-                return ['left'] if sum(X[feature].isin(splitter['left'])) > sum(X[feature].isin(splitter['right'])) else ['right']
-        elif self.missing_rule == 'mia':
-            return ['left','right']
-        elif self.missing_rule == 'trinary':
-            return ['middle']
+        if (self.missing_rule == "majority") or (
+            (self.missing_rule == "mia") & (X[feature].isna().sum() == 0)
+        ):
+            if isinstance(splitter, float):
+                return (
+                    ["left"]
+                    if sum(X[feature] < splitter) > sum(X[feature] >= splitter)
+                    else ["right"]
+                )
+            elif isinstance(splitter, dict):
+                return (
+                    ["left"]
+                    if sum(X[feature].isin(splitter["left"]))
+                    > sum(X[feature].isin(splitter["right"]))
+                    else ["right"]
+                )
+        elif self.missing_rule == "mia":
+            return ["left", "right"]
+        elif self.missing_rule == "trinary":
+            return ["middle"]
 
     def _calculate_split_sse(self, X, y, feature, splitter, default_split):
         """Calculates the sum of squared errors for this split
@@ -239,12 +264,12 @@ class RegressionTree:
         Returns:
             Total sse of this split for all daughter nodes
         """
-        if X[feature].dtype == 'float':
+        if X[feature].dtype == "float":
             index_left = X[feature] < splitter
             index_right = X[feature] >= splitter
-        elif X[feature].dtype == 'object':
-            index_left = X[feature].isin(splitter['left'])
-            index_right = X[feature].isin(splitter['right'])
+        elif X[feature].dtype == "object":
+            index_left = X[feature].isin(splitter["left"])
+            index_right = X[feature].isin(splitter["right"])
         if default_split == "left":
             index_left |= X[feature].isna()
         elif default_split == "right":
@@ -260,7 +285,7 @@ class RegressionTree:
 
         sse_left = ((y.loc[index_left] - y.loc[index_left].mean()) ** 2).sum()
         sse_right = ((y.loc[index_right] - y.loc[index_right].mean()) ** 2).sum()
-        if default_split == 'middle':
+        if default_split == "middle":
             sse_middle = ((y.loc[index_middle] - self.yhat) ** 2).sum()
         else:
             sse_middle = 0
@@ -406,12 +431,12 @@ class RegressionTree:
             y_hat.loc[:] = self.yhat
             return y_hat
 
-        if self.feature_type == 'float':
+        if self.feature_type == "float":
             index_left = X[self.feature] < self.threshold
             index_right = X[self.feature] >= self.threshold
-        elif self.feature_type == 'object':
-            index_left = X[self.feature].isin(self.sets['left'])
-            index_right = X[self.feature].isin(self.sets['right'])
+        elif self.feature_type == "object":
+            index_left = X[self.feature].isin(self.sets["left"])
+            index_right = X[self.feature].isin(self.sets["right"])
         if self.default_split == "left":
             index_left |= X[self.feature].isna()
         elif self.default_split == "right":
@@ -435,12 +460,12 @@ class RegressionTree:
         print(hspace + f"Response estimate: {np.round(self.yhat,2)}")
         print(hspace + f"SSE: {np.round(self.sse,2)}")
         if self.left is not None:
-            if self.feature_type == 'float':
+            if self.feature_type == "float":
                 left_rule = f"if {self.feature} <  {np.round(self.threshold,2)}"
                 right_rule = f"if {self.feature} >=  {np.round(self.threshold,2)}"
-            elif self.feature_type == 'object':
-                left_rule = f"if {self.feature} is "+ ", ".join(self.sets['left'])
-                right_rule = f"if {self.feature} is "+ ", ".join(self.sets['right'])
+            elif self.feature_type == "object":
+                left_rule = f"if {self.feature} is " + ", ".join(self.sets["left"])
+                right_rule = f"if {self.feature} is " + ", ".join(self.sets["right"])
             if self.default_split == "middle":
                 middle_rule = f"if {self.feature} n/a"
             elif self.default_split == "left":
@@ -456,6 +481,7 @@ class RegressionTree:
             print(hspace + f"{right_rule}:")
             self.right.print()
 
+
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
     seed = 12
@@ -464,11 +490,20 @@ if __name__ == "__main__":
 
     # Feature vector
     X = pd.DataFrame()
-    X['feature_0'] =  np.linspace(0,100,n)
-    X['another_feature'] = np.tile(np.linspace(0,100,int(n/10)),10)
-    X['cat_feature'] = (['a'] * int(n*0.2)) + (['b'] * int(n*0.2)) + (['c'] * int(n*0.3)) + (['d'] * int(n*0.3))
+    X["feature_0"] = np.linspace(0, 100, n)
+    X["another_feature"] = np.tile(np.linspace(0, 100, int(n / 10)), 10)
+    X["cat_feature"] = (
+        (["a"] * int(n * 0.2))
+        + (["b"] * int(n * 0.2))
+        + (["c"] * int(n * 0.3))
+        + (["d"] * int(n * 0.3))
+    )
     # Reponse
-    y = 10*(X['cat_feature'].isin(['a','c']) + 2 * (X['another_feature'] >2) + 5 * ((X['another_feature'] > 2)&X['feature_0'] <= 20))
+    y = 10 * (
+        X["cat_feature"].isin(["a", "c"])
+        + 2 * (X["another_feature"] > 2)
+        + 5 * ((X["another_feature"] > 2) & X["feature_0"] <= 20)
+    )
 
     # Missing value share
     missing_fraction = 0.5
@@ -476,7 +511,7 @@ if __name__ == "__main__":
     X[missing_index] = np.nan
 
     # Test train split
-    test_index = np.random.binomial(1,0.2,len(X))==1
+    test_index = np.random.binomial(1, 0.2, len(X)) == 1
     X_train, X_test = X.loc[~test_index], X.loc[test_index]
     y_train, y_test = y.loc[~test_index], y.loc[test_index]
 

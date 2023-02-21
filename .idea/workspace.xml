@@ -4,9 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< HEAD
     <list default="true" id="13acf17d-9aa5-4681-bff7-34ee39e65d6d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
+=======
+    <list default="true" id="13acf17d-9aa5-4681-bff7-34ee39e65d6d" name="Changes" comment="" />
+>>>>>>> 2cd5179f7d751603d4973dd3199209b1aa38ebcb
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -30,6 +34,12 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "WebServerToolWindowFactoryState": "false",
     "last_opened_file_path": "/home/heza7322/PycharmProjects/missing-value-handling-in-carts",
+<<<<<<< HEAD
+=======
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+>>>>>>> 2cd5179f7d751603d4973dd3199209b1aa38ebcb
     "node.js.selected.package.tslint": "(autodetect)",
     "settings.editor.selected.configurable": "PyConsoleConfigurable.Python Console",
     "vue.rearranger.settings.migration": "true"
