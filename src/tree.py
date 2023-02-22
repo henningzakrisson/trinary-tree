@@ -23,7 +23,7 @@ class Tree:
 
     def __init__(
         self,
-        min_samples_split=20,
+        min_samples_leaf=20,
         max_depth=2,
         depth=0,
         missing_rule="majority",
@@ -31,7 +31,7 @@ class Tree:
         """Initiate the tree
 
         Args:
-            min_samples_split: number of datapoints as minimum to allow for daughter nodes (-1)
+            min_samples_leaf: number of datapoints as minimum to allow for daughter nodes (-1)
             max_depth: number of levels allowed in the tree
             depth: current depth. root node has depth 0
             missing_rule: strategy to handle missing values
@@ -39,7 +39,7 @@ class Tree:
         Returns:
             Tree object (which is a node. Can be a root node, a daughter node and/or a terminal node).
         """
-        self.min_samples_split = min_samples_split
+        self.min_samples_leaf = min_samples_leaf
         self.max_depth = max_depth
         self.depth = depth
         self.missing_rule = missing_rule
@@ -95,7 +95,7 @@ class Tree:
         self.loss_true = self._calculate_loss(y_true, self.y_hat)
 
         # Check pruning conditions
-        if (self.depth >= self.max_depth) or (self.n <= self.min_samples_split):
+        if (self.depth >= self.max_depth) or (self.n <= self.min_samples_leaf):
             return
 
         # Find splitting parameters
@@ -143,6 +143,8 @@ class Tree:
             if X[feature].dtype == "int":
                 X[feature] = X[feature].astype(float)
         y = pd.Series(y) if isinstance(y, np.ndarray) else y
+        if y.dtype in ['float','int']:
+            y = y.astype(float)
 
         return X, y
 
@@ -278,20 +280,20 @@ class Tree:
             index_middle = X[feature].isna()
 
         # To avoid hyperparameter-illegal splits
-        if (sum(index_left) < self.min_samples_split) or (
-            sum(index_right) < self.min_samples_split
+        if (sum(index_left) < self.min_samples_leaf) or (
+            sum(index_right) < self.min_samples_leaf
         ):
             return self.loss
 
 
-        loss_left = self._calculate_loss(y = y.loc[index_left])
-        loss_right = self._calculate_loss(y = y.loc[index_right])
+        loss_left_weighted = self._calculate_loss(y = y.loc[index_left]) * sum(index_left)
+        loss_right_weighted = self._calculate_loss(y = y.loc[index_right]) * sum(index_right)
         if default_split == "middle":
-            loss_middle = self._calculate_loss(y = y.loc[index_middle])
+            loss_middle_weighted = self._calculate_loss(y = y.loc[index_middle]) * sum(index_right)
         else:
-            loss_middle = 0
+            loss_middle_weighted = 0
 
-        return loss_left + loss_middle + loss_right
+        return (loss_left_weighted + loss_right_weighted + loss_middle_weighted)/self.n
 
     def _calculate_loss(self,y,y_hat = None):
         """ Calculate the loss of the response set
@@ -309,11 +311,10 @@ class Tree:
             return 0
         elif y.dtype == 'float':
             y_hat = y.mean() if not y_hat else y_hat
-            return  (y - y_hat).pow(2).sum()
+            return  (y - y_hat).pow(2).mean()
         else:
-            y_hat = y.mode().values[0] if not y_hat else y_hat
-            p =  (y==y_hat).mean()
-            return p * (1 - p)
+            ps =  [(y==y_value).mean() for y_value in y.unique()]
+            return sum([p*(1-p) for p in ps])
 
     def _initiate_daughter_nodes(self):
         """Create daughter nodes
@@ -322,13 +323,13 @@ class Tree:
             tuple of three Trees. The one in the middle is None for non-trinary trees.
         """
         left = Tree(
-            min_samples_split=self.min_samples_split,
+            min_samples_leaf=self.min_samples_leaf,
             max_depth=self.max_depth,
             depth=self.depth + 1,
             missing_rule=self.missing_rule,
         )
         right = Tree(
-            min_samples_split=self.min_samples_split,
+            min_samples_leaf=self.min_samples_leaf,
             max_depth=self.max_depth,
             depth=self.depth + 1,
             missing_rule=self.missing_rule,
@@ -336,7 +337,7 @@ class Tree:
 
         if self.missing_rule == "trinary":
             middle = Tree(
-                min_samples_split=self.min_samples_split,
+                min_samples_leaf=self.min_samples_leaf,
                 max_depth=self.max_depth,
                 depth=self.depth + 1,
                 missing_rule=self.missing_rule,
@@ -479,12 +480,12 @@ class Tree:
             raise CantPrintUnfittedTree("Can't print tree before fitting to data")
 
         hspace = "---" * self.depth
-        print(hspace + f"Number of observations: {self.n}")
+        print(hspace + f"Number of observations: {self.n_true}")
         if isinstance(self.y_hat,float):
             print(hspace + f"Response estimate: {np.round(self.y_hat,2)}")
         else:
             print(hspace + f"Response estimate: {self.y_hat}")
-        print(hspace + f"loss: {np.round(self.loss,2)}")
+        print(hspace + f"loss: {np.round(self.loss_true,2)}")
         if self.left is not None:
             if self.feature_type == "float":
                 left_rule = f"if {self.feature} <  {np.round(self.threshold,2)}"
@@ -510,83 +511,32 @@ class Tree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    seed = 12
-    np.random.seed(seed)
-    n = 500  # number of data points
+    random_seed = 11
+    np.random.seed(random_seed)
 
-    # Feature vector
-    X = pd.DataFrame()
-    X["feature_0"] = np.linspace(0, 100, n)
-    X["another_feature"] = np.tile(np.linspace(0, 100, int(n / 10)), 10)
-    X["cat_feature"] = (
-        (["a"] * int(n * 0.2))
-        + (["b"] * int(n * 0.2))
-        + (["c"] * int(n * 0.3))
-        + (["d"] * int(n * 0.3))
-    )
-    # Reponse
-    y = 10 * (
-        X["cat_feature"].isin(["a", "c"])
-        + 2 * (X["another_feature"] > 2)
-        + 5 * ((X["another_feature"] > 2) & X["feature_0"] <= 20)
-    )
+    n = 1000
+    p = 3
 
-    # Missing value share
-    missing_fraction = 0.2
-    missing_index = np.random.binomial(1, missing_fraction, X.shape) == 1
-    X[missing_index] = np.nan
+    df = pd.DataFrame()
+    features = np.arange(p)
+    df[features] = np.random.normal(0, 1, (n, p))
+    df[features] = (df[features] * 10).astype(int).astype(float)
 
-    # Test train split
-    test_index = np.random.binomial(1, 0.2, len(X)) == 1
-    X_train, X_test = X.loc[~test_index], X.loc[test_index]
-    y_train, y_test = y.loc[~test_index], y.loc[test_index]
+    beta = np.array([1.5, -1.3, 1.3])
 
-    # Tree hyperparameters
-    max_depth = 4
-    min_samples_split = 10
 
-    # Create trees
-    tree_maj = Tree(
-        max_depth=max_depth,
-        min_samples_split=min_samples_split,
-        missing_rule="majority",
-    )
-    tree_mia = Tree(
-        max_depth=max_depth, min_samples_split=min_samples_split, missing_rule="mia"
-    )
-    tree_tri = Tree(
-        max_depth=max_depth, min_samples_split=min_samples_split, missing_rule="trinary"
-    )
-    tree_maj.fit(X_train, y_train)
-    tree_mia.fit(X_train, y_train)
-    tree_tri.fit(X_train, y_train)
+    def sigm(x):
+        return 1 / (1 + np.exp(-x))
 
-    # Train data loss
-    y_train_hat_maj = tree_maj.predict(X_train)
-    y_train_hat_mia = tree_mia.predict(X_train)
-    y_train_hat_tri = tree_tri.predict(X_train)
-    loss_train_maj = sum((y_train_hat_maj - y_train) ** 2)
-    loss_train_mia = sum((y_train_hat_mia - y_train) ** 2)
-    loss_train_tri = sum((y_train_hat_tri - y_train) ** 2)
-    print(
-        pd.Series(
-            data=[loss_train_maj, loss_train_mia, loss_train_tri],
-            index=["majority", "mia", "trinary"],
-        )
-        / len(y_train)
-    )
 
-    # Test data loss
-    y_test_hat_maj = tree_maj.predict(X_test)
-    y_test_hat_mia = tree_mia.predict(X_test)
-    y_test_hat_tri = tree_tri.predict(X_test)
-    loss_test_maj = sum((y_test_hat_maj - y_test) ** 2)
-    loss_test_mia = sum((y_test_hat_mia - y_test) ** 2)
-    loss_test_tri = sum((y_test_hat_tri - y_test) ** 2)
-    print(
-        pd.Series(
-            data=[loss_test_maj, loss_test_mia, loss_test_tri],
-            index=["majority", "mia", "trinary"],
-        )
-        / len(y_test)
-    )
+    df['p'] = 0.25 * (df[0] > 0) + 0.25 * (df[1] < -10) + 0.25 * (df[2] > 10)
+
+    is_banana = np.random.binomial(1, df['p']) == 1
+    df['y'] = np.nan
+    df.loc[is_banana, 'y'] = 'banana'
+    df.loc[~is_banana, 'y'] = 'apple'
+
+    tree = Tree(max_depth=2, min_samples_leaf=20, missing_rule='majority')
+    tree.fit(df[features], df['y'])
+    tree.print()
+

@@ -110,7 +110,7 @@ class TreeTest(unittest.TestCase):
         df = pd.read_csv("data/test_data_cat.csv", index_col=0)
         X = df.drop('y',axis=1)
         y = df['y']
-        tree = Tree(max_depth = 4, min_samples_split = 1)
+        tree = Tree(max_depth = 4, min_samples_leaf = 1)
         tree.fit(X, y)
         y_hat = tree.predict(X)
 
@@ -170,6 +170,19 @@ class TreeTest(unittest.TestCase):
         ):
             X_extra = np.c_[X, x2]
             y_hat = tree.predict(X_extra)
+
+
+    def test_classification(self):
+        df = pd.read_csv('data/test_data_class.csv',index_col=0)
+        X = df.drop('y',axis=1)
+        y = df['y']
+
+        tree = Tree(max_depth = 3, min_samples_leaf=20)
+        tree.fit(X,y)
+
+        df['y_hat'] = tree.predict(X)
+
+        self.assertEqual((df['y']==df['y_hat']).sum(),len(df),msg = "Classification not identical to expected")
 
 
 if __name__ == "__main__":
