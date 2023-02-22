@@ -199,6 +199,20 @@ class TreeTest(unittest.TestCase):
         self.assertAlmostEqual(tree.right.left.y_prob['apple'],1, msg='Wrong probability')
         self.assertAlmostEqual(tree.right.right.y_prob['banana'],1, msg='Wrong probability')
 
+    def test_probability_predictions(self):
+        df = pd.read_csv('data/test_data_class.csv',index_col=0)
+        X = df.drop('y',axis=1)
+        y = df['y']
+
+        tree = Tree(max_depth = 3, min_samples_leaf=20)
+        tree.fit(X,y)
+
+        df['y_hat'] = tree.predict(X)
+        df_probs = tree.predict(X, prob = True)
+
+        self.assertEqual((df_probs.idxmax(axis=1)==df['y_hat']).sum(),len(df),
+                         msg = "Most probable category not predicted")
+
 
 if __name__ == "__main__":
     unittest.main()
