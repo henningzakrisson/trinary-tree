@@ -102,7 +102,7 @@ class Tree:
             self.y_hat = max(self.y_prob,key = self.y_prob.get)
             for category in self.categories:
                 if category not in self.y_prob:
-                    self.y_hat[category] = 0
+                    self.y_prob[category] = 0
         self.loss = self._calculate_loss(y, self.y_hat)
         self.loss_true = self._calculate_loss(y_true, self.y_hat)
 
@@ -468,9 +468,9 @@ class Tree:
         if prob:
             y_hat = pd.DataFrame(index=X.index, columns = self.categories, dtype=float)
         elif self.categories is None:
-            y_hat = pd.Series(index=X.index, dtype = float),
+            y_hat = pd.Series(index=X.index, dtype = float)
         else:
-            y_hat = pd.Series(index=X.index, dtype = object),
+            y_hat = pd.Series(index=X.index, dtype = object)
 
         if self.left is None:
             if not prob:
@@ -492,7 +492,7 @@ class Tree:
             index_right |= X[self.feature].isna()
         elif self.default_split == "middle":
             index_middle = X[self.feature].isna()
-            y_hat.loc[index_middle] = self.middle.predict(X.loc[index_middle])
+            y_hat.loc[index_middle] = self.middle.predict(X.loc[index_middle], prob = prob)
 
         y_hat.loc[index_left] = self.left.predict(X.loc[index_left], prob = prob)
         y_hat.loc[index_right] = self.right.predict(X.loc[index_right], prob = prob)
@@ -536,32 +536,15 @@ class Tree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    random_seed = 11
-    np.random.seed(random_seed)
+    df = pd.read_csv('/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/test_data_class.csv', index_col=0)
+    X = df.drop('y', axis=1)
+    y = df['y']
 
-    n = 1000
-    p = 3
+    tree = Tree(max_depth=3, min_samples_leaf=20)
+    tree.fit(X, y)
 
-    df = pd.DataFrame()
-    features = np.arange(p)
-    df[features] = np.random.normal(0, 1, (n, p))
-    df[features] = (df[features] * 10).astype(int).astype(float)
-
-    beta = np.array([1.5, -1.3, 1.3])
+    df['y_hat'] = tree.predict(X)
+    df_probs = tree.predict(X, prob=True)
 
 
-    def sigm(x):
-        return 1 / (1 + np.exp(-x))
-
-
-    df['p'] = 0.25 * (df[0] > 0) + 0.25 * (df[1] < -10) + 0.25 * (df[2] > 10)
-
-    is_banana = np.random.binomial(1, df['p']) == 1
-    df['y'] = np.nan
-    df.loc[is_banana, 'y'] = 'banana'
-    df.loc[~is_banana, 'y'] = 'apple'
-
-    tree = Tree(max_depth=2, min_samples_leaf=20, missing_rule='majority')
-    tree.fit(df[features], df['y'])
-    tree.print()
 
