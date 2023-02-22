@@ -11,6 +11,7 @@ from src.exceptions_and_warnings.custom_warnings import (
     ExtraFeatureWarning,
 )
 
+
 class Tree:
     """Module for classification and regression trees with three different ways of handling missing data
 
@@ -27,7 +28,7 @@ class Tree:
         max_depth=2,
         depth=0,
         missing_rule="majority",
-        categories = None,
+        categories=None,
     ):
         """Initiate the tree
 
@@ -93,13 +94,13 @@ class Tree:
         self.n = len(y)
         self.n_true = len(y_true)
 
-        if y.dtype == 'float':
+        if y.dtype == "float":
             self.y_hat = y.mean()
         else:
             if self.categories is None:
                 self.categories = list(y.unique())
-            self.y_prob = (y.value_counts()/len(y)).to_dict()
-            self.y_hat = max(self.y_prob,key = self.y_prob.get)
+            self.y_prob = (y.value_counts() / len(y)).to_dict()
+            self.y_hat = max(self.y_prob, key=self.y_prob.get)
             for category in self.categories:
                 if category not in self.y_prob:
                     self.y_prob[category] = 0
@@ -155,7 +156,7 @@ class Tree:
             if X[feature].dtype == "int":
                 X[feature] = X[feature].astype(float)
         y = pd.Series(y) if isinstance(y, np.ndarray) else y
-        if y.dtype in ['float','int']:
+        if y.dtype in ["float", "int"]:
             y = y.astype(float)
 
         return X, y
@@ -297,18 +298,23 @@ class Tree:
         ):
             return self.loss
 
-
-        loss_left_weighted = self._calculate_loss(y = y.loc[index_left]) * sum(index_left)
-        loss_right_weighted = self._calculate_loss(y = y.loc[index_right]) * sum(index_right)
+        loss_left_weighted = self._calculate_loss(y=y.loc[index_left]) * sum(index_left)
+        loss_right_weighted = self._calculate_loss(y=y.loc[index_right]) * sum(
+            index_right
+        )
         if default_split == "middle":
-            loss_middle_weighted = self._calculate_loss(y = y.loc[index_middle]) * sum(index_right)
+            loss_middle_weighted = self._calculate_loss(y=y.loc[index_middle]) * sum(
+                index_right
+            )
         else:
             loss_middle_weighted = 0
 
-        return (loss_left_weighted + loss_right_weighted + loss_middle_weighted)/self.n
+        return (
+            loss_left_weighted + loss_right_weighted + loss_middle_weighted
+        ) / self.n
 
-    def _calculate_loss(self,y,y_hat = None):
-        """ Calculate the loss of the response set
+    def _calculate_loss(self, y, y_hat=None):
+        """Calculate the loss of the response set
 
         Gini if classification problem, sse if regression
 
@@ -318,15 +324,15 @@ class Tree:
 
         Returns:
             loss as a float
-            """
-        if len(y)==0:
+        """
+        if len(y) == 0:
             return 0
-        elif y.dtype == 'float':
+        elif y.dtype == "float":
             y_hat = y.mean() if not y_hat else y_hat
-            return  (y - y_hat).pow(2).mean()
+            return (y - y_hat).pow(2).mean()
         else:
-            ps =  [(y==y_value).mean() for y_value in y.unique()]
-            return sum([p*(1-p) for p in ps])
+            ps = [(y == y_value).mean() for y_value in y.unique()]
+            return sum([p * (1 - p) for p in ps])
 
     def _initiate_daughter_nodes(self):
         """Create daughter nodes
@@ -339,23 +345,23 @@ class Tree:
             max_depth=self.max_depth,
             depth=self.depth + 1,
             missing_rule=self.missing_rule,
-            categories = self.categories
+            categories=self.categories,
         )
         right = Tree(
             min_samples_leaf=self.min_samples_leaf,
             max_depth=self.max_depth,
             depth=self.depth + 1,
             missing_rule=self.missing_rule,
-            categories = self.categories
+            categories=self.categories,
         )
 
         if self.missing_rule == "trinary":
             middle = Tree(
-            min_samples_leaf=self.min_samples_leaf,
-            max_depth=self.max_depth,
-            depth=self.depth + 1,
-            missing_rule=self.missing_rule,
-            categories = self.categories
+                min_samples_leaf=self.min_samples_leaf,
+                max_depth=self.max_depth,
+                depth=self.depth + 1,
+                missing_rule=self.missing_rule,
+                categories=self.categories,
             )
         else:
             middle = None
@@ -433,7 +439,7 @@ class Tree:
             )
         return node_importances
 
-    def predict(self, X, prob = False):
+    def predict(self, X, prob=False):
         """Recursive method to predict from new of features
 
         Args:
@@ -466,11 +472,11 @@ class Tree:
             X = X.drop(extra_features, axis=1)
 
         if prob:
-            y_hat = pd.DataFrame(index=X.index, columns = self.categories, dtype=float)
+            y_hat = pd.DataFrame(index=X.index, columns=self.categories, dtype=float)
         elif self.categories is None:
-            y_hat = pd.Series(index=X.index, dtype = float)
+            y_hat = pd.Series(index=X.index, dtype=float)
         else:
-            y_hat = pd.Series(index=X.index, dtype = object)
+            y_hat = pd.Series(index=X.index, dtype=object)
 
         if self.left is None:
             if not prob:
@@ -492,10 +498,12 @@ class Tree:
             index_right |= X[self.feature].isna()
         elif self.default_split == "middle":
             index_middle = X[self.feature].isna()
-            y_hat.loc[index_middle] = self.middle.predict(X.loc[index_middle], prob = prob)
+            y_hat.loc[index_middle] = self.middle.predict(
+                X.loc[index_middle], prob=prob
+            )
 
-        y_hat.loc[index_left] = self.left.predict(X.loc[index_left], prob = prob)
-        y_hat.loc[index_right] = self.right.predict(X.loc[index_right], prob = prob)
+        y_hat.loc[index_left] = self.left.predict(X.loc[index_left], prob=prob)
+        y_hat.loc[index_right] = self.right.predict(X.loc[index_right], prob=prob)
 
         return y_hat
 
@@ -506,7 +514,7 @@ class Tree:
 
         hspace = "---" * self.depth
         print(hspace + f"Number of observations: {self.n_true}")
-        if isinstance(self.y_hat,float):
+        if isinstance(self.y_hat, float):
             print(hspace + f"Response estimate: {np.round(self.y_hat,2)}")
         else:
             print(hspace + f"Response estimate: {self.y_hat}")
@@ -536,15 +544,15 @@ class Tree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    df = pd.read_csv('/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/test_data_class.csv', index_col=0)
-    X = df.drop('y', axis=1)
-    y = df['y']
+    df = pd.read_csv(
+        "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/test_data_class.csv",
+        index_col=0,
+    )
+    X = df.drop("y", axis=1)
+    y = df["y"]
 
     tree = Tree(max_depth=3, min_samples_leaf=20)
     tree.fit(X, y)
 
-    df['y_hat'] = tree.predict(X)
+    df["y_hat"] = tree.predict(X)
     df_probs = tree.predict(X, prob=True)
-
-
-
