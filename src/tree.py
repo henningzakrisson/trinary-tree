@@ -513,7 +513,7 @@ if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
     seed = 12
     np.random.seed(seed)
-    n = 5000  # number of data points
+    n = 500  # number of data points
 
     # Feature vector
     X = pd.DataFrame()
@@ -533,7 +533,7 @@ if __name__ == "__main__":
     )
 
     # Missing value share
-    missing_fraction = 0.5
+    missing_fraction = 0.2
     missing_index = np.random.binomial(1, missing_fraction, X.shape) == 1
     X[missing_index] = np.nan
 
