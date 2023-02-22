@@ -184,6 +184,21 @@ class TreeTest(unittest.TestCase):
 
         self.assertEqual((df['y']==df['y_hat']).sum(),len(df),msg = "Classification not identical to expected")
 
+    def test_classification_probabilities(self):
+        df = pd.read_csv('data/test_data_proba.csv',index_col=0)
+
+        X = df[['feature']]
+        y = df['y']
+
+        tree = Tree(max_depth=2)
+        tree.fit(X, y)
+
+        self.assertAlmostEqual(tree.y_prob['banana'],0.5, msg='Wrong probability')
+        self.assertAlmostEqual(tree.y_prob['apple'], 0.5, msg='Wrong probability')
+        self.assertAlmostEqual(tree.right.y_prob['apple'], 5/6, msg='Wrong probability')
+        self.assertAlmostEqual(tree.right.left.y_prob['apple'],1, msg='Wrong probability')
+        self.assertAlmostEqual(tree.right.right.y_prob['banana'],1, msg='Wrong probability')
+
 
 if __name__ == "__main__":
     unittest.main()

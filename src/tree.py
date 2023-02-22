@@ -90,7 +90,11 @@ class Tree:
         self.n = len(y)
         self.n_true = len(y_true)
 
-        self.y_hat = y.mean() if y.dtype == 'float' else y.mode().values[0]
+        if y.dtype == 'float':
+            self.y_hat = y.mean()
+        else:
+            self.y_prob = (y.value_counts()/len(y)).to_dict()
+            self.y_hat = max(self.y_prob,key = self.y_prob.get)
         self.loss = self._calculate_loss(y, self.y_hat)
         self.loss_true = self._calculate_loss(y_true, self.y_hat)
 
