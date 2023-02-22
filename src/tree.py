@@ -11,7 +11,6 @@ from src.exceptions_and_warnings.custom_warnings import (
     ExtraFeatureWarning,
 )
 
-
 class Tree:
     """Module for classification and regression trees with three different ways of handling missing data
 
