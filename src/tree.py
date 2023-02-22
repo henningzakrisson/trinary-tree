@@ -27,6 +27,7 @@ class Tree:
         max_depth=2,
         depth=0,
         missing_rule="majority",
+        categories = None,
     ):
         """Initiate the tree
 
@@ -35,6 +36,7 @@ class Tree:
             max_depth: number of levels allowed in the tree
             depth: current depth. root node has depth 0
             missing_rule: strategy to handle missing values
+            categories: Possible values of response - learnt from original dataset
 
         Returns:
             Tree object (which is a node. Can be a root node, a daughter node and/or a terminal node).
@@ -43,6 +45,7 @@ class Tree:
         self.max_depth = max_depth
         self.depth = depth
         self.missing_rule = missing_rule
+        self.categories = categories
 
         self.n = 0
         self.n_true = 0
@@ -74,7 +77,7 @@ class Tree:
             during training. Only applicable for trinary trees - for others, y_true = y
 
         Raises:
-            MissingValuesInResponse: Can not fit to missing responses, thus errors out
+            MissingValuesInResponse: Can not fit to missing categories, thus errors out
         """
         X, y = self._fix_datatypes(X, y)
 
@@ -93,8 +96,13 @@ class Tree:
         if y.dtype == 'float':
             self.y_hat = y.mean()
         else:
+            if self.categories is None:
+                self.categories = list(y.unique())
             self.y_prob = (y.value_counts()/len(y)).to_dict()
             self.y_hat = max(self.y_prob,key = self.y_prob.get)
+            for category in self.categories:
+                if category not in self.y_prob:
+                    self.y_hat[category] = 0
         self.loss = self._calculate_loss(y, self.y_hat)
         self.loss_true = self._calculate_loss(y_true, self.y_hat)
 
@@ -331,20 +339,23 @@ class Tree:
             max_depth=self.max_depth,
             depth=self.depth + 1,
             missing_rule=self.missing_rule,
+            categories = self.categories
         )
         right = Tree(
             min_samples_leaf=self.min_samples_leaf,
             max_depth=self.max_depth,
             depth=self.depth + 1,
             missing_rule=self.missing_rule,
+            categories = self.categories
         )
 
         if self.missing_rule == "trinary":
             middle = Tree(
-                min_samples_leaf=self.min_samples_leaf,
-                max_depth=self.max_depth,
-                depth=self.depth + 1,
-                missing_rule=self.missing_rule,
+            min_samples_leaf=self.min_samples_leaf,
+            max_depth=self.max_depth,
+            depth=self.depth + 1,
+            missing_rule=self.missing_rule,
+            categories = self.categories
             )
         else:
             middle = None
@@ -422,14 +433,15 @@ class Tree:
             )
         return node_importances
 
-    def predict(self, X):
+    def predict(self, X, prob = False):
         """Recursive method to predict from new of features
 
         Args:
             Covariate vector X (m x p) of same secondary dimension as training covariate vector
+            prob: True if predict probabilities rather than
 
         Returns:
-            response predictions y_hat as a numpy array (m x 1)
+            response predictions y_hat as a pandas Series. DataFrame if probabilities.
         """
         X = pd.DataFrame(X) if isinstance(X, np.ndarray) else X
         missing_features = [
@@ -453,10 +465,19 @@ class Tree:
             )
             X = X.drop(extra_features, axis=1)
 
-        y_hat = pd.Series(index=X.index, dtype=float)
+        if prob:
+            y_hat = pd.DataFrame(index=X.index, columns = self.categories, dtype=float)
+        elif self.categories is None:
+            y_hat = pd.Series(index=X.index, dtype = float),
+        else:
+            y_hat = pd.Series(index=X.index, dtype = object),
 
         if self.left is None:
-            y_hat.loc[:] = self.y_hat
+            if not prob:
+                y_hat.loc[:] = self.y_hat
+            else:
+                for category in self.categories:
+                    y_hat[category] = self.y_prob[category]
             return y_hat
 
         if self.feature_type == "float":
@@ -473,8 +494,8 @@ class Tree:
             index_middle = X[self.feature].isna()
             y_hat.loc[index_middle] = self.middle.predict(X.loc[index_middle])
 
-        y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
-        y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
+        y_hat.loc[index_left] = self.left.predict(X.loc[index_left], prob = prob)
+        y_hat.loc[index_right] = self.right.predict(X.loc[index_right], prob = prob)
 
         return y_hat
 
