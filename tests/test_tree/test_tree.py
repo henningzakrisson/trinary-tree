@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 import numpy as np
-from src.regression_tree import RegressionTree
+from src.tree import Tree
 
 from src.exceptions_and_warnings.custom_warnings import (
     MissingFeatureWarning,
@@ -9,7 +9,7 @@ from src.exceptions_and_warnings.custom_warnings import (
 )
 
 
-class RegressionTreeTest(unittest.TestCase):
+class TreeTest(unittest.TestCase):
     """Module to test the functionality of the regression trees"""
 
     def test_responses(self):
@@ -18,7 +18,7 @@ class RegressionTreeTest(unittest.TestCase):
 
         df_hat = df[["y", "X_0", "X_1"]].copy()
         for max_depth in [1, 2]:
-            tree = RegressionTree(max_depth=max_depth)
+            tree = Tree(max_depth=max_depth)
             tree.fit(df[["X_0", "X_1"]], df["y"])
             y_hat = tree.predict(df_hat[["X_0", "X_1"]])
 
@@ -38,7 +38,7 @@ class RegressionTreeTest(unittest.TestCase):
 
         df_hat = df[["y", "X_0", "X_1"]].copy()
         max_depth = 10
-        tree = RegressionTree(max_depth=max_depth)
+        tree = Tree(max_depth=max_depth)
         tree.fit(df[["X_0", "X_1"]], df["y"])
         y_hat = tree.predict(df_hat[["X_0", "X_1"]])
 
@@ -57,7 +57,7 @@ class RegressionTreeTest(unittest.TestCase):
         df = pd.read_csv("data/test_data_majority.csv", index_col=0)
 
         max_depth = 2
-        tree = RegressionTree(max_depth=max_depth)
+        tree = Tree(max_depth=max_depth)
         tree.fit(df.loc[~df["y"].isna(), ["X_0", "X_1"]], df.loc[~df["y"].isna(), "y"])
 
         df["y_hat"] = tree.predict(df[["X_0", "X_1"]])
@@ -78,7 +78,7 @@ class RegressionTreeTest(unittest.TestCase):
         df = pd.read_csv("data/test_data_mia.csv", index_col=0)
 
         max_depth = 2
-        tree = RegressionTree(max_depth=max_depth, missing_rule="mia")
+        tree = Tree(max_depth=max_depth, missing_rule="mia")
         tree.fit(df.loc[~df["y"].isna(), ["X_0", "X_1"]], df.loc[~df["y"].isna(), "y"])
 
         df["y_hat"] = tree.predict(df[["X_0", "X_1"]])
@@ -94,7 +94,7 @@ class RegressionTreeTest(unittest.TestCase):
         df_train = pd.read_csv("data/train_data_trinary.csv", index_col=0)
         df_test = pd.read_csv("data/test_data_trinary.csv", index_col=0)
 
-        tree = RegressionTree(max_depth=2, missing_rule="trinary")
+        tree = Tree(max_depth=2, missing_rule="trinary")
         tree.fit(df_train[["X_0", "X_1"]], df_train["y"])
 
         df_test["y_hat"] = tree.predict(df_test[["X_0", "X_1"]])
@@ -106,15 +106,19 @@ class RegressionTreeTest(unittest.TestCase):
         )
 
     def test_tree_cat(self):
-        """ Test for categorical input"""
+        """Test for categorical input"""
         df = pd.read_csv("data/test_data_cat.csv", index_col=0)
-        X = df.drop('y',axis=1)
-        y = df['y']
-        tree = RegressionTree(max_depth = 4, min_samples_split = 1)
+        X = df.drop("y", axis=1)
+        y = df["y"]
+        tree = Tree(max_depth=4, min_samples_leaf=1)
         tree.fit(X, y)
         y_hat = tree.predict(X)
 
-        self.assertEqual((y==y_hat).sum(),len(y),msg = "Categorical data prediction not correct for all datapoints")
+        self.assertEqual(
+            (y == y_hat).sum(),
+            len(y),
+            msg="Categorical data prediction not correct for all datapoints",
+        )
 
     def test_feature_importance(self):
         """Test feature importance values of very simple example"""
@@ -123,7 +127,7 @@ class RegressionTreeTest(unittest.TestCase):
         X = np.stack([x0, x1]).T
         y = 10 * (x0 > 50)
 
-        tree = RegressionTree(max_depth=2)
+        tree = Tree(max_depth=2)
         tree.fit(X, y)
         feature_importance = tree.feature_importance()
 
@@ -146,7 +150,7 @@ class RegressionTreeTest(unittest.TestCase):
         X = np.stack([x0, x1, x2]).T
         y = 10 * (x0 > 50) + 2 * (x2 > 5)
 
-        tree = RegressionTree(max_depth=2)
+        tree = Tree(max_depth=2)
         tree.fit(X, y)
 
         with self.assertWarns(
@@ -162,7 +166,7 @@ class RegressionTreeTest(unittest.TestCase):
         X = np.stack([x0, x1]).T
         y = 10 * (x0 > 50) + 2
 
-        tree = RegressionTree(max_depth=2)
+        tree = Tree(max_depth=2)
         tree.fit(X, y)
 
         with self.assertWarns(
@@ -170,6 +174,60 @@ class RegressionTreeTest(unittest.TestCase):
         ):
             X_extra = np.c_[X, x2]
             y_hat = tree.predict(X_extra)
+
+    def test_classification(self):
+        df = pd.read_csv("data/test_data_class.csv", index_col=0)
+        X = df.drop("y", axis=1)
+        y = df["y"]
+
+        tree = Tree(max_depth=3, min_samples_leaf=20)
+        tree.fit(X, y)
+
+        df["y_hat"] = tree.predict(X)
+
+        self.assertEqual(
+            (df["y"] == df["y_hat"]).sum(),
+            len(df),
+            msg="Classification not identical to expected",
+        )
+
+    def test_classification_probabilities(self):
+        df = pd.read_csv("data/test_data_proba.csv", index_col=0)
+
+        X = df[["feature"]]
+        y = df["y"]
+
+        tree = Tree(max_depth=2)
+        tree.fit(X, y)
+
+        self.assertAlmostEqual(tree.y_prob["banana"], 0.5, msg="Wrong probability")
+        self.assertAlmostEqual(tree.y_prob["apple"], 0.5, msg="Wrong probability")
+        self.assertAlmostEqual(
+            tree.right.y_prob["apple"], 5 / 6, msg="Wrong probability"
+        )
+        self.assertAlmostEqual(
+            tree.right.left.y_prob["apple"], 1, msg="Wrong probability"
+        )
+        self.assertAlmostEqual(
+            tree.right.right.y_prob["banana"], 1, msg="Wrong probability"
+        )
+
+    def test_probability_predictions(self):
+        df = pd.read_csv("data/test_data_class.csv", index_col=0)
+        X = df.drop("y", axis=1)
+        y = df["y"]
+
+        tree = Tree(max_depth=3, min_samples_leaf=20)
+        tree.fit(X, y)
+
+        df["y_hat"] = tree.predict(X)
+        df_probs = tree.predict(X, prob=True)
+
+        self.assertEqual(
+            (df_probs.idxmax(axis=1) == df["y_hat"]).sum(),
+            len(df),
+            msg="Most probable category not predicted",
+        )
 
 
 if __name__ == "__main__":
