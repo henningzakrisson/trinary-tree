@@ -7,7 +7,7 @@ from src.common.custom_exceptions import MissingValuesInResponse
 from src.common.custom_warnings import MissingFeatureWarning, ExtraFeatureWarning
 
 
-def fix_datatypes(X, y=None):
+def fix_datatypes(X, y=None, w = None):
     """Make sure datasets are pandas DataFrames and Series"""
     X = pd.DataFrame(X) if isinstance(X, np.ndarray) else X
     for feature in X:
@@ -21,20 +21,29 @@ def fix_datatypes(X, y=None):
         if np.any(y.isna()) or np.any(y.isna()):
             raise MissingValuesInResponse("n/a not allowed in response (y)")
 
-    return X, y
+    if w is not None:
+        w = pd.Series(w) if isinstance(w, np.ndarray) else w
+        if w.dtype in ["float", "int"]:
+            w = w.astype(float)
+
+    return X, y, w
 
 
-def fit_response(y, categories=None):
+def fit_response(y, categories=None, w = None):
     """Get the response estimate given this set of responses"""
 
+    if w is None:
+        w = pd.Series(index = y.index, dtype = float)
+        w.loc[:] = 1
+
     if y.dtype == "float":
-        y_hat = y.mean()
+        y_hat = (w*y).sum()/w.sum()
         y_prob = {}
         categories = None
     else:
         if categories is None:
             categories = list(y.unique())
-        y_prob = (y.value_counts() / len(y)).to_dict()
+        y_prob = {category: sum((y==category)*w)/sum(w) for category in categories}
         y_hat = max(y_prob, key=y_prob.get)
         for category in categories:
             if category not in y_prob:
@@ -43,7 +52,7 @@ def fit_response(y, categories=None):
     return y_hat, y_prob, categories
 
 
-def calculate_loss(y, y_hat=None):
+def calculate_loss(y, y_hat=None, w = None):
     """Calculate the loss of the response set
 
     Gini if classification problem, sse if regression
@@ -51,17 +60,24 @@ def calculate_loss(y, y_hat=None):
     Args:
         y: response pd.Series
         y_hat: response estimate. If None, will be calculated as mean/mode
+        w: Node membership weight
 
     Returns:
         loss as a float
     """
     if len(y) == 0:
         return 0
-    elif y.dtype == "float":
-        y_hat = y.mean() if not y_hat else y_hat
-        return (y - y_hat).pow(2).mean()
+
+    if w is None:
+        w = pd.Series(index = y.index, dtype = float)
+        w.loc[:] = 1
+
+    if y.dtype == "float":
+        if y_hat is None:
+            y_hat,_,_ = fit_response(y, w)
+        return (w * (y - y_hat).pow(2)).sum()/w.sum()
     else:
-        ps = [(y == y_value).mean() for y_value in y.unique()]
+        ps = [(w * (y == y_value)).sum()/w.sum() for y_value in y.unique()]
         return sum([p * (1 - p) for p in ps])
 
 
@@ -105,7 +121,7 @@ def get_splitter_candidates(x):
         ]
 
 
-def get_indices(x, splitter, default_split="middle"):
+def get_indices(x, splitter, default_split="none"):
     """Get left and right indices given a splitter"""
     if x.dtype == "float":
         index_left = x < splitter

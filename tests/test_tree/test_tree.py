@@ -4,6 +4,7 @@ import numpy as np
 import warnings
 from src.trinary_tree import TrinaryTree
 from src.binary_tree import BinaryTree
+from src.weighted_tree import WeightedTree
 
 from src.common.custom_warnings import (
     MissingFeatureWarning,
@@ -20,21 +21,26 @@ class TreeTest(unittest.TestCase):
     def test_responses(self):
         """Basic test of the default settings of the tree"""
         df = pd.read_csv("data/test_data.csv", index_col=0)
-
         df_hat = df[["y", "X_0", "X_1"]].copy()
+        hat_columns = [f"tree_{max_depth}" for max_depth in [1, 2]]
+
+
+        max_depths = [1,2]
+        tree_types = {'Binary': BinaryTree, 'Trinary': TrinaryTree, 'Weighted': WeightedTree}
+
         for max_depth in [1, 2]:
-            tree = BinaryTree(max_depth=max_depth)
-            tree.fit(df[["X_0", "X_1"]], df["y"])
-            y_hat = tree.predict(df_hat[["X_0", "X_1"]])
+            for tree_name in tree_types:
+                tree = tree_types[tree_name](max_depth=max_depth)
+                tree.fit(df[["X_0", "X_1"]], df["y"])
+                y_hat = tree.predict(df_hat[["X_0", "X_1"]])
 
-            df_hat.loc[:, f"tree_{max_depth}"] = y_hat.copy()
+                df_hat.loc[:, f"tree_{max_depth}"] = y_hat.copy()
 
-        columns = [f"tree_{max_depth}" for max_depth in [1, 2]]
-        self.assertEqual(
-            (df[columns].round(3) == df_hat[columns].round(3)).sum().sum(),
-            len(columns) * len(df),
-            msg="Response prediction not equal to expected response",
-        )
+                self.assertEqual(
+                    (df[f"tree_{max_depth}"].round(3) == y_hat.round(3)).sum(),
+                        len(df),
+                    msg=f"Response prediction not equal to expected response for {tree_name} of depth {max_depth}",
+                )
 
     def test_no_more_splits(self):
         """Test so that the tree doesn't make any unnecessary splits if no more

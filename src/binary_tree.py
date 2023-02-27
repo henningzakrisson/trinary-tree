@@ -61,6 +61,7 @@ class BinaryTree:
         self.loss = None
         self.feature = None
         self.feature_type = None
+        self.response_type = None
         self.features = []
         self.splitter = None
         self.default_split = None
@@ -80,12 +81,16 @@ class BinaryTree:
         Raises:
             MissingValuesInResponse: Can not fit to missing categories, thus errors out
         """
-        X, y = fix_datatypes(X, y)
+        X, y, _ = fix_datatypes(X, y)
         self.features = X.columns
 
         self.n = len(y)
 
         self.y_hat, self.y_prob, self.categories = fit_response(y, self.categories)
+        if self.categories is not None:
+            self.response_type = 'object'
+        else:
+            self.response_type = 'float'
 
         self.loss = calculate_loss(y)
 
@@ -276,31 +281,43 @@ class BinaryTree:
         Returns:
             response predictions y_hat as a pandas Series. DataFrame if probabilities.
         """
-        X, _ = fix_datatypes(X)
+        X, _, _ = fix_datatypes(X)
         X = check_features(X, self.features)
 
-        if prob:
-            y_hat = pd.DataFrame(index=X.index, columns=self.categories, dtype=float)
+
+        if self.response_type == 'object':
+            y_prob = pd.DataFrame(index=X.index, columns=self.categories, dtype=float)
+            if self.left is None:
+                for category in self.categories:
+                    y_prob[category] = self.y_prob[category]
+            else:
+                index_left, index_right = get_indices(
+                    X[self.feature], self.splitter, default_split=self.default_split
+                )
+
+                y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
+                y_prob.loc[index_right] =self.right.predict(X.loc[index_right], prob=True)
+
         else:
             y_hat = pd.Series(
-                index=X.index, dtype=float if self.categories is None else object
+                index=X.index, dtype=self.response_type
             )
-
-        if self.left is None:
-            if not prob:
+            if self.left is None:
                 y_hat.loc[:] = self.y_hat
             else:
-                for category in self.categories:
-                    y_hat[category] = self.y_prob[category]
-        else:
-            index_left, index_right = get_indices(
-                X[self.feature], self.splitter, default_split=self.default_split
-            )
+                index_left, index_right = get_indices(
+                    X[self.feature], self.splitter, default_split=self.default_split
+                )
 
-            y_hat.loc[index_left] = self.left.predict(X.loc[index_left], prob=prob)
-            y_hat.loc[index_right] = self.right.predict(X.loc[index_right], prob=prob)
+                y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
+                y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
 
-        return y_hat
+        if prob:
+            return y_prob
+        elif self.response_type == 'float':
+            return y_hat
+        else: # categorical prediction
+            return y_prob.idxmax(axis=1)
 
     def print(self):
         """Print the tree structure"""
@@ -308,12 +325,12 @@ class BinaryTree:
             raise CantPrintUnfittedTree("Can't print tree before fitting to data")
 
         hspace = "---" * self.depth
-        print(hspace + f"Number of observations: {self.n_true}")
+        print(hspace + f"Number of observations: {self.n}")
         if isinstance(self.y_hat, float):
             print(hspace + f"Response estimate: {np.round(self.y_hat,2)}")
         else:
             print(hspace + f"Response estimate: {self.y_hat}")
-        print(hspace + f"loss: {np.round(self.loss_true,2)}")
+        print(hspace + f"loss: {np.round(self.loss,2)}")
         if self.left is not None:
             if self.feature_type == "float":
                 left_rule = f"if {self.feature} <  {np.round(self.splitter,2)}"
@@ -336,14 +353,17 @@ class BinaryTree:
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
     df = pd.read_csv(
-        "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/test_data_class.csv",
+        "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/test_data.csv",
         index_col=0,
     )
-    X = df.drop("y", axis=1)
+    X = df[['X_0','X_1']]
     y = df["y"]
 
-    tree = BinaryTree(max_depth=3, min_samples_leaf=20)
+    tree = BinaryTree(max_depth=1, min_samples_leaf=20)
     tree.fit(X, y)
 
     df["y_hat"] = tree.predict(X)
-    df_probs = tree.predict(X, prob=True)
+
+    print(
+        'h'
+    )
