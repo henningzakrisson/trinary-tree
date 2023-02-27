@@ -1,13 +1,18 @@
 import unittest
 import pandas as pd
 import numpy as np
-from src.tree import Tree
+import warnings
+from src.trinary_tree import TrinaryTree
+from src.binary_tree import BinaryTree
 
-from src.exceptions_and_warnings.custom_warnings import (
+from src.common.custom_warnings import (
     MissingFeatureWarning,
     ExtraFeatureWarning,
 )
 
+from src.common.functions import (
+get_feature_importance
+)
 
 class TreeTest(unittest.TestCase):
     """Module to test the functionality of the regression trees"""
@@ -18,7 +23,7 @@ class TreeTest(unittest.TestCase):
 
         df_hat = df[["y", "X_0", "X_1"]].copy()
         for max_depth in [1, 2]:
-            tree = Tree(max_depth=max_depth)
+            tree = BinaryTree(max_depth=max_depth)
             tree.fit(df[["X_0", "X_1"]], df["y"])
             y_hat = tree.predict(df_hat[["X_0", "X_1"]])
 
@@ -38,7 +43,7 @@ class TreeTest(unittest.TestCase):
 
         df_hat = df[["y", "X_0", "X_1"]].copy()
         max_depth = 10
-        tree = Tree(max_depth=max_depth)
+        tree = BinaryTree(max_depth=max_depth)
         tree.fit(df[["X_0", "X_1"]], df["y"])
         y_hat = tree.predict(df_hat[["X_0", "X_1"]])
 
@@ -57,7 +62,7 @@ class TreeTest(unittest.TestCase):
         df = pd.read_csv("data/test_data_majority.csv", index_col=0)
 
         max_depth = 2
-        tree = Tree(max_depth=max_depth)
+        tree = BinaryTree(max_depth=max_depth)
         tree.fit(df.loc[~df["y"].isna(), ["X_0", "X_1"]], df.loc[~df["y"].isna(), "y"])
 
         df["y_hat"] = tree.predict(df[["X_0", "X_1"]])
@@ -78,7 +83,7 @@ class TreeTest(unittest.TestCase):
         df = pd.read_csv("data/test_data_mia.csv", index_col=0)
 
         max_depth = 2
-        tree = Tree(max_depth=max_depth, missing_rule="mia")
+        tree = BinaryTree(max_depth=max_depth, missing_rule="mia")
         tree.fit(df.loc[~df["y"].isna(), ["X_0", "X_1"]], df.loc[~df["y"].isna(), "y"])
 
         df["y_hat"] = tree.predict(df[["X_0", "X_1"]])
@@ -94,7 +99,7 @@ class TreeTest(unittest.TestCase):
         df_train = pd.read_csv("data/train_data_trinary.csv", index_col=0)
         df_test = pd.read_csv("data/test_data_trinary.csv", index_col=0)
 
-        tree = Tree(max_depth=2, missing_rule="trinary")
+        tree = TrinaryTree(max_depth=2)
         tree.fit(df_train[["X_0", "X_1"]], df_train["y"])
 
         df_test["y_hat"] = tree.predict(df_test[["X_0", "X_1"]])
@@ -110,7 +115,7 @@ class TreeTest(unittest.TestCase):
         df = pd.read_csv("data/test_data_cat.csv", index_col=0)
         X = df.drop("y", axis=1)
         y = df["y"]
-        tree = Tree(max_depth=4, min_samples_leaf=1)
+        tree = BinaryTree(max_depth=4, min_samples_leaf=1)
         tree.fit(X, y)
         y_hat = tree.predict(X)
 
@@ -127,9 +132,9 @@ class TreeTest(unittest.TestCase):
         X = np.stack([x0, x1]).T
         y = 10 * (x0 > 50)
 
-        tree = Tree(max_depth=2)
+        tree = BinaryTree(max_depth=2)
         tree.fit(X, y)
-        feature_importance = tree.feature_importance()
+        feature_importance = get_feature_importance(tree)
 
         self.assertEqual(
             feature_importance[0],
@@ -150,7 +155,7 @@ class TreeTest(unittest.TestCase):
         X = np.stack([x0, x1, x2]).T
         y = 10 * (x0 > 50) + 2 * (x2 > 5)
 
-        tree = Tree(max_depth=2)
+        tree = TrinaryTree(max_depth=2)
         tree.fit(X, y)
 
         with self.assertWarns(
@@ -166,7 +171,7 @@ class TreeTest(unittest.TestCase):
         X = np.stack([x0, x1]).T
         y = 10 * (x0 > 50) + 2
 
-        tree = Tree(max_depth=2)
+        tree = TrinaryTree(max_depth=2)
         tree.fit(X, y)
 
         with self.assertWarns(
@@ -180,7 +185,7 @@ class TreeTest(unittest.TestCase):
         X = df.drop("y", axis=1)
         y = df["y"]
 
-        tree = Tree(max_depth=3, min_samples_leaf=20)
+        tree = BinaryTree(max_depth=3, min_samples_leaf=20)
         tree.fit(X, y)
 
         df["y_hat"] = tree.predict(X)
@@ -197,7 +202,7 @@ class TreeTest(unittest.TestCase):
         X = df[["feature"]]
         y = df["y"]
 
-        tree = Tree(max_depth=2)
+        tree = BinaryTree(max_depth=2)
         tree.fit(X, y)
 
         self.assertAlmostEqual(tree.y_prob["banana"], 0.5, msg="Wrong probability")
@@ -217,7 +222,7 @@ class TreeTest(unittest.TestCase):
         X = df.drop("y", axis=1)
         y = df["y"]
 
-        tree = Tree(max_depth=3, min_samples_leaf=20)
+        tree = BinaryTree(max_depth=3, min_samples_leaf=20)
         tree.fit(X, y)
 
         df["y_hat"] = tree.predict(X)
@@ -228,7 +233,6 @@ class TreeTest(unittest.TestCase):
             len(df),
             msg="Most probable category not predicted",
         )
-
 
 if __name__ == "__main__":
     unittest.main()

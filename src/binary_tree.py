@@ -2,14 +2,24 @@ import itertools
 import warnings
 import pandas as pd
 import numpy as np
-from src.exceptions_and_warnings.custom_exceptions import (
+from src.common.custom_exceptions import (
     MissingValuesInResponse,
     CantPrintUnfittedTree,
 )
-from src.exceptions_and_warnings.custom_warnings import (
+from src.common.custom_warnings import (
     MissingFeatureWarning,
     ExtraFeatureWarning,
 )
+from src.common.functions import (
+    fix_datatypes,
+    fit_response,
+    calculate_loss,
+    check_terminal_node,
+    get_splitter_candidates,
+    get_indices,
+    check_features,
+)
+
 
 class BinaryTree:
     """Module for classification and regression trees with standard handling missing data
@@ -25,8 +35,8 @@ class BinaryTree:
         min_samples_leaf=20,
         max_depth=2,
         depth=0,
-        missing_rule="majority",
         categories=None,
+        missing_rule="majority",
     ):
         """Initiate the tree
 
@@ -43,18 +53,16 @@ class BinaryTree:
         self.min_samples_leaf = min_samples_leaf
         self.max_depth = max_depth
         self.depth = depth
-        self.missing_rule = missing_rule
         self.categories = categories
-
+        self.missing_rule = missing_rule
         self.n = 0
         self.y_hat = None
         self.y_prob = {}
         self.loss = None
         self.feature = None
         self.feature_type = None
-        self.available_features = []
-        self.threshold = None  # For continous features
-        self.sets = None  # Dict with left/right keys for categorical features
+        self.features = []
+        self.splitter = None
         self.default_split = None
         self.left = None
         self.right = None
@@ -72,49 +80,30 @@ class BinaryTree:
         Raises:
             MissingValuesInResponse: Can not fit to missing categories, thus errors out
         """
-        X, y = self._fix_datatypes(X, y)
+        X, y = fix_datatypes(X, y)
+        self.features = X.columns
 
-        if np.any(y.isna()) or np.any(y.isna()):
-            raise MissingValuesInResponse("n/a not allowed in response (y)")
-
-        self.available_features = X.columns  # This means all features  in the input
         self.n = len(y)
 
-        if y.dtype == "float":
-            self.y_hat = y.mean()
-        else:
-            if self.categories is None:
-                self.categories = list(y.unique())
-            self.y_prob = (y.value_counts() / len(y)).to_dict()
-            self.y_hat = max(self.y_prob, key=self.y_prob.get)
-            for category in self.categories:
-                if category not in self.y_prob:
-                    self.y_prob[category] = 0
-        self.loss = self._calculate_loss(y)
+        self.y_hat, self.y_prob, self.categories = fit_response(y, self.categories)
+
+        self.loss = calculate_loss(y)
 
         # Check pruning conditions
-        if (self.depth >= self.max_depth) or (self.n <= self.min_samples_leaf):
+        if check_terminal_node(self):
             return
 
         # Find splitting parameters
-        self.feature, splitter, self.default_split = self._find_split(X, y)
+        self.feature, self.splitter, self.default_split = self._find_split(X, y)
 
         if self.feature is None:
             return
-        elif X[self.feature].dtype == "float":
-            self.feature_type = "float"
-            self.threshold = splitter
-            index_left = X[self.feature] < self.threshold
-            index_right = X[self.feature] >= self.threshold
-        elif X[self.feature].dtype == "object":
-            self.feature_type = "object"
-            self.sets = splitter
-            index_left = X[self.feature].isin(self.sets["left"])
-            index_right = X[self.feature].isin(self.sets["right"])
-        if self.default_split == "left":
-            index_left |= X[self.feature].isna()
-        elif self.default_split == "right":
-            index_right |= X[self.feature].isna()
+
+        self.feature_type = "float" if X[self.feature].dtype == "float" else "object"
+
+        index_left, index_right = get_indices(
+            X[self.feature], self.splitter, self.default_split
+        )
 
         # Send data to daughter nodes
         self.left, self.right = self._initiate_daughter_nodes()
@@ -122,17 +111,6 @@ class BinaryTree:
         self.right.fit(X.loc[index_right], y.loc[index_right])
 
         self.node_importance = self._calculate_importance()
-
-    def _fix_datatypes(self, X, y):
-        X = pd.DataFrame(X) if isinstance(X, np.ndarray) else X
-        for feature in X:
-            if X[feature].dtype == "int":
-                X[feature] = X[feature].astype(float)
-        y = pd.Series(y) if isinstance(y, np.ndarray) else y
-        if y.dtype in ["float", "int"]:
-            y = y.astype(float)
-
-        return X, y
 
     def _find_split(self, X, y) -> tuple:
         """Calculate the best split for a decision tree
@@ -154,7 +132,7 @@ class BinaryTree:
             feature for feature in X.columns if X[feature].isna().sum() < len(X)
         ]
         for feature in features:
-            splitters = self._get_splitter_candidates(X[feature])
+            splitters = get_splitter_candidates(X[feature])
             for splitter in splitters:
                 default_splits = self._get_default_split_candidates(
                     X, feature, splitter
@@ -172,40 +150,6 @@ class BinaryTree:
                         )
 
         return best_feature, best_splitter, best_default_split
-
-    def _get_splitter_candidates(self, x):
-        """Get potential candidates for splitters
-
-        For continous variables, all values that split the data in a unique way is found by looking at
-         values between all unique non-missing datapoints. For categorical variables, all possible
-         ways to split the set of unique categories are tried.
-
-        Args:
-            x: Covariate vector for one certain feature as a pandas Series
-
-        Returns:
-            numpy array or list of relevant thresholds
-        """
-        if np.all(x.isna()):
-            return []
-        elif x.dtype == "float":
-            values = x.drop_duplicates()
-            return values.sort_values().rolling(2).mean().dropna().values
-        elif x.dtype == "object":
-            values = x.dropna().unique()
-            left_sets = list(
-                itertools.chain.from_iterable(
-                    itertools.combinations(values, r) for r in range(1, len(values))
-                )
-            )
-            right_sets = [
-                [value for value in values if value not in left_set]
-                for left_set in left_sets
-            ]
-            return [
-                {"left": left_set, "right": right_set}
-                for left_set, right_set in zip(left_sets, right_sets)
-            ]
 
     def _get_default_split_candidates(self, X, feature, splitter):
         """Get default split candidates given the rule, covariates and features
@@ -234,7 +178,7 @@ class BinaryTree:
                     > sum(X[feature].isin(splitter["right"]))
                     else ["right"]
                 )
-        else: # mia strategy
+        else:  # mia strategy
             return ["left", "right"]
 
     def _calculate_split_loss(self, X, y, feature, splitter, default_split):
@@ -250,17 +194,7 @@ class BinaryTree:
         Returns:
             Total loss of this split for all daughter nodes
         """
-        if X[feature].dtype == "float":
-            index_left = X[feature] < splitter
-            index_right = X[feature] >= splitter
-        elif X[feature].dtype == "object":
-            index_left = X[feature].isin(splitter["left"])
-            index_right = X[feature].isin(splitter["right"])
-        if default_split == "left":
-            index_left |= X[feature].isna()
-        else: # default split is right branch
-            index_right |= X[feature].isna()
-
+        index_left, index_right = get_indices(X[feature], splitter, default_split)
 
         # To avoid hyperparameter-illegal splits
         if (sum(index_left) < self.min_samples_leaf) or (
@@ -268,35 +202,10 @@ class BinaryTree:
         ):
             return self.loss
 
-        loss_left_weighted = self._calculate_loss(y=y.loc[index_left]) * sum(index_left)
-        loss_right_weighted = self._calculate_loss(y=y.loc[index_right]) * sum(
-            index_right
-        )
+        loss_left_weighted = calculate_loss(y=y.loc[index_left]) * sum(index_left)
+        loss_right_weighted = calculate_loss(y=y.loc[index_right]) * sum(index_right)
 
-        return (
-            loss_left_weighted + loss_right_weighted
-        ) / self.n
-
-    def _calculate_loss(self, y):
-        """Calculate the loss of the response set
-
-        Gini if classification problem, sse if regression
-
-        Args:
-            y: response pd.Series
-            y_hat: response estimate. If None, will be calculated as mean/mode
-
-        Returns:
-            loss as a float
-        """
-        if len(y) == 0:
-            return 0
-        elif y.dtype == "float":
-            y_hat = y.mean()
-            return (y - y_hat).pow(2).mean()
-        else: # Gini impurity
-            ps = [(y == y_value).mean() for y_value in y.unique()]
-            return sum([p * (1 - p) for p in ps])
+        return (loss_left_weighted + loss_right_weighted) / self.n
 
     def _initiate_daughter_nodes(self):
         """Create daughter nodes
@@ -333,30 +242,9 @@ class BinaryTree:
         else:
             return (
                 self.loss
-                - (
-                    self.left.n * self.left.loss
-                    + self.right.n * self.right.loss
-                )
+                - (self.left.n * self.left.loss + self.right.n * self.right.loss)
                 / self.n
             )
-
-    def feature_importance(self):
-        """Calculate feature importance for all features in X
-
-        Return:
-            dict with keys corresponding to feature and values corresponding to their feature importances. Sums to 1.
-        """
-        node_importances = self._get_node_importances(
-            node_importances={feature: [] for feature in self.available_features}
-        )
-        total_importances = {
-            feature: sum(node_importances[feature]) for feature in node_importances
-        }
-        feature_importances = {
-            feature: total_importances[feature] / sum(total_importances.values())
-            for feature in total_importances
-        }
-        return feature_importances
 
     def _get_node_importances(self, node_importances):
         """Get node importances for this node and all its daughters
@@ -373,7 +261,6 @@ class BinaryTree:
             node_importances = self.left._get_node_importances(
                 node_importances=node_importances
             )
-        if self.right is not None:
             node_importances = self.right._get_node_importances(
                 node_importances=node_importances
             )
@@ -389,34 +276,15 @@ class BinaryTree:
         Returns:
             response predictions y_hat as a pandas Series. DataFrame if probabilities.
         """
-        X = pd.DataFrame(X) if isinstance(X, np.ndarray) else X
-        missing_features = [
-            feature for feature in self.available_features if feature not in X.columns
-        ]
-        if len(missing_features) > 0:
-            warnings.warn(
-                f"Covariate matrix missing features {missing_features} - filling with n/a",
-                MissingFeatureWarning,
-            )
-            for feature in missing_features:
-                X[feature] = np.nan
-
-        extra_features = [
-            feature for feature in X.columns if feature not in self.available_features
-        ]
-        if len(extra_features) > 0:
-            warnings.warn(
-                f"Covariate matrix missing features {extra_features} - filling with n/a",
-                ExtraFeatureWarning,
-            )
-            X = X.drop(extra_features, axis=1)
+        X, _ = fix_datatypes(X)
+        X = check_features(X, self.features)
 
         if prob:
             y_hat = pd.DataFrame(index=X.index, columns=self.categories, dtype=float)
-        elif self.categories is None:
-            y_hat = pd.Series(index=X.index, dtype=float)
         else:
-            y_hat = pd.Series(index=X.index, dtype=object)
+            y_hat = pd.Series(
+                index=X.index, dtype=float if self.categories is None else object
+            )
 
         if self.left is None:
             if not prob:
@@ -424,21 +292,13 @@ class BinaryTree:
             else:
                 for category in self.categories:
                     y_hat[category] = self.y_prob[category]
-            return y_hat
-
-        if self.feature_type == "float":
-            index_left = X[self.feature] < self.threshold
-            index_right = X[self.feature] >= self.threshold
-        elif self.feature_type == "object":
-            index_left = X[self.feature].isin(self.sets["left"])
-            index_right = X[self.feature].isin(self.sets["right"])
-        if self.default_split == "left":
-            index_left |= X[self.feature].isna()
         else:
-            index_right |= X[self.feature].isna()
+            index_left, index_right = get_indices(
+                X[self.feature], self.splitter, default_split=self.default_split
+            )
 
-        y_hat.loc[index_left] = self.left.predict(X.loc[index_left], prob=prob)
-        y_hat.loc[index_right] = self.right.predict(X.loc[index_right], prob=prob)
+            y_hat.loc[index_left] = self.left.predict(X.loc[index_left], prob=prob)
+            y_hat.loc[index_right] = self.right.predict(X.loc[index_right], prob=prob)
 
         return y_hat
 
@@ -456,11 +316,13 @@ class BinaryTree:
         print(hspace + f"loss: {np.round(self.loss_true,2)}")
         if self.left is not None:
             if self.feature_type == "float":
-                left_rule = f"if {self.feature} <  {np.round(self.threshold,2)}"
-                right_rule = f"if {self.feature} >=  {np.round(self.threshold,2)}"
+                left_rule = f"if {self.feature} <  {np.round(self.splitter,2)}"
+                right_rule = f"if {self.feature} >=  {np.round(self.splitter,2)}"
             elif self.feature_type == "object":
-                left_rule = f"if {self.feature} is " + ", ".join(self.sets["left"])
-                right_rule = f"if {self.feature} is " + ", ".join(self.sets["right"])
+                left_rule = f"if {self.feature} is " + ", ".join(self.splitter["left"])
+                right_rule = f"if {self.feature} is " + ", ".join(
+                    self.splitter["right"]
+                )
             if self.default_split == "left":
                 left_rule += " or n/a"
             else:
