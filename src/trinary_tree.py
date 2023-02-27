@@ -12,8 +12,8 @@ from src.exceptions_and_warnings.custom_warnings import (
 )
 
 
-class Tree:
-    """Module for classification and regression trees with three different ways of handling missing data
+class BinaryTree:
+    """Module for classification and regression trees with standard handling missing data
 
     The missing data strategies are:
      - Majority rule: missing datapoints go to the node with the most training data
