@@ -51,6 +51,7 @@ class Tree:
         self.n = 0
         self.n_true = 0
         self.y_hat = None
+        self.y_prob = {}
         self.loss = None
         self.loss_true = None
         self.feature = None
