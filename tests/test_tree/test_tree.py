@@ -283,5 +283,24 @@ class TreeTest(unittest.TestCase):
 
         self.assertAlmostEqual((y_hat==y_test).sum(),len(y_test),msg="Weighted strategy not working properly")
 
+    def test_weighted_strat_cat(self):
+        df_train = pd.read_csv('data/train_data_weighted_cat.csv',index_col=0)
+        X_train = df_train.drop('y',axis=1)
+        y_train = df_train['y']
+
+        df_test =  pd.read_csv('data/test_data_weighted_cat.csv',index_col=0)
+        X_test = df_test[['number','fruit']]
+        y_prob = df_test[['bad','good','great']]
+        y_test = df_test['y']
+
+        tree = WeightedTree(max_depth=2, min_samples_leaf = 1)
+        tree.fit(X_train,y_train)
+
+        y_prob_hat = tree.predict(X_test,prob = True)
+        y_hat = tree.predict(X_test)
+
+        self.assertAlmostEqual((y_hat==y_test).sum(),len(y_test),msg="Weighted strategy classification not working properly")
+        self.assertAlmostEqual((y_prob_hat.round(2)==y_prob.round(2)).sum().sum(),np.prod(y_prob.shape),msg="Weighted strategy classification not working properly")
+
 if __name__ == "__main__":
     unittest.main()

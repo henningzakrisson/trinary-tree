@@ -9,12 +9,12 @@ from src.common.custom_warnings import MissingFeatureWarning, ExtraFeatureWarnin
 
 def fix_datatypes(X, y=None, w = None):
     """Make sure datasets are pandas DataFrames and Series"""
-    X = pd.DataFrame(X) if isinstance(X, np.ndarray) else X
+    X = pd.DataFrame(X).copy() if isinstance(X, np.ndarray) else X.copy()
     for feature in X:
         if X[feature].dtype == "int":
             X[feature] = X[feature].astype(float)
     if y is not None:
-        y = pd.Series(y) if isinstance(y, np.ndarray) else y
+        y = pd.Series(y).copy() if isinstance(y, np.ndarray) else y.copy()
         if y.dtype in ["float", "int"]:
             y = y.astype(float)
 
@@ -22,7 +22,7 @@ def fix_datatypes(X, y=None, w = None):
             raise MissingValuesInResponse("n/a not allowed in response (y)")
 
     if w is not None:
-        w = pd.Series(w) if isinstance(w, np.ndarray) else w
+        w = pd.Series(w).copy() if isinstance(w, np.ndarray) else w.copy()
         if w.dtype in ["float", "int"]:
             w = w.astype(float)
 
