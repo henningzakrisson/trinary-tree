@@ -275,11 +275,9 @@ class WeightedTree:
                 )
                 index_na = X[self.feature].isna()
 
-                y_prob_left = self.left.predict(X.loc[index_left], prob=True)
-                y_prob_right = self.right.predict(X.loc[index_right], prob=True)
-                y_prob.loc[index_left] = y_prob_left
-                y_prob.loc[index_right] = y_prob_right
-                y_prob.loc[index_na] = self.p_left * y_prob_left + self.p_right * y_prob_right
+                y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
+                y_prob.loc[index_right] =  self.right.predict(X.loc[index_right], prob=True)
+                y_prob.loc[index_na] = self.p_left * self.left.predict(X.loc[index_na], prob=True) + self.p_right * self.right.predict(X.loc[index_na], prob=True)
 
         else:
             y_hat = pd.Series(
@@ -335,18 +333,21 @@ if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
     folder_path = '/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data'
 
-    df_train = pd.read_csv(f'{folder_path}/train_data_weighted.csv', index_col=0)
+    df_train = pd.read_csv(f'{folder_path}/train_data_weighted_cat.csv', index_col=0)
     X_train = df_train.drop('y', axis=1)
     y_train = df_train['y']
 
-    df_test = pd.read_csv(f'{folder_path}//test_data_weighted.csv', index_col=0)
+    df_test = pd.read_csv(f'{folder_path}/test_data_weighted_cat.csv', index_col=0)
     X_test = df_test.drop('y', axis=1)
+    y_prob = df_test[['bad', 'good', 'great']]
     y_test = df_test['y']
 
     tree = WeightedTree(max_depth=2, min_samples_leaf=1)
     tree.fit(X_train, y_train)
+
+    y_prob_hat = tree.predict(X_test, prob=True)
     y_hat = tree.predict(X_test)
 
-    print(
+print(
         'h'
     )
