@@ -126,7 +126,7 @@ def get_indices(x, splitter, default_split="none"):
     if x.dtype == "float":
         index_left = x < splitter
         index_right = x >= splitter
-    elif x.dtype == "object":
+    else:
         index_left = x.isin(splitter["left"])
         index_right = x.isin(splitter["right"])
     if default_split == "left":

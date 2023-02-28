@@ -352,18 +352,16 @@ class BinaryTree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    df = pd.read_csv(
-        "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/test_data.csv",
-        index_col=0,
-    )
-    X = df[['X_0','X_1']]
+    file_path = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/test_data_cat.csv"
+
+    df = pd.read_csv(file_path, index_col=0)
+    X = df.drop("y", axis=1)
     y = df["y"]
 
-    tree = BinaryTree(max_depth=1, min_samples_leaf=20)
+    max_depth = 4
+
+    tree = BinaryTree(max_depth=max_depth)
     tree.fit(X, y)
+    y_hat = tree.predict(X)
 
-    df["y_hat"] = tree.predict(X)
-
-    print(
-        'h'
-    )
+    print('h')

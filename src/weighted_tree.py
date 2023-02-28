@@ -190,7 +190,7 @@ class WeightedTree:
             return self.loss
 
         loss_left_weighted = calculate_loss(y=y.loc[index_left], w=w.loc[index_left]) * w.loc[index_left].sum()
-        loss_right_weighted = calculate_loss(y=y.loc[index_right], w=w.loc[index_left]) * w.loc[index_right].sum()
+        loss_right_weighted = calculate_loss(y=y.loc[index_right], w=w.loc[index_right]) * w.loc[index_right].sum()
 
         return (loss_left_weighted + loss_right_weighted) / self.n
 
@@ -293,11 +293,9 @@ class WeightedTree:
                 )
                 index_na = X[self.feature].isna()
 
-                y_hat_left = self.left.predict(X.loc[index_left])
-                y_hat_right = self.right.predict(X.loc[index_right])
-                y_hat.loc[index_left] = y_hat_left
-                y_hat.loc[index_right] = y_hat_right
-                y_hat.loc[index_na] = self.p_left * y_hat_left + self.p_right * y_hat_right
+                y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
+                y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
+                y_hat.loc[index_na] = self.p_left * self.left.predict(X.loc[index_na]) + self.p_right * self.right.predict(X.loc[index_na])
 
         if prob:
             return y_prob
@@ -335,17 +333,19 @@ class WeightedTree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    df = pd.read_csv(
-        "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/test_data.csv",
-        index_col=0,
-    )
-    X = df[['X_0','X_1']]
-    y = df["y"]
+    folder_path = '/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data'
 
-    tree = WeightedTree(max_depth=1, min_samples_leaf=20)
-    tree.fit(X, y)
+    df_train = pd.read_csv(f'{folder_path}/train_data_weighted.csv', index_col=0)
+    X_train = df_train.drop('y', axis=1)
+    y_train = df_train['y']
 
-    df["y_hat"] = tree.predict(X)
+    df_test = pd.read_csv(f'{folder_path}//test_data_weighted.csv', index_col=0)
+    X_test = df_test.drop('y', axis=1)
+    y_test = df_test['y']
+
+    tree = WeightedTree(max_depth=2, min_samples_leaf=1)
+    tree.fit(X_train, y_train)
+    y_hat = tree.predict(X_test)
 
     print(
         'h'

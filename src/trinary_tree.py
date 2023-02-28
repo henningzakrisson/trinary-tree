@@ -287,7 +287,7 @@ class TrinaryTree:
                 )
                 index_middle = X[self.feature].isna()
                 y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
-                y_prob.loc[index_right] =self.right.predict(X.loc[index_right], prob=True)
+                y_prob.loc[index_right] = self.right.predict(X.loc[index_right], prob=True)
                 y_prob.loc[index_middle] = self.middle.predict(X.loc[index_middle], prob=True)
 
         else:
@@ -304,7 +304,7 @@ class TrinaryTree:
 
                 y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
                 y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
-                y_hat.loc[index_middle] = self.right.predict(X.loc[index_middle])
+                y_hat.loc[index_middle] = self.middle.predict(X.loc[index_middle])
 
         if prob:
             return y_prob
@@ -346,15 +346,18 @@ class TrinaryTree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    df = pd.read_csv(
-        "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/test_data_class.csv",
+    df_train = pd.read_csv(
+        "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/train_data_trinary.csv",
         index_col=0,
     )
-    X = df.drop("y", axis=1)
-    y = df["y"]
+    df_test = pd.read_csv(
+        "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/test_data_trinary.csv",
+        index_col=0,
+    )
 
-    tree = TrinaryTree(max_depth=3, min_samples_leaf=20)
-    tree.fit(X, y)
+    tree = TrinaryTree(max_depth=2)
+    tree.fit(df_train[["X_0", "X_1"]], df_train["y"])
 
-    df["y_hat"] = tree.predict(X)
-    df_probs = tree.predict(X, prob=True)
+    df_test["y_hat"] = tree.predict(df_test[["X_0", "X_1"]])
+
+    print('h')
