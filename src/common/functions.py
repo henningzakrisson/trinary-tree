@@ -149,10 +149,13 @@ def get_feature_importance(tree):
     total_importances = {
         feature: sum(node_importances[feature]) for feature in node_importances
     }
-    feature_importances = {
-        feature: total_importances[feature] / sum(total_importances.values())
-        for feature in total_importances
-    }
+    if sum(total_importances.values()) == 0:
+        feature_importances = {feature:0 for feature in node_importances}
+    else:
+        feature_importances = {
+            feature: total_importances[feature] / sum(total_importances.values())
+            for feature in total_importances
+        }
     return feature_importances
 
 

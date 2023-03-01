@@ -115,7 +115,7 @@ class WeightedTree:
         # Node weights
         self.p_left, self.p_right = self._get_split_probabilities(index_left,index_right)
         w_left, w_right = w.copy(), w.copy()
-        index_na = X[self.feature].isna()
+        index_na = (~index_left)&(~index_right)
         w_left.loc[index_na] *= self.p_left
         w_right.loc[index_na] *= self.p_right
         index_left  |= index_na
@@ -181,6 +181,13 @@ class WeightedTree:
             Total loss of this split for all daughter nodes
         """
         index_left, index_right = get_indices(X[feature], splitter)
+        p_left, p_right = self._get_split_probabilities(index_left, index_right)
+        w_left, w_right = w.copy(), w.copy()
+        index_na = (~index_left) & (~index_right)
+        w_left.loc[index_na] *= self.p_left
+        w_right.loc[index_na] *= self.p_right
+        index_left |= index_na
+        index_right |= index_na
 
         # To avoid hyperparameter-illegal splits
         if (w.loc[index_left].sum()  < self.min_samples_leaf) or (
@@ -222,13 +229,14 @@ class WeightedTree:
         """
         # If no values of the training data actually end up here it is of no importance
         if self.n == 0:
-            return 0
+            importance = 0
         else:
-            return (
+            importance = (
                 self.loss
                 - (self.left.n * self.left.loss + self.right.n * self.right.loss)
                 / self.n
             )
+        return importance
 
     def _get_node_importances(self, node_importances):
         """Get node importances for this node and all its daughters
@@ -272,7 +280,7 @@ class WeightedTree:
                 index_left, index_right = get_indices(
                     X[self.feature], self.splitter
                 )
-                index_na = X[self.feature].isna()
+                index_na = (~index_left)&(~index_right)
 
                 y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
                 y_prob.loc[index_right] =  self.right.predict(X.loc[index_right], prob=True)
@@ -288,7 +296,7 @@ class WeightedTree:
                 index_left, index_right = get_indices(
                     X[self.feature], self.splitter
                 )
-                index_na = X[self.feature].isna()
+                index_na = (~index_left)&(~index_right)
 
                 y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
                 y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
@@ -332,28 +340,56 @@ if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
     from src.common.functions import get_feature_importance
 
-    folder_path = '/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data'
-
-    df_train = pd.read_csv(f'{folder_path}/train_data_weighted.csv', index_col=0)
-    X_train = df_train.drop('y', axis=1)
-    #X_train['number_2'] = X_train['number'] + np.random.normal(0,0.01,len(X_train))
-    y_train = df_train['y']
-
-    prob_missing = 0.0
+    # Create dummy data
+    X = pd.DataFrame()
     np.random.seed(11)
-    for feature in ['number']:
-        to_remove = np.random.binomial(1, prob_missing, len(X_train)) == 1
-        X_train.loc[to_remove, feature] = np.nan
+    n = 1000
 
-    df_test = pd.read_csv(f'{folder_path}/test_data_weighted.csv', index_col=0)
-    X_test = df_test.drop('y', axis=1)
-    y_test = df_test['y']
+    X['number'] = np.floor(np.arange(n) / 10) * 10
+    fruits = ['banana', 'orange', 'apple']
+    p = [0.4, 0.35, 0.25]
+    X['fruit'] = np.random.choice(fruits, size=n, p=p)
 
-    tree = WeightedTree(max_depth=5, min_samples_leaf=1)
-    tree.fit(X_train, y_train)
+    # Tree structure
+    feature_00 = 'fruit'
+    splitter_00 = {'left': ['orange'], 'right': ['banana', 'apple']}
 
-    #y_hat = tree.predict(X_test)
+    feature_10 = 'number'
+    splitter_10 = X['number'].quantile(0.3)
 
-print(
-        'h'
-    )
+    feature_11 = 'number'
+    splitter_11 = X['number'].mean()
+
+    # Tree outputs
+    y_20 = -10
+    y_21 = 20
+    y_22 = 100
+    y_23 = 140
+
+    # Node indices
+    index_10 = X[feature_00].isin(splitter_00['left'])
+    index_11 = X[feature_00].isin(splitter_00['right'])
+    index_20 = (X[feature_10] < splitter_10) & index_10
+    index_21 = (X[feature_10] >= splitter_10) & index_10
+    index_22 = (X[feature_11] < splitter_11) & index_11
+    index_23 = (X[feature_11] >= splitter_11) & index_11
+
+    # Response
+    y = pd.Series(index=X.index, dtype=float)
+    y.loc[index_20] = y_20
+    y.loc[index_21] = y_21
+    y.loc[index_22] = y_22
+    y.loc[index_23] = y_23
+
+    # Remove some values
+    missing_prob = 0.25
+    missing_features = ['number', 'fruit']
+    for feature in missing_features:
+        to_remove = np.random.binomial(1, missing_prob, n) == 1
+        X.loc[to_remove, feature] = np.nan
+
+    # Fit tree
+    tree_0 = WeightedTree(max_depth=2, min_samples_leaf=1)
+    tree_0.fit(X, y)
+    print(get_feature_importance(tree_0))
+    print(f'mse: {(tree_0.predict(X) - y).pow(2).mean()}')
