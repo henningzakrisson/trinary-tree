@@ -21,6 +21,7 @@ from src.common.functions import (
     get_splitter_candidates,
     get_indices,
     check_features,
+    get_feature_importance
 )
 
 
@@ -116,15 +117,22 @@ class TrinaryTree:
         self.feature_type = "float" if X[self.feature].dtype == "float" else "object"
 
         index_left, index_right = get_indices(X[self.feature], self.splitter)
+        index_left_true, index_right_true = get_indices(X_true[self.feature], self.splitter)
+        index_middle_true = X_true[self.feature].isna()
 
         # Send data to daughter nodes
         self.left, self.middle, self.right = self._initiate_daughter_nodes()
-        self.left.fit(X=X.loc[index_left], y=y.loc[index_left])
-        self.right.fit(X=X.loc[index_right], y=y.loc[index_right])
+        self.left.fit(X=X.loc[index_left],
+                      y=y.loc[index_left],
+                      X_true = X_true.loc[index_left_true],
+                      y_true = y_true.loc[index_left_true])
+        self.right.fit(X=X.loc[index_right],
+                       y=y.loc[index_right],
+                       X_true = X_true.loc[index_right_true],
+                       y_true = y_true.loc[index_right_true])
 
         X_middle = X.copy()
         X_middle[self.feature] = np.nan
-        index_middle_true = X_true[self.feature].isna()
         self.middle.fit(
             X_middle,
             y,
@@ -227,9 +235,9 @@ class TrinaryTree:
         """
         # If no values of the training data actually end up here it is of no importance
         if self.n_true == 0:
-            return 0
+            importance = 0
         else:
-            return (
+            importance =  (
                 self.loss_true
                 - (
                     self.left.n_true * self.left.loss_true
@@ -238,6 +246,8 @@ class TrinaryTree:
                 )
                 / self.n_true
             )
+
+        return importance
 
     def _get_node_importances(self, node_importances):
         """Get node importances for this node and all its daughters
@@ -346,12 +356,19 @@ class TrinaryTree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
+    folder_path = '/Users/Henning/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data'
     df_train = pd.read_csv(
-        "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/train_data_trinary.csv",
+        f"{folder_path}/train_data_trinary.csv",
         index_col=0,
     )
+
+    missing_prob = 0.0
+    for feature in ['X_0','X_1']:
+        to_remove = np.random.binomial(1,missing_prob,len(df_train))
+        df_train.loc[to_remove,feature] = np.nan
+
     df_test = pd.read_csv(
-        "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/test_data_trinary.csv",
+        f"{folder_path}/test_data_trinary.csv",
         index_col=0,
     )
 
@@ -360,4 +377,4 @@ if __name__ == "__main__":
 
     df_test["y_hat"] = tree.predict(df_test[["X_0", "X_1"]])
 
-    print('h')
+    print(get_feature_importance(tree))
