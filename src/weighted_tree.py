@@ -339,57 +339,18 @@ class WeightedTree:
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
     from src.common.functions import get_feature_importance
+    folder_path = '/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data'
+    df_train = pd.read_csv(f'{folder_path}/train_data_weighted_cat.csv', index_col=0)
+    X_train = df_train.drop('y', axis=1)
+    y_train = df_train['y']
 
-    # Create dummy data
-    X = pd.DataFrame()
-    np.random.seed(11)
-    n = 1000
+    df_test = pd.read_csv(f'{folder_path}/test_data_weighted_cat.csv', index_col=0)
+    X_test = df_test[['number', 'fruit']]
+    y_prob = df_test[['bad', 'good', 'great']]
+    y_test = df_test['y']
 
-    X['number'] = np.floor(np.arange(n) / 10) * 10
-    fruits = ['banana', 'orange', 'apple']
-    p = [0.4, 0.35, 0.25]
-    X['fruit'] = np.random.choice(fruits, size=n, p=p)
+    tree = WeightedTree(max_depth=2, min_samples_leaf=1)
+    tree.fit(X_train, y_train)
 
-    # Tree structure
-    feature_00 = 'fruit'
-    splitter_00 = {'left': ['orange'], 'right': ['banana', 'apple']}
-
-    feature_10 = 'number'
-    splitter_10 = X['number'].quantile(0.3)
-
-    feature_11 = 'number'
-    splitter_11 = X['number'].mean()
-
-    # Tree outputs
-    y_20 = -10
-    y_21 = 20
-    y_22 = 100
-    y_23 = 140
-
-    # Node indices
-    index_10 = X[feature_00].isin(splitter_00['left'])
-    index_11 = X[feature_00].isin(splitter_00['right'])
-    index_20 = (X[feature_10] < splitter_10) & index_10
-    index_21 = (X[feature_10] >= splitter_10) & index_10
-    index_22 = (X[feature_11] < splitter_11) & index_11
-    index_23 = (X[feature_11] >= splitter_11) & index_11
-
-    # Response
-    y = pd.Series(index=X.index, dtype=float)
-    y.loc[index_20] = y_20
-    y.loc[index_21] = y_21
-    y.loc[index_22] = y_22
-    y.loc[index_23] = y_23
-
-    # Remove some values
-    missing_prob = 0.25
-    missing_features = ['number', 'fruit']
-    for feature in missing_features:
-        to_remove = np.random.binomial(1, missing_prob, n) == 1
-        X.loc[to_remove, feature] = np.nan
-
-    # Fit tree
-    tree_0 = WeightedTree(max_depth=2, min_samples_leaf=1)
-    tree_0.fit(X, y)
-    print(get_feature_importance(tree_0))
-    print(f'mse: {(tree_0.predict(X) - y).pow(2).mean()}')
+    y_prob_hat = tree.predict(X_test, prob=True)
+    y_hat = tree.predict(X_test)

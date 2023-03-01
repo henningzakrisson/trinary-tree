@@ -284,7 +284,7 @@ class TreeTest(unittest.TestCase):
         self.assertAlmostEqual((y_hat==y_test).sum(),len(y_test),msg="Weighted strategy not working properly")
 
     def test_weighted_strat_cat(self):
-        df_train = pd.read_csv('data/train_data_weighted.csv',index_col=0)
+        df_train = pd.read_csv('data/train_data_weighted_cat.csv',index_col=0)
         X_train = df_train.drop('y',axis=1)
         y_train = df_train['y']
 
