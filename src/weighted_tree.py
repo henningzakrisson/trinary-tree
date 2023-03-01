@@ -155,7 +155,6 @@ class WeightedTree:
         for feature in features:
             splitters = get_splitter_candidates(X[feature])
             for splitter in splitters:
-
                 loss = self._calculate_split_loss(
                     X, y, w, feature, splitter
                 )
@@ -198,7 +197,7 @@ class WeightedTree:
         """Create daughter nodes
 
         Return:
-            tuple of three Trees. The one in the middle is None for non-trinary trees.
+            tuple of two Trees. The one in the middle is None for non-trinary trees.
         """
         left = WeightedTree(
             min_samples_leaf=self.min_samples_leaf,
@@ -308,7 +307,7 @@ class WeightedTree:
             raise CantPrintUnfittedTree("Can't print tree before fitting to data")
 
         hspace = "---" * self.depth
-        print(hspace + f"Number of observations: {self.n}")
+        print(hspace + f"Number of observations: {np.round(self.n,2)}")
         if isinstance(self.y_hat, float):
             print(hspace + f"Response estimate: {np.round(self.y_hat,2)}")
         else:
@@ -331,22 +330,29 @@ class WeightedTree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
+    from src.common.functions import get_feature_importance
+
     folder_path = '/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data'
 
-    df_train = pd.read_csv(f'{folder_path}/train_data_weighted_cat.csv', index_col=0)
+    df_train = pd.read_csv(f'{folder_path}/train_data_weighted.csv', index_col=0)
     X_train = df_train.drop('y', axis=1)
+    #X_train['number_2'] = X_train['number'] + np.random.normal(0,0.01,len(X_train))
     y_train = df_train['y']
 
-    df_test = pd.read_csv(f'{folder_path}/test_data_weighted_cat.csv', index_col=0)
+    prob_missing = 0.0
+    np.random.seed(11)
+    for feature in ['number']:
+        to_remove = np.random.binomial(1, prob_missing, len(X_train)) == 1
+        X_train.loc[to_remove, feature] = np.nan
+
+    df_test = pd.read_csv(f'{folder_path}/test_data_weighted.csv', index_col=0)
     X_test = df_test.drop('y', axis=1)
-    y_prob = df_test[['bad', 'good', 'great']]
     y_test = df_test['y']
 
-    tree = WeightedTree(max_depth=2, min_samples_leaf=1)
+    tree = WeightedTree(max_depth=5, min_samples_leaf=1)
     tree.fit(X_train, y_train)
 
-    y_prob_hat = tree.predict(X_test, prob=True)
-    y_hat = tree.predict(X_test)
+    #y_hat = tree.predict(X_test)
 
 print(
         'h'
