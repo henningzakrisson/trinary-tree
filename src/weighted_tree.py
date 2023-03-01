@@ -115,7 +115,7 @@ class WeightedTree:
         # Node weights
         self.p_left, self.p_right = self._get_split_probabilities(index_left,index_right)
         w_left, w_right = w.copy(), w.copy()
-        index_na = X[self.feature].isna()
+        index_na = (~index_left)&(~index_right)
         w_left.loc[index_na] *= self.p_left
         w_right.loc[index_na] *= self.p_right
         index_left  |= index_na
@@ -155,7 +155,6 @@ class WeightedTree:
         for feature in features:
             splitters = get_splitter_candidates(X[feature])
             for splitter in splitters:
-
                 loss = self._calculate_split_loss(
                     X, y, w, feature, splitter
                 )
@@ -182,6 +181,13 @@ class WeightedTree:
             Total loss of this split for all daughter nodes
         """
         index_left, index_right = get_indices(X[feature], splitter)
+        p_left, p_right = self._get_split_probabilities(index_left, index_right)
+        w_left, w_right = w.copy(), w.copy()
+        index_na = (~index_left) & (~index_right)
+        w_left.loc[index_na] *= self.p_left
+        w_right.loc[index_na] *= self.p_right
+        index_left |= index_na
+        index_right |= index_na
 
         # To avoid hyperparameter-illegal splits
         if (w.loc[index_left].sum()  < self.min_samples_leaf) or (
@@ -198,7 +204,7 @@ class WeightedTree:
         """Create daughter nodes
 
         Return:
-            tuple of three Trees. The one in the middle is None for non-trinary trees.
+            tuple of two Trees. The one in the middle is None for non-trinary trees.
         """
         left = WeightedTree(
             min_samples_leaf=self.min_samples_leaf,
@@ -223,13 +229,14 @@ class WeightedTree:
         """
         # If no values of the training data actually end up here it is of no importance
         if self.n == 0:
-            return 0
+            importance = 0
         else:
-            return (
+            importance = (
                 self.loss
                 - (self.left.n * self.left.loss + self.right.n * self.right.loss)
                 / self.n
             )
+        return importance
 
     def _get_node_importances(self, node_importances):
         """Get node importances for this node and all its daughters
@@ -273,7 +280,7 @@ class WeightedTree:
                 index_left, index_right = get_indices(
                     X[self.feature], self.splitter
                 )
-                index_na = X[self.feature].isna()
+                index_na = (~index_left)&(~index_right)
 
                 y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
                 y_prob.loc[index_right] =  self.right.predict(X.loc[index_right], prob=True)
@@ -289,7 +296,7 @@ class WeightedTree:
                 index_left, index_right = get_indices(
                     X[self.feature], self.splitter
                 )
-                index_na = X[self.feature].isna()
+                index_na = (~index_left)&(~index_right)
 
                 y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
                 y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
@@ -308,7 +315,7 @@ class WeightedTree:
             raise CantPrintUnfittedTree("Can't print tree before fitting to data")
 
         hspace = "---" * self.depth
-        print(hspace + f"Number of observations: {self.n}")
+        print(hspace + f"Number of observations: {np.round(self.n,2)}")
         if isinstance(self.y_hat, float):
             print(hspace + f"Response estimate: {np.round(self.y_hat,2)}")
         else:
@@ -331,14 +338,14 @@ class WeightedTree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
+    from src.common.functions import get_feature_importance
     folder_path = '/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data'
-
     df_train = pd.read_csv(f'{folder_path}/train_data_weighted_cat.csv', index_col=0)
     X_train = df_train.drop('y', axis=1)
     y_train = df_train['y']
 
     df_test = pd.read_csv(f'{folder_path}/test_data_weighted_cat.csv', index_col=0)
-    X_test = df_test.drop('y', axis=1)
+    X_test = df_test[['number', 'fruit']]
     y_prob = df_test[['bad', 'good', 'great']]
     y_test = df_test['y']
 
@@ -347,7 +354,3 @@ if __name__ == "__main__":
 
     y_prob_hat = tree.predict(X_test, prob=True)
     y_hat = tree.predict(X_test)
-
-print(
-        'h'
-    )

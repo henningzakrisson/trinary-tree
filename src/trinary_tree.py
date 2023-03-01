@@ -118,7 +118,7 @@ class TrinaryTree:
 
         index_left, index_right = get_indices(X[self.feature], self.splitter)
         index_left_true, index_right_true = get_indices(X_true[self.feature], self.splitter)
-        index_middle_true = X_true[self.feature].isna()
+        index_middle_true =  (~index_left_true)&(~index_right_true)
 
         # Send data to daughter nodes
         self.left, self.middle, self.right = self._initiate_daughter_nodes()
@@ -186,7 +186,7 @@ class TrinaryTree:
             Total loss of this split for all daughter nodes
         """
         index_left, index_right = get_indices(X[feature], splitter)
-        index_middle = X[feature].isna()
+        index_middle = (~index_left)&(~index_right)
 
         # To avoid hyperparameter-illegal splits
         if (sum(index_left) < self.min_samples_leaf) or (
@@ -295,7 +295,7 @@ class TrinaryTree:
                 index_left, index_right = get_indices(
                     X[self.feature], self.splitter
                 )
-                index_middle = X[self.feature].isna()
+                index_middle = (~index_left)&(~index_right)
                 y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
                 y_prob.loc[index_right] = self.right.predict(X.loc[index_right], prob=True)
                 y_prob.loc[index_middle] = self.middle.predict(X.loc[index_middle], prob=True)
@@ -310,7 +310,7 @@ class TrinaryTree:
                 index_left, index_right = get_indices(
                     X[self.feature], self.splitter
                 )
-                index_middle = X[self.feature].isna()
+                index_middle =  (~index_left)&(~index_right)
 
                 y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
                 y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
