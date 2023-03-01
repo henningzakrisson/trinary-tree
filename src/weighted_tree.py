@@ -184,8 +184,8 @@ class WeightedTree:
         p_left, p_right = self._get_split_probabilities(index_left, index_right)
         w_left, w_right = w.copy(), w.copy()
         index_na = (~index_left) & (~index_right)
-        w_left.loc[index_na] *= self.p_left
-        w_right.loc[index_na] *= self.p_right
+        w_left.loc[index_na] *= p_left
+        w_right.loc[index_na] *= p_right
         index_left |= index_na
         index_right |= index_na
 
@@ -195,8 +195,8 @@ class WeightedTree:
         ):
             return self.loss
 
-        loss_left_weighted = calculate_loss(y=y.loc[index_left], w=w.loc[index_left]) * w.loc[index_left].sum()
-        loss_right_weighted = calculate_loss(y=y.loc[index_right], w=w.loc[index_right]) * w.loc[index_right].sum()
+        loss_left_weighted = calculate_loss(y=y.loc[index_left], w=w_left.loc[index_left]) * w_left.loc[index_left].sum()
+        loss_right_weighted = calculate_loss(y=y.loc[index_right], w=w_right.loc[index_right]) * w_right.loc[index_right].sum()
 
         return (loss_left_weighted + loss_right_weighted) / self.n
 
