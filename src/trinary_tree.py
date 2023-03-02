@@ -198,7 +198,7 @@ class TrinaryTree:
         loss_right_weighted = calculate_loss(y=y.loc[index_right]) * sum(index_right)
         if self.response_type == 'float':
             loss_middle_weighted = calculate_loss(y=y.loc[index_middle], y_hat = self.y_hat) * sum(index_middle)
-        else:
+        else: # The loss of the middle node is that of the entire data set since no actual split is made
             loss_middle_weighted = calculate_loss(y=y) * sum(index_middle)
         return (
             loss_left_weighted + loss_right_weighted + loss_middle_weighted
