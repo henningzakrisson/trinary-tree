@@ -88,9 +88,9 @@ class BinaryTree:
 
         self.y_hat, self.y_prob, self.categories = fit_response(y, self.categories)
         if self.categories is not None:
-            self.response_type = 'object'
+            self.response_type = "object"
         else:
-            self.response_type = 'float'
+            self.response_type = "float"
 
         self.loss = calculate_loss(y)
 
@@ -284,8 +284,7 @@ class BinaryTree:
         X, _, _ = fix_datatypes(X)
         X = check_features(X, self.features)
 
-
-        if self.response_type == 'object':
+        if self.response_type == "object":
             y_prob = pd.DataFrame(index=X.index, columns=self.categories, dtype=float)
             if self.left is None:
                 for category in self.categories:
@@ -296,12 +295,12 @@ class BinaryTree:
                 )
 
                 y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
-                y_prob.loc[index_right] =self.right.predict(X.loc[index_right], prob=True)
+                y_prob.loc[index_right] = self.right.predict(
+                    X.loc[index_right], prob=True
+                )
 
         else:
-            y_hat = pd.Series(
-                index=X.index, dtype=self.response_type
-            )
+            y_hat = pd.Series(index=X.index, dtype=self.response_type)
             if self.left is None:
                 y_hat.loc[:] = self.y_hat
             else:
@@ -314,9 +313,9 @@ class BinaryTree:
 
         if prob:
             return y_prob
-        elif self.response_type == 'float':
+        elif self.response_type == "float":
             return y_hat
-        else: # categorical prediction
+        else:  # categorical prediction
             return y_prob.idxmax(axis=1)
 
     def print(self):
@@ -364,4 +363,4 @@ if __name__ == "__main__":
     tree.fit(X, y)
     y_hat = tree.predict(X)
 
-    print('h')
+    print("h")
