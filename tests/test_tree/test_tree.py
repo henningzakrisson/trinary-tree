@@ -58,11 +58,11 @@ class TreeTest(unittest.TestCase):
 
     def test_default_majority(self):
         """Test majority rule handling of missing values"""
-        df = pd.read_csv("data/test_data_majority.csv", index_col=0)
+        df = pd.read_csv("data/test_data_majority.csv", index_col = 0)
         df = df.loc[~df['y'].isna()]
 
         max_depth = 2
-        tree = BinaryTree(max_depth=max_depth, missing_rule='majority')
+        tree = BinaryTree(max_depth = max_depth, missing_rule = 'majority')
         tree.fit(df[["X_0", "X_1"]], df["y"])
 
         y_hat = tree.predict(df[["X_0", "X_1"]])
