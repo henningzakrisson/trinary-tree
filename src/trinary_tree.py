@@ -21,7 +21,7 @@ from src.common.functions import (
     get_splitter_candidates,
     get_indices,
     check_features,
-    get_feature_importance
+    get_feature_importance,
 )
 
 
@@ -98,9 +98,9 @@ class TrinaryTree:
 
         self.y_hat, self.y_prob, self.categories = fit_response(y, self.categories)
         if self.categories is not None:
-            self.response_type = 'object'
+            self.response_type = "object"
         else:
-            self.response_type = 'float'
+            self.response_type = "float"
 
         self.loss = calculate_loss(y, self.y_hat)
         self.loss_true = calculate_loss(y_true, self.y_hat)
@@ -117,19 +117,25 @@ class TrinaryTree:
         self.feature_type = "float" if X[self.feature].dtype == "float" else "object"
 
         index_left, index_right = get_indices(X[self.feature], self.splitter)
-        index_left_true, index_right_true = get_indices(X_true[self.feature], self.splitter)
-        index_middle_true =  (~index_left_true)&(~index_right_true)
+        index_left_true, index_right_true = get_indices(
+            X_true[self.feature], self.splitter
+        )
+        index_middle_true = (~index_left_true) & (~index_right_true)
 
         # Send data to daughter nodes
         self.left, self.middle, self.right = self._initiate_daughter_nodes()
-        self.left.fit(X=X.loc[index_left],
-                      y=y.loc[index_left],
-                      X_true = X_true.loc[index_left_true],
-                      y_true = y_true.loc[index_left_true])
-        self.right.fit(X=X.loc[index_right],
-                       y=y.loc[index_right],
-                       X_true = X_true.loc[index_right_true],
-                       y_true = y_true.loc[index_right_true])
+        self.left.fit(
+            X=X.loc[index_left],
+            y=y.loc[index_left],
+            X_true=X_true.loc[index_left_true],
+            y_true=y_true.loc[index_left_true],
+        )
+        self.right.fit(
+            X=X.loc[index_right],
+            y=y.loc[index_right],
+            X_true=X_true.loc[index_right_true],
+            y_true=y_true.loc[index_right_true],
+        )
 
         X_middle = X.copy()
         X_middle[self.feature] = np.nan
@@ -186,7 +192,7 @@ class TrinaryTree:
             Total loss of this split for all daughter nodes
         """
         index_left, index_right = get_indices(X[feature], splitter)
-        index_middle = (~index_left)&(~index_right)
+        index_middle = (~index_left) & (~index_right)
 
         # To avoid hyperparameter-illegal splits
         if (sum(index_left) < self.min_samples_leaf) or (
@@ -196,7 +202,12 @@ class TrinaryTree:
 
         loss_left_weighted = calculate_loss(y=y.loc[index_left]) * sum(index_left)
         loss_right_weighted = calculate_loss(y=y.loc[index_right]) * sum(index_right)
-        loss_middle_weighted = calculate_loss(y=y.loc[index_middle], y_hat = self.y_hat) * sum(index_right)
+        if self.response_type == "float":
+            loss_middle_weighted = calculate_loss(
+                y=y.loc[index_middle], y_hat=self.y_hat
+            ) * sum(index_middle)
+        else:  # The loss of the middle node is that of the entire data set since no actual split is made
+            loss_middle_weighted = calculate_loss(y=y) * sum(index_middle)
         return (
             loss_left_weighted + loss_right_weighted + loss_middle_weighted
         ) / self.n
@@ -237,7 +248,7 @@ class TrinaryTree:
         if self.n_true == 0:
             importance = 0
         else:
-            importance =  (
+            importance = (
                 self.loss_true
                 - (
                     self.left.n_true * self.left.loss_true
@@ -285,32 +296,29 @@ class TrinaryTree:
         X, _, _ = fix_datatypes(X)
         X = check_features(X, self.features)
 
-
-        if self.response_type == 'object':
+        if self.response_type == "object":
             y_prob = pd.DataFrame(index=X.index, columns=self.categories, dtype=float)
             if self.left is None:
                 for category in self.categories:
                     y_prob[category] = self.y_prob[category]
             else:
-                index_left, index_right = get_indices(
-                    X[self.feature], self.splitter
-                )
-                index_middle = (~index_left)&(~index_right)
+                index_left, index_right = get_indices(X[self.feature], self.splitter)
+                index_middle = (~index_left) & (~index_right)
                 y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
-                y_prob.loc[index_right] = self.right.predict(X.loc[index_right], prob=True)
-                y_prob.loc[index_middle] = self.middle.predict(X.loc[index_middle], prob=True)
+                y_prob.loc[index_right] = self.right.predict(
+                    X.loc[index_right], prob=True
+                )
+                y_prob.loc[index_middle] = self.middle.predict(
+                    X.loc[index_middle], prob=True
+                )
 
         else:
-            y_hat = pd.Series(
-                index=X.index, dtype=self.response_type
-            )
+            y_hat = pd.Series(index=X.index, dtype=self.response_type)
             if self.left is None:
                 y_hat.loc[:] = self.y_hat
             else:
-                index_left, index_right = get_indices(
-                    X[self.feature], self.splitter
-                )
-                index_middle =  (~index_left)&(~index_right)
+                index_left, index_right = get_indices(X[self.feature], self.splitter)
+                index_middle = (~index_left) & (~index_right)
 
                 y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
                 y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
@@ -318,9 +326,9 @@ class TrinaryTree:
 
         if prob:
             return y_prob
-        elif self.response_type == 'float':
+        elif self.response_type == "float":
             return y_hat
-        else: # categorical prediction
+        else:  # categorical prediction
             return y_prob.idxmax(axis=1)
 
     def print(self):
@@ -356,16 +364,16 @@ class TrinaryTree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    folder_path = '/Users/Henning/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data'
+    folder_path = "/Users/Henning/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data"
     df_train = pd.read_csv(
         f"{folder_path}/train_data_trinary.csv",
         index_col=0,
     )
 
     missing_prob = 0.0
-    for feature in ['X_0','X_1']:
-        to_remove = np.random.binomial(1,missing_prob,len(df_train))
-        df_train.loc[to_remove,feature] = np.nan
+    for feature in ["X_0", "X_1"]:
+        to_remove = np.random.binomial(1, missing_prob, len(df_train))
+        df_train.loc[to_remove, feature] = np.nan
 
     df_test = pd.read_csv(
         f"{folder_path}/test_data_trinary.csv",

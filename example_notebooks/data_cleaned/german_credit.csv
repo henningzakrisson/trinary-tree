@@ -1,0 +1,518 @@
+,checking_account_status,duration,credit_history,purpose,credit_amount,savings,present_employment_since,installment_rate,gender,marital_status,other_debtors,residence_since,property,age,other_installment_plans,housing,n_credit_cards,job,n_people_liable,telephone,foreign,y
+1,1.0,48.0,A32,radio/TV,5951.0,0.0,2.0,2.0,female,divorced/separated/married,none,2.0,real_estate,22.0,none,own,1.0,2.0,1.0,none,yes,2
+3,0.0,42.0,A32,furniture/equipment,7882.0,0.0,3.0,2.0,male,single,guarantor,4.0,building,45.0,none,free,1.0,2.0,2.0,none,yes,1
+4,0.0,24.0,A33,car (new),4870.0,0.0,2.0,3.0,male,single,none,4.0,unknown/none,53.0,none,free,2.0,2.0,2.0,none,yes,2
+7,1.0,36.0,A32,car (used),6948.0,0.0,2.0,2.0,male,single,none,2.0,car or other,35.0,none,rent,1.0,3.0,1.0,yes,yes,1
+9,1.0,30.0,A34,car (new),5234.0,0.0,0.0,4.0,male,divorced/separated/married,none,2.0,car or other,28.0,none,own,2.0,3.0,1.0,none,yes,2
+10,1.0,12.0,A32,car (new),1295.0,0.0,1.0,3.0,female,divorced/separated/married,none,1.0,car or other,25.0,none,rent,1.0,2.0,1.0,none,yes,2
+11,0.0,48.0,A32,business,4308.0,0.0,1.0,3.0,female,divorced/separated/married,none,4.0,building,24.0,none,rent,1.0,2.0,1.0,none,yes,2
+12,1.0,12.0,A32,radio/TV,1567.0,0.0,2.0,1.0,female,divorced/separated/married,none,1.0,car or other,22.0,none,own,1.0,2.0,1.0,yes,yes,1
+13,0.0,24.0,A34,car (new),1199.0,0.0,4.0,4.0,male,single,none,4.0,car or other,60.0,none,own,2.0,1.0,1.0,none,yes,2
+14,0.0,15.0,A32,car (new),1403.0,0.0,2.0,2.0,female,divorced/separated/married,none,4.0,car or other,28.0,none,rent,1.0,2.0,1.0,none,yes,1
+15,0.0,24.0,A32,radio/TV,1282.0,1.0,2.0,4.0,female,divorced/separated/married,none,2.0,car or other,32.0,none,own,1.0,1.0,1.0,none,yes,2
+18,1.0,24.0,A32,car (used),12579.0,0.0,4.0,4.0,female,divorced/separated/married,none,2.0,unknown/none,44.0,none,free,1.0,3.0,1.0,yes,yes,2
+21,0.0,6.0,A32,radio/TV,2647.0,2.0,2.0,2.0,male,single,none,3.0,real_estate,44.0,none,rent,1.0,2.0,2.0,none,yes,1
+22,0.0,10.0,A34,car (new),2241.0,0.0,1.0,1.0,male,single,none,3.0,real_estate,48.0,none,rent,2.0,1.0,2.0,none,no,1
+23,1.0,12.0,A34,car (used),1804.0,1.0,1.0,3.0,male,single,none,4.0,building,44.0,none,own,1.0,2.0,1.0,none,yes,1
+25,0.0,6.0,A32,furniture/equipment,1374.0,0.0,2.0,1.0,male,single,none,2.0,real_estate,36.0,bank,own,1.0,1.0,1.0,yes,yes,1
+27,2.0,12.0,A31,radio/TV,409.0,3.0,2.0,3.0,female,divorced/separated/married,none,3.0,real_estate,42.0,none,rent,2.0,2.0,1.0,none,yes,1
+28,1.0,7.0,A32,radio/TV,2415.0,0.0,2.0,3.0,male,single,guarantor,2.0,real_estate,34.0,none,own,1.0,2.0,1.0,none,yes,1
+29,0.0,60.0,A33,business,6836.0,0.0,4.0,3.0,male,single,none,4.0,unknown/none,63.0,none,own,2.0,2.0,1.0,yes,yes,2
+30,1.0,18.0,A32,business,1913.0,3.0,1.0,3.0,male,divorced/separated/married,none,3.0,real_estate,36.0,bank,own,1.0,2.0,1.0,yes,yes,1
+31,0.0,24.0,A32,furniture/equipment,4020.0,0.0,2.0,2.0,male,single,none,2.0,car or other,27.0,stores,own,1.0,2.0,1.0,none,yes,1
+32,1.0,18.0,A32,car (new),5866.0,1.0,2.0,2.0,male,single,none,2.0,car or other,30.0,none,own,2.0,2.0,1.0,yes,yes,1
+34,2.0,12.0,A32,furniture/equipment,1474.0,0.0,1.0,4.0,female,divorced/separated/married,none,1.0,building,33.0,bank,own,1.0,3.0,1.0,yes,yes,1
+35,1.0,45.0,A34,radio/TV,4746.0,0.0,1.0,4.0,male,single,none,2.0,building,25.0,none,own,2.0,1.0,1.0,none,yes,2
+37,2.0,18.0,A32,radio/TV,2100.0,0.0,2.0,4.0,male,single,co-applicant,2.0,real_estate,37.0,stores,own,1.0,2.0,1.0,none,yes,2
+38,2.0,10.0,A32,domestic_appliances,1225.0,0.0,2.0,2.0,male,single,none,2.0,car or other,37.0,none,own,1.0,2.0,1.0,yes,yes,1
+39,1.0,9.0,A32,radio/TV,458.0,0.0,2.0,4.0,male,single,none,3.0,real_estate,24.0,none,own,1.0,2.0,1.0,none,yes,1
+41,1.0,12.0,A32,radio/TV,1158.0,2.0,2.0,3.0,male,divorced/separated/married,none,1.0,car or other,26.0,none,own,1.0,2.0,1.0,yes,yes,1
+42,1.0,18.0,A33,repairs,6204.0,0.0,2.0,2.0,male,single,none,4.0,real_estate,44.0,none,own,1.0,1.0,2.0,yes,yes,1
+43,0.0,30.0,A34,car (used),6187.0,1.0,3.0,1.0,male,divorced/separated/married,none,4.0,car or other,24.0,none,rent,2.0,2.0,1.0,none,yes,1
+44,0.0,48.0,A34,car (used),6143.0,0.0,4.0,4.0,female,divorced/separated/married,none,4.0,unknown/none,58.0,stores,free,2.0,1.0,1.0,none,yes,2
+47,0.0,6.0,A32,car (used),1352.0,2.0,0.0,1.0,female,divorced/separated/married,none,2.0,building,23.0,none,rent,1.0,0.0,1.0,yes,yes,1
+51,1.0,27.0,A33,car (used),5965.0,0.0,4.0,1.0,male,single,none,2.0,car or other,30.0,none,own,2.0,3.0,1.0,yes,yes,1
+54,1.0,36.0,A33,car (new),2225.0,0.0,4.0,4.0,male,single,none,4.0,unknown/none,57.0,bank,free,2.0,2.0,1.0,yes,yes,2
+58,2.0,18.0,A32,car (new),1961.0,0.0,4.0,3.0,female,divorced/separated/married,none,2.0,car or other,23.0,none,own,1.0,3.0,1.0,none,yes,1
+59,0.0,36.0,A34,furniture/equipment,6229.0,0.0,1.0,4.0,female,divorced/separated/married,co-applicant,4.0,unknown/none,23.0,none,rent,2.0,1.0,1.0,yes,yes,2
+60,1.0,9.0,A32,business,1391.0,0.0,2.0,2.0,male,divorced/separated/married,none,1.0,real_estate,27.0,bank,own,1.0,2.0,1.0,yes,yes,1
+62,1.0,36.0,A30,business,1953.0,0.0,4.0,4.0,male,single,none,4.0,unknown/none,61.0,none,free,1.0,3.0,1.0,yes,yes,2
+63,1.0,48.0,A30,business,14421.0,0.0,2.0,2.0,male,single,none,2.0,car or other,25.0,none,own,1.0,2.0,1.0,yes,yes,2
+67,1.0,12.0,A32,car (new),1007.0,3.0,2.0,4.0,male,divorced/separated/married,none,1.0,real_estate,22.0,none,own,1.0,2.0,1.0,none,yes,1
+72,0.0,8.0,A34,others,1164.0,0.0,4.0,3.0,male,single,none,4.0,unknown/none,51.0,bank,free,2.0,3.0,2.0,yes,yes,1
+73,1.0,42.0,A34,business,5954.0,0.0,3.0,2.0,female,divorced/separated/married,none,1.0,real_estate,41.0,bank,own,2.0,1.0,1.0,none,yes,1
+75,0.0,12.0,A34,car (used),1526.0,0.0,4.0,4.0,male,single,none,4.0,unknown/none,66.0,none,free,2.0,3.0,1.0,none,yes,1
+76,0.0,42.0,A32,radio/TV,3965.0,0.0,1.0,4.0,male,single,none,3.0,car or other,34.0,none,own,1.0,2.0,1.0,none,yes,2
+77,1.0,11.0,A33,radio/TV,4771.0,0.0,3.0,2.0,male,single,none,4.0,building,51.0,none,own,1.0,2.0,1.0,none,yes,1
+79,1.0,30.0,A32,furniture/equipment,3832.0,0.0,1.0,2.0,male,divorced/separated/married,none,1.0,building,22.0,none,own,1.0,2.0,1.0,none,yes,1
+83,0.0,24.0,A32,others,1755.0,0.0,4.0,4.0,female,divorced/separated/married,guarantor,4.0,real_estate,58.0,none,own,1.0,1.0,1.0,yes,yes,1
+84,0.0,10.0,A32,radio/TV,2315.0,0.0,4.0,3.0,male,single,none,4.0,real_estate,52.0,none,own,1.0,1.0,1.0,none,yes,1
+86,1.0,18.0,A34,furniture/equipment,1295.0,0.0,1.0,4.0,female,divorced/separated/married,none,1.0,building,27.0,none,own,2.0,2.0,1.0,none,yes,1
+87,1.0,36.0,A32,education,12612.0,1.0,2.0,1.0,male,single,none,4.0,unknown/none,47.0,none,free,1.0,2.0,2.0,yes,yes,2
+88,0.0,18.0,A32,car (new),2249.0,1.0,3.0,4.0,male,single,none,3.0,car or other,30.0,none,own,1.0,3.0,2.0,yes,yes,1
+89,0.0,12.0,A30,repairs,1108.0,0.0,3.0,4.0,male,single,none,3.0,real_estate,28.0,none,own,2.0,2.0,1.0,none,yes,2
+91,0.0,12.0,A34,car (used),1409.0,0.0,4.0,4.0,male,single,none,3.0,real_estate,54.0,none,own,1.0,2.0,1.0,none,yes,1
+94,1.0,12.0,A32,car (new),1318.0,3.0,4.0,4.0,male,single,none,4.0,real_estate,54.0,none,own,1.0,2.0,1.0,yes,yes,1
+95,1.0,54.0,A30,business,15945.0,0.0,1.0,3.0,male,single,none,4.0,unknown/none,58.0,none,rent,1.0,2.0,1.0,yes,yes,2
+97,1.0,18.0,A32,business,2622.0,1.0,2.0,4.0,male,single,none,4.0,car or other,34.0,none,own,1.0,2.0,1.0,none,yes,1
+98,1.0,36.0,A34,radio/TV,2337.0,0.0,4.0,4.0,male,single,none,4.0,real_estate,36.0,none,own,1.0,2.0,1.0,none,yes,1
+101,1.0,36.0,A32,radio/TV,2323.0,0.0,3.0,4.0,male,single,none,4.0,car or other,24.0,none,rent,1.0,2.0,1.0,none,yes,1
+103,1.0,9.0,A34,furniture/equipment,1919.0,0.0,3.0,4.0,male,single,none,3.0,car or other,35.0,none,rent,1.0,2.0,1.0,yes,yes,1
+107,1.0,12.0,A32,car (new),6078.0,0.0,3.0,2.0,male,single,none,2.0,car or other,32.0,none,own,1.0,2.0,1.0,none,yes,1
+109,1.0,14.0,A32,business,1410.0,2.0,4.0,1.0,male,divorced/separated/married,none,2.0,real_estate,35.0,none,own,1.0,2.0,1.0,yes,yes,1
+110,1.0,6.0,A33,business,1449.0,1.0,4.0,1.0,male,divorced/separated/married,none,2.0,car or other,31.0,bank,own,2.0,2.0,2.0,none,yes,1
+111,2.0,15.0,A32,education,392.0,0.0,1.0,4.0,female,divorced/separated/married,none,4.0,building,23.0,none,rent,1.0,2.0,1.0,yes,yes,1
+112,1.0,18.0,A32,car (new),6260.0,0.0,3.0,3.0,male,single,none,3.0,real_estate,28.0,none,rent,1.0,1.0,1.0,none,yes,1
+114,0.0,12.0,A32,radio/TV,1680.0,2.0,4.0,3.0,male,divorced/separated/married,none,1.0,real_estate,35.0,none,own,1.0,2.0,1.0,none,yes,1
+118,0.0,33.0,A34,furniture/equipment,4281.0,2.0,2.0,1.0,female,divorced/separated/married,none,4.0,car or other,23.0,none,own,2.0,2.0,1.0,none,yes,2
+119,1.0,12.0,A34,car (new),2366.0,2.0,3.0,3.0,male,divorced/separated/married,none,3.0,car or other,36.0,none,own,1.0,3.0,1.0,yes,yes,1
+120,0.0,21.0,A32,radio/TV,1835.0,0.0,2.0,3.0,female,divorced/separated/married,none,2.0,real_estate,25.0,none,own,2.0,2.0,1.0,yes,yes,2
+123,2.0,10.0,A34,car (new),781.0,0.0,4.0,4.0,male,single,none,4.0,unknown/none,63.0,none,free,2.0,2.0,1.0,yes,yes,1
+125,0.0,12.0,A34,car (new),2121.0,0.0,2.0,4.0,male,single,none,2.0,building,30.0,none,own,2.0,2.0,1.0,none,yes,1
+126,0.0,12.0,A32,radio/TV,701.0,0.0,2.0,4.0,male,divorced/separated/married,none,2.0,real_estate,40.0,none,own,1.0,1.0,1.0,none,yes,1
+127,1.0,12.0,A32,repairs,639.0,0.0,2.0,4.0,male,single,none,2.0,car or other,30.0,none,own,1.0,2.0,1.0,none,yes,2
+128,1.0,12.0,A34,car (used),1860.0,0.0,0.0,4.0,male,single,none,2.0,car or other,34.0,none,own,2.0,3.0,1.0,yes,yes,1
+129,0.0,12.0,A34,car (new),3499.0,0.0,2.0,3.0,female,divorced/separated/married,co-applicant,2.0,real_estate,29.0,none,own,2.0,2.0,1.0,none,yes,2
+131,0.0,36.0,A33,education,6887.0,0.0,2.0,4.0,male,single,none,3.0,building,29.0,stores,own,1.0,2.0,1.0,yes,yes,2
+137,1.0,12.0,A32,radio/TV,766.0,2.0,2.0,4.0,male,single,none,3.0,real_estate,66.0,none,own,1.0,1.0,1.0,none,yes,2
+139,2.0,12.0,A32,radio/TV,1881.0,0.0,2.0,2.0,female,divorced/separated/married,none,2.0,car or other,44.0,none,rent,1.0,1.0,1.0,yes,yes,1
+140,2.0,6.0,A32,car (new),709.0,3.0,1.0,2.0,male,divorced/separated/married,none,2.0,real_estate,27.0,none,own,1.0,0.0,1.0,none,no,1
+141,1.0,36.0,A32,radio/TV,4795.0,0.0,1.0,4.0,female,divorced/separated/married,none,1.0,unknown/none,30.0,none,own,1.0,3.0,1.0,yes,yes,1
+142,0.0,27.0,A32,radio/TV,3416.0,0.0,2.0,3.0,male,single,none,2.0,car or other,27.0,none,own,1.0,3.0,1.0,none,yes,1
+143,0.0,18.0,A32,furniture/equipment,2462.0,0.0,2.0,2.0,male,single,none,2.0,car or other,22.0,none,own,1.0,2.0,1.0,none,yes,2
+145,1.0,48.0,A31,business,3566.0,1.0,3.0,4.0,male,single,none,2.0,car or other,30.0,none,own,1.0,2.0,1.0,none,yes,1
+146,0.0,6.0,A34,car (new),860.0,0.0,4.0,1.0,female,divorced/separated/married,none,4.0,unknown/none,39.0,none,own,2.0,2.0,1.0,yes,yes,1
+148,0.0,36.0,A34,furniture/equipment,5371.0,0.0,2.0,3.0,male,single,guarantor,2.0,building,28.0,none,own,2.0,2.0,1.0,none,yes,1
+152,2.0,36.0,A32,radio/TV,5848.0,0.0,2.0,4.0,male,single,none,1.0,car or other,24.0,none,own,1.0,2.0,1.0,none,yes,1
+153,1.0,24.0,A34,car (used),7758.0,3.0,4.0,2.0,female,divorced/separated/married,none,4.0,unknown/none,29.0,none,rent,1.0,2.0,1.0,none,yes,1
+154,1.0,24.0,A33,business,6967.0,1.0,3.0,4.0,male,single,none,4.0,car or other,36.0,none,rent,1.0,3.0,1.0,yes,yes,1
+155,0.0,12.0,A32,furniture/equipment,1282.0,0.0,2.0,2.0,female,divorced/separated/married,none,4.0,car or other,20.0,none,rent,1.0,2.0,1.0,none,yes,2
+156,0.0,9.0,A34,repairs,1288.0,1.0,4.0,3.0,male,single,guarantor,4.0,real_estate,48.0,none,own,2.0,2.0,2.0,none,no,1
+157,0.0,12.0,A31,retraining,339.0,0.0,4.0,4.0,male,divorced/separated/married,none,1.0,car or other,45.0,bank,own,1.0,1.0,1.0,none,yes,1
+158,1.0,24.0,A32,car (new),3512.0,1.0,3.0,2.0,male,single,none,3.0,car or other,38.0,bank,own,2.0,2.0,1.0,yes,yes,1
+163,1.0,10.0,A32,car (new),7308.0,0.0,0.0,2.0,male,single,none,4.0,unknown/none,70.0,bank,free,1.0,3.0,1.0,yes,yes,1
+166,0.0,18.0,A32,furniture/equipment,1131.0,0.0,0.0,4.0,female,divorced/separated/married,none,2.0,car or other,33.0,none,own,1.0,2.0,1.0,none,yes,2
+167,1.0,11.0,A32,furniture/equipment,1577.0,3.0,1.0,4.0,female,divorced/separated/married,none,1.0,real_estate,20.0,none,own,1.0,2.0,1.0,none,yes,1
+169,1.0,24.0,A34,business,1935.0,0.0,4.0,4.0,male,divorced/separated/married,none,4.0,real_estate,31.0,none,own,2.0,2.0,1.0,yes,yes,2
+170,0.0,15.0,A30,car (new),950.0,0.0,4.0,4.0,male,single,none,3.0,car or other,33.0,none,rent,2.0,2.0,2.0,none,yes,2
+172,1.0,24.0,A33,furniture/equipment,2064.0,0.0,0.0,3.0,female,divorced/separated/married,none,2.0,building,34.0,none,own,1.0,3.0,1.0,yes,yes,2
+173,1.0,8.0,A32,radio/TV,1414.0,0.0,2.0,4.0,male,single,guarantor,2.0,real_estate,33.0,none,own,1.0,2.0,1.0,none,no,1
+174,0.0,21.0,A33,education,3414.0,0.0,1.0,2.0,male,single,none,1.0,building,26.0,none,own,2.0,2.0,1.0,none,yes,2
+176,0.0,12.0,A32,furniture/equipment,2577.0,0.0,2.0,2.0,male,divorced/separated/married,none,1.0,car or other,42.0,none,own,1.0,2.0,1.0,none,yes,1
+177,0.0,6.0,A34,radio/TV,338.0,2.0,4.0,4.0,male,single,none,4.0,car or other,52.0,none,own,2.0,2.0,1.0,none,yes,1
+179,0.0,21.0,A34,car (new),571.0,0.0,4.0,4.0,male,single,none,4.0,real_estate,65.0,none,own,2.0,2.0,1.0,none,yes,1
+181,1.0,36.0,A33,business,4455.0,0.0,2.0,2.0,male,divorced/separated/married,none,2.0,real_estate,30.0,stores,own,2.0,3.0,1.0,yes,yes,2
+184,1.0,18.0,A34,car (new),884.0,0.0,4.0,4.0,male,single,none,4.0,car or other,36.0,bank,own,1.0,2.0,2.0,yes,yes,2
+186,1.0,9.0,A31,car (used),5129.0,0.0,4.0,2.0,female,divorced/separated/married,none,4.0,unknown/none,74.0,bank,free,1.0,3.0,2.0,yes,yes,2
+187,1.0,16.0,A34,car (new),1175.0,0.0,0.0,2.0,male,single,none,3.0,car or other,68.0,none,free,3.0,0.0,1.0,yes,yes,1
+188,0.0,12.0,A32,radio/TV,674.0,1.0,3.0,4.0,male,divorced/separated/married,none,1.0,building,20.0,none,own,1.0,2.0,1.0,none,yes,2
+189,1.0,18.0,A30,furniture/equipment,3244.0,0.0,2.0,1.0,female,divorced/separated/married,none,4.0,car or other,33.0,bank,own,2.0,2.0,1.0,yes,yes,1
+191,1.0,48.0,A30,business,3844.0,1.0,3.0,4.0,male,single,none,4.0,unknown/none,34.0,none,free,1.0,1.0,2.0,none,yes,2
+192,1.0,27.0,A32,business,3915.0,0.0,2.0,4.0,male,single,none,2.0,car or other,36.0,none,own,1.0,2.0,2.0,yes,yes,2
+194,1.0,45.0,A32,radio/TV,3031.0,1.0,2.0,4.0,male,single,guarantor,4.0,building,21.0,none,rent,1.0,2.0,1.0,none,yes,2
+195,1.0,9.0,A34,education,1501.0,0.0,4.0,2.0,female,divorced/separated/married,none,3.0,car or other,34.0,none,own,2.0,3.0,1.0,yes,yes,2
+197,1.0,12.0,A32,furniture/equipment,951.0,1.0,1.0,4.0,female,divorced/separated/married,none,4.0,car or other,27.0,bank,rent,4.0,2.0,1.0,none,yes,2
+199,1.0,18.0,A33,furniture/equipment,4297.0,0.0,4.0,4.0,male,divorced/separated/married,none,3.0,unknown/none,40.0,none,own,1.0,3.0,1.0,yes,yes,2
+201,0.0,12.0,A32,car (new),1168.0,0.0,2.0,4.0,male,divorced/separated/married,none,3.0,real_estate,27.0,none,own,1.0,1.0,1.0,none,yes,1
+203,0.0,12.0,A32,retraining,902.0,0.0,3.0,4.0,male,divorced/separated/married,none,4.0,building,21.0,none,rent,1.0,2.0,1.0,none,yes,2
+205,0.0,30.0,A34,car (used),10623.0,0.0,4.0,3.0,male,single,none,4.0,unknown/none,38.0,none,free,3.0,3.0,2.0,yes,yes,1
+207,1.0,12.0,A34,domestic_appliances,1424.0,0.0,3.0,4.0,male,single,none,3.0,building,26.0,none,own,1.0,2.0,1.0,none,yes,1
+208,0.0,24.0,A32,business,6568.0,0.0,2.0,2.0,male,divorced/separated/married,none,2.0,car or other,21.0,stores,own,1.0,1.0,1.0,none,yes,1
+212,0.0,27.0,A30,business,5293.0,0.0,0.0,2.0,male,single,none,4.0,building,50.0,stores,own,2.0,2.0,1.0,yes,yes,2
+213,2.0,30.0,A33,business,1908.0,0.0,4.0,4.0,male,single,none,4.0,real_estate,66.0,none,own,1.0,3.0,1.0,yes,yes,2
+216,0.0,18.0,A30,business,3104.0,0.0,3.0,3.0,male,single,none,1.0,building,31.0,bank,own,1.0,2.0,1.0,yes,yes,1
+217,2.0,36.0,A32,radio/TV,3913.0,0.0,2.0,2.0,male,single,none,2.0,real_estate,23.0,none,own,1.0,2.0,1.0,yes,yes,1
+218,0.0,24.0,A32,furniture/equipment,3021.0,0.0,2.0,2.0,male,divorced/separated/married,none,2.0,real_estate,24.0,none,rent,1.0,1.0,1.0,none,yes,1
+220,1.0,12.0,A32,radio/TV,625.0,0.0,1.0,4.0,male,divorced/separated/married,guarantor,1.0,real_estate,26.0,bank,own,1.0,1.0,1.0,none,yes,1
+226,1.0,48.0,A32,radio/TV,10961.0,3.0,3.0,1.0,male,single,co-applicant,2.0,unknown/none,27.0,bank,own,2.0,2.0,1.0,yes,yes,2
+227,0.0,12.0,A32,furniture/equipment,7865.0,0.0,4.0,4.0,male,single,none,4.0,unknown/none,53.0,none,free,1.0,3.0,1.0,yes,yes,2
+229,0.0,24.0,A32,furniture/equipment,3149.0,0.0,1.0,4.0,male,single,none,1.0,unknown/none,22.0,bank,free,1.0,2.0,1.0,none,yes,1
+230,2.0,36.0,A32,radio/TV,4210.0,0.0,2.0,4.0,male,single,none,2.0,car or other,26.0,none,own,1.0,2.0,1.0,none,yes,2
+233,1.0,18.0,A32,radio/TV,866.0,0.0,2.0,4.0,male,divorced/separated/married,guarantor,2.0,real_estate,25.0,none,own,1.0,1.0,1.0,none,yes,1
+235,0.0,24.0,A32,radio/TV,1823.0,0.0,0.0,4.0,male,single,none,2.0,car or other,30.0,stores,own,1.0,3.0,2.0,none,yes,2
+237,1.0,21.0,A32,business,2767.0,1.0,4.0,4.0,male,divorced/separated/married,none,2.0,car or other,61.0,bank,rent,2.0,1.0,1.0,none,yes,2
+239,0.0,30.0,A32,radio/TV,2522.0,0.0,4.0,1.0,male,single,guarantor,3.0,building,39.0,none,own,1.0,2.0,2.0,none,yes,1
+242,0.0,48.0,A30,car (used),4605.0,0.0,4.0,3.0,male,single,none,4.0,unknown/none,24.0,none,free,2.0,2.0,2.0,none,yes,2
+248,2.0,24.0,A32,furniture/equipment,1925.0,0.0,2.0,2.0,male,single,none,2.0,real_estate,26.0,none,own,1.0,2.0,1.0,none,yes,1
+250,0.0,6.0,A34,car (new),666.0,3.0,3.0,3.0,female,divorced/separated/married,none,4.0,real_estate,39.0,none,own,2.0,1.0,1.0,yes,yes,1
+251,2.0,12.0,A32,furniture/equipment,2251.0,0.0,2.0,1.0,female,divorced/separated/married,none,2.0,car or other,46.0,none,own,1.0,1.0,1.0,none,yes,1
+252,1.0,30.0,A32,car (new),2150.0,0.0,2.0,4.0,female,divorced/separated/married,guarantor,2.0,unknown/none,24.0,bank,own,1.0,2.0,1.0,none,yes,2
+257,0.0,12.0,A31,radio/TV,2149.0,0.0,2.0,4.0,male,divorced/separated/married,none,1.0,unknown/none,29.0,none,free,1.0,2.0,1.0,none,yes,2
+260,0.0,12.0,A32,furniture/equipment,1657.0,0.0,2.0,2.0,male,single,none,2.0,real_estate,27.0,none,own,1.0,2.0,1.0,none,yes,1
+261,0.0,24.0,A32,radio/TV,1603.0,0.0,4.0,4.0,female,divorced/separated/married,none,4.0,car or other,55.0,none,own,1.0,2.0,1.0,none,yes,1
+262,0.0,18.0,A34,car (new),5302.0,0.0,4.0,2.0,male,single,none,4.0,unknown/none,36.0,none,free,3.0,3.0,1.0,yes,yes,1
+265,1.0,15.0,A32,radio/TV,802.0,0.0,4.0,4.0,male,single,none,3.0,car or other,37.0,none,own,1.0,2.0,2.0,none,yes,2
+268,0.0,14.0,A32,car (new),8978.0,0.0,4.0,1.0,male,divorced/separated/married,none,4.0,building,45.0,none,own,1.0,3.0,1.0,yes,no,2
+273,1.0,48.0,A32,radio/TV,3060.0,0.0,3.0,4.0,male,single,none,4.0,real_estate,28.0,none,own,2.0,2.0,1.0,none,yes,2
+274,0.0,30.0,A32,repairs,11998.0,0.0,1.0,1.0,male,divorced/separated/married,none,1.0,unknown/none,34.0,none,own,1.0,1.0,1.0,yes,yes,2
+284,1.0,24.0,A34,car (new),3878.0,1.0,1.0,4.0,male,divorced/separated/married,none,2.0,car or other,37.0,none,own,1.0,2.0,1.0,yes,yes,1
+285,0.0,47.0,A32,car (new),10722.0,0.0,1.0,1.0,female,divorced/separated/married,none,1.0,real_estate,35.0,none,own,1.0,1.0,1.0,yes,yes,1
+286,0.0,48.0,A32,car (used),4788.0,0.0,3.0,4.0,male,single,none,3.0,building,26.0,none,own,1.0,2.0,2.0,none,yes,1
+287,1.0,48.0,A33,others,7582.0,1.0,0.0,2.0,male,single,none,4.0,unknown/none,31.0,none,free,1.0,3.0,1.0,yes,yes,1
+288,1.0,12.0,A32,radio/TV,1092.0,0.0,2.0,4.0,female,divorced/separated/married,guarantor,4.0,real_estate,49.0,none,own,2.0,2.0,1.0,yes,yes,1
+289,0.0,24.0,A33,radio/TV,1024.0,0.0,1.0,4.0,male,divorced/separated/married,none,4.0,real_estate,48.0,stores,own,1.0,2.0,1.0,none,yes,2
+291,1.0,36.0,A32,car (used),9398.0,0.0,1.0,1.0,male,divorced/separated/married,none,4.0,car or other,28.0,none,rent,1.0,3.0,1.0,yes,yes,2
+292,0.0,24.0,A34,car (used),6419.0,0.0,4.0,2.0,female,divorced/separated/married,none,4.0,unknown/none,44.0,none,free,2.0,3.0,2.0,yes,yes,1
+293,2.0,42.0,A34,car (used),4796.0,0.0,4.0,4.0,male,single,none,4.0,unknown/none,56.0,none,free,1.0,2.0,1.0,none,yes,1
+295,1.0,48.0,A32,furniture/equipment,9960.0,0.0,1.0,1.0,female,divorced/separated/married,none,2.0,car or other,26.0,none,own,1.0,2.0,1.0,yes,yes,2
+299,1.0,21.0,A34,furniture/equipment,2745.0,3.0,3.0,3.0,male,single,none,2.0,car or other,32.0,none,own,2.0,2.0,1.0,yes,yes,1
+301,1.0,36.0,A30,radio/TV,3804.0,0.0,2.0,4.0,female,divorced/separated/married,none,1.0,car or other,42.0,none,own,1.0,2.0,1.0,yes,yes,2
+303,0.0,10.0,A34,car (new),1038.0,0.0,3.0,4.0,male,single,co-applicant,3.0,building,49.0,none,own,2.0,2.0,1.0,yes,yes,1
+307,0.0,12.0,A32,radio/TV,727.0,1.0,1.0,4.0,male,divorced/separated/married,none,3.0,unknown/none,33.0,none,own,1.0,1.0,1.0,yes,yes,2
+308,1.0,8.0,A32,furniture/equipment,1237.0,0.0,2.0,3.0,female,divorced/separated/married,none,4.0,real_estate,24.0,none,own,1.0,2.0,1.0,none,yes,2
+309,1.0,9.0,A32,car (new),276.0,0.0,2.0,4.0,male,divorced/separated/married,none,4.0,real_estate,22.0,none,rent,1.0,1.0,1.0,none,yes,1
+312,2.0,24.0,A32,furniture/equipment,3749.0,0.0,1.0,2.0,female,divorced/separated/married,none,4.0,car or other,26.0,none,own,1.0,2.0,1.0,none,yes,1
+313,1.0,12.0,A32,car (new),685.0,0.0,3.0,2.0,male,divorced/separated/married,none,3.0,car or other,25.0,bank,own,1.0,1.0,1.0,none,yes,2
+315,0.0,36.0,A31,furniture/equipment,2746.0,0.0,4.0,4.0,male,single,none,4.0,car or other,31.0,bank,own,1.0,2.0,1.0,none,yes,2
+316,0.0,12.0,A32,furniture/equipment,708.0,0.0,2.0,2.0,male,single,guarantor,3.0,building,38.0,none,own,1.0,1.0,2.0,none,yes,1
+319,0.0,15.0,A33,furniture/equipment,3643.0,0.0,4.0,1.0,female,divorced/separated/married,none,4.0,building,27.0,none,own,2.0,1.0,1.0,none,yes,1
+320,1.0,30.0,A34,car (new),4249.0,0.0,0.0,4.0,male,divorced/separated/married,none,2.0,car or other,28.0,none,own,2.0,3.0,1.0,none,yes,2
+321,0.0,24.0,A32,radio/TV,1938.0,0.0,1.0,4.0,male,divorced/separated/married,none,3.0,building,32.0,none,own,1.0,2.0,1.0,none,yes,2
+322,0.0,24.0,A32,car (used),2910.0,0.0,3.0,2.0,male,single,none,1.0,unknown/none,34.0,none,free,1.0,3.0,1.0,yes,yes,1
+323,0.0,18.0,A32,furniture/equipment,2659.0,3.0,2.0,4.0,male,single,none,2.0,car or other,28.0,none,own,1.0,2.0,1.0,none,yes,1
+325,0.0,8.0,A34,car (new),3398.0,0.0,3.0,1.0,male,single,none,4.0,real_estate,39.0,none,own,2.0,1.0,1.0,none,no,1
+328,2.0,36.0,A32,radio/TV,4473.0,0.0,4.0,4.0,male,single,none,2.0,car or other,31.0,none,own,1.0,2.0,1.0,none,yes,1
+329,1.0,6.0,A32,radio/TV,1068.0,0.0,4.0,4.0,male,single,none,4.0,car or other,28.0,none,own,1.0,2.0,2.0,none,yes,1
+330,0.0,24.0,A34,car (used),6615.0,0.0,0.0,2.0,male,single,none,4.0,unknown/none,75.0,none,free,2.0,3.0,1.0,yes,yes,1
+332,1.0,60.0,A32,car (new),7408.0,1.0,1.0,4.0,female,divorced/separated/married,none,2.0,building,24.0,none,own,1.0,3.0,1.0,none,yes,2
+334,0.0,24.0,A30,furniture/equipment,4110.0,0.0,4.0,3.0,male,single,none,4.0,unknown/none,23.0,bank,rent,2.0,2.0,2.0,none,yes,2
+335,0.0,6.0,A34,furniture/equipment,3384.0,0.0,2.0,1.0,male,divorced/separated/married,none,4.0,real_estate,44.0,none,rent,1.0,3.0,1.0,yes,yes,2
+336,1.0,13.0,A32,radio/TV,2101.0,0.0,1.0,2.0,female,divorced/separated/married,guarantor,4.0,building,23.0,none,own,1.0,1.0,1.0,none,yes,1
+338,0.0,24.0,A32,furniture/equipment,4169.0,0.0,2.0,4.0,male,single,none,4.0,building,28.0,none,own,1.0,2.0,1.0,none,yes,1
+339,1.0,10.0,A32,furniture/equipment,1521.0,0.0,2.0,4.0,male,divorced/separated/married,none,2.0,car or other,31.0,none,own,1.0,1.0,1.0,none,yes,1
+340,1.0,24.0,A34,education,5743.0,0.0,1.0,2.0,female,divorced/separated/married,none,4.0,unknown/none,24.0,none,free,2.0,2.0,1.0,yes,yes,1
+341,0.0,21.0,A32,furniture/equipment,3599.0,0.0,3.0,1.0,female,divorced/separated/married,none,4.0,car or other,26.0,none,rent,1.0,1.0,1.0,none,yes,1
+342,1.0,18.0,A32,radio/TV,3213.0,2.0,1.0,1.0,male,divorced/separated/married,none,3.0,real_estate,25.0,none,rent,1.0,2.0,1.0,none,yes,1
+343,1.0,18.0,A32,business,4439.0,0.0,4.0,1.0,male,single,co-applicant,1.0,real_estate,33.0,bank,own,1.0,3.0,1.0,yes,yes,1
+344,2.0,10.0,A32,car (new),3949.0,0.0,1.0,1.0,male,single,guarantor,1.0,building,37.0,none,own,1.0,1.0,2.0,none,yes,1
+346,1.0,13.0,A34,radio/TV,882.0,0.0,1.0,4.0,male,single,guarantor,4.0,real_estate,23.0,none,own,2.0,2.0,1.0,none,yes,1
+347,1.0,24.0,A32,radio/TV,3758.0,2.0,0.0,1.0,female,divorced/separated/married,none,4.0,unknown/none,23.0,none,rent,1.0,0.0,1.0,none,yes,1
+349,1.0,9.0,A34,education,1136.0,3.0,4.0,4.0,male,single,none,3.0,unknown/none,32.0,none,free,2.0,2.0,2.0,none,yes,2
+351,1.0,9.0,A32,furniture/equipment,959.0,0.0,2.0,1.0,female,divorced/separated/married,none,2.0,car or other,29.0,none,own,1.0,2.0,1.0,none,no,2
+353,0.0,12.0,A30,radio/TV,6199.0,0.0,2.0,4.0,male,single,none,2.0,building,28.0,none,rent,2.0,2.0,1.0,yes,yes,2
+355,1.0,24.0,A32,car (new),1246.0,0.0,1.0,4.0,male,single,none,2.0,real_estate,23.0,stores,own,1.0,1.0,1.0,none,yes,2
+359,0.0,30.0,A32,furniture/equipment,2406.0,0.0,3.0,4.0,female,divorced/separated/married,none,4.0,real_estate,23.0,none,rent,1.0,2.0,1.0,none,yes,2
+362,2.0,12.0,A33,car (new),2247.0,0.0,2.0,2.0,female,divorced/separated/married,none,2.0,car or other,36.0,stores,own,2.0,2.0,1.0,yes,yes,1
+364,0.0,18.0,A32,furniture/equipment,2473.0,0.0,0.0,4.0,male,single,none,1.0,car or other,25.0,none,own,1.0,0.0,1.0,none,yes,2
+367,0.0,18.0,A32,furniture/equipment,3650.0,0.0,1.0,1.0,female,divorced/separated/married,none,4.0,car or other,22.0,none,rent,1.0,2.0,1.0,none,yes,1
+368,0.0,36.0,A32,furniture/equipment,3446.0,0.0,4.0,4.0,male,single,none,2.0,car or other,42.0,none,own,1.0,2.0,2.0,none,yes,2
+369,1.0,18.0,A32,furniture/equipment,3001.0,0.0,3.0,2.0,female,divorced/separated/married,none,4.0,real_estate,40.0,none,rent,1.0,2.0,1.0,none,yes,1
+375,0.0,48.0,A31,business,7685.0,0.0,3.0,2.0,female,divorced/separated/married,guarantor,4.0,car or other,37.0,none,rent,1.0,2.0,1.0,none,yes,2
+378,1.0,36.0,A32,car (new),14318.0,0.0,4.0,4.0,male,single,none,2.0,unknown/none,57.0,none,free,1.0,3.0,1.0,yes,yes,2
+381,1.0,18.0,A32,car (used),12976.0,0.0,0.0,3.0,female,divorced/separated/married,none,4.0,unknown/none,38.0,none,free,1.0,3.0,1.0,yes,yes,2
+383,2.0,12.0,A32,car (new),1330.0,0.0,1.0,4.0,male,single,none,1.0,real_estate,26.0,none,own,1.0,2.0,1.0,none,yes,1
+387,1.0,18.0,A34,furniture/equipment,7374.0,0.0,0.0,4.0,male,single,none,4.0,building,40.0,stores,own,2.0,3.0,1.0,yes,yes,1
+388,1.0,15.0,A34,business,2326.0,2.0,2.0,2.0,male,single,none,4.0,car or other,27.0,bank,own,1.0,2.0,1.0,none,yes,1
+391,1.0,12.0,A32,furniture/equipment,983.0,3.0,1.0,1.0,female,divorced/separated/married,none,4.0,real_estate,19.0,none,rent,1.0,1.0,1.0,none,yes,1
+392,0.0,36.0,A32,car (new),3249.0,0.0,3.0,2.0,male,single,none,4.0,unknown/none,39.0,bank,free,1.0,3.0,2.0,yes,yes,1
+393,0.0,6.0,A34,radio/TV,1957.0,0.0,3.0,1.0,female,divorced/separated/married,none,4.0,car or other,31.0,none,own,1.0,2.0,1.0,none,yes,1
+395,1.0,39.0,A33,education,11760.0,1.0,3.0,2.0,male,single,none,3.0,unknown/none,32.0,none,rent,1.0,2.0,1.0,yes,yes,1
+396,0.0,12.0,A32,furniture/equipment,2578.0,0.0,0.0,3.0,female,divorced/separated/married,none,4.0,unknown/none,55.0,none,free,1.0,3.0,1.0,none,yes,1
+397,0.0,36.0,A34,furniture/equipment,2348.0,0.0,2.0,3.0,male,divorced/separated/married,none,2.0,building,46.0,none,own,2.0,2.0,1.0,yes,yes,1
+398,1.0,12.0,A32,car (new),1223.0,0.0,4.0,1.0,male,divorced/separated/married,none,1.0,real_estate,46.0,none,rent,2.0,2.0,1.0,none,yes,2
+405,1.0,24.0,A32,radio/TV,2039.0,0.0,1.0,1.0,male,divorced/separated/married,none,1.0,building,22.0,none,own,1.0,2.0,1.0,yes,yes,2
+407,0.0,15.0,A32,radio/TV,1053.0,0.0,1.0,4.0,male,divorced/separated/married,none,2.0,real_estate,27.0,none,own,1.0,2.0,1.0,none,no,1
+409,2.0,12.0,A34,car (new),939.0,2.0,3.0,4.0,male,divorced/separated/married,none,2.0,real_estate,28.0,none,own,3.0,2.0,1.0,yes,yes,2
+410,1.0,24.0,A32,radio/TV,1967.0,0.0,4.0,4.0,female,divorced/separated/married,none,4.0,car or other,20.0,none,own,1.0,2.0,1.0,yes,yes,1
+416,0.0,12.0,A32,car (new),2579.0,0.0,1.0,4.0,male,single,none,1.0,real_estate,33.0,none,own,1.0,1.0,2.0,none,yes,2
+422,1.0,12.0,A34,car (new),958.0,0.0,3.0,2.0,male,single,none,3.0,real_estate,47.0,none,own,2.0,1.0,2.0,none,yes,1
+425,1.0,18.0,A32,car (used),2779.0,0.0,2.0,1.0,male,divorced/separated/married,none,3.0,car or other,21.0,none,rent,1.0,2.0,1.0,yes,yes,1
+429,0.0,18.0,A34,repairs,1190.0,0.0,0.0,2.0,female,divorced/separated/married,none,4.0,unknown/none,55.0,none,free,3.0,0.0,2.0,none,yes,2
+432,0.0,6.0,A34,furniture/equipment,1872.0,0.0,0.0,4.0,male,single,none,4.0,unknown/none,36.0,none,free,3.0,3.0,1.0,yes,yes,1
+434,0.0,9.0,A32,furniture/equipment,2136.0,0.0,2.0,3.0,male,single,none,2.0,real_estate,25.0,none,own,1.0,2.0,1.0,none,yes,1
+438,0.0,42.0,A34,repairs,3394.0,0.0,0.0,4.0,male,single,co-applicant,4.0,car or other,65.0,none,own,2.0,0.0,1.0,none,yes,1
+439,2.0,12.0,A31,business,609.0,0.0,1.0,4.0,female,divorced/separated/married,none,1.0,real_estate,26.0,none,own,1.0,0.0,1.0,none,yes,2
+441,0.0,12.0,A32,furniture/equipment,1620.0,0.0,2.0,2.0,female,divorced/separated/married,co-applicant,3.0,building,30.0,none,own,1.0,2.0,1.0,none,yes,1
+442,1.0,20.0,A33,others,2629.0,0.0,2.0,2.0,male,single,none,3.0,car or other,29.0,bank,own,2.0,2.0,1.0,yes,yes,1
+444,1.0,48.0,A34,furniture/equipment,5096.0,0.0,2.0,2.0,female,divorced/separated/married,none,3.0,car or other,30.0,none,own,1.0,3.0,1.0,yes,yes,2
+446,0.0,36.0,A32,car (new),1842.0,0.0,1.0,4.0,female,divorced/separated/married,none,4.0,car or other,34.0,none,own,1.0,2.0,1.0,yes,yes,2
+447,1.0,7.0,A32,radio/TV,2576.0,0.0,2.0,2.0,male,single,guarantor,2.0,real_estate,35.0,none,own,1.0,2.0,1.0,none,yes,1
+449,1.0,15.0,A33,repairs,1512.0,3.0,2.0,3.0,male,divorced/separated/married,none,3.0,building,61.0,stores,own,2.0,2.0,1.0,none,yes,2
+454,0.0,24.0,A32,car (new),4817.0,0.0,3.0,2.0,male,single,co-applicant,3.0,building,31.0,none,own,1.0,2.0,1.0,yes,yes,2
+456,0.0,11.0,A34,car (new),3905.0,0.0,2.0,2.0,male,single,none,2.0,real_estate,36.0,none,rent,2.0,2.0,2.0,none,yes,1
+457,0.0,12.0,A32,car (used),3386.0,0.0,4.0,3.0,male,single,none,4.0,unknown/none,35.0,none,free,1.0,2.0,1.0,yes,yes,2
+458,0.0,6.0,A32,domestic_appliances,343.0,0.0,1.0,4.0,female,divorced/separated/married,none,1.0,real_estate,27.0,none,own,1.0,2.0,1.0,none,yes,1
+460,0.0,36.0,A32,furniture/equipment,3620.0,0.0,2.0,1.0,male,single,guarantor,2.0,building,37.0,none,own,1.0,2.0,2.0,none,yes,1
+461,0.0,15.0,A32,car (new),1721.0,0.0,1.0,2.0,male,single,none,3.0,real_estate,36.0,none,own,1.0,2.0,1.0,none,yes,1
+462,1.0,12.0,A32,furniture/equipment,3017.0,0.0,1.0,3.0,female,divorced/separated/married,none,1.0,real_estate,34.0,none,rent,1.0,3.0,1.0,none,yes,1
+465,0.0,24.0,A32,car (used),2924.0,0.0,2.0,3.0,male,single,guarantor,4.0,unknown/none,63.0,bank,own,1.0,2.0,2.0,yes,yes,1
+466,0.0,24.0,A33,radio/TV,1659.0,0.0,1.0,4.0,female,divorced/separated/married,none,2.0,car or other,29.0,none,rent,1.0,1.0,1.0,yes,yes,2
+470,1.0,24.0,A32,radio/TV,3092.0,1.0,1.0,3.0,male,divorced/separated/married,none,2.0,car or other,22.0,none,rent,1.0,2.0,1.0,yes,yes,2
+471,0.0,6.0,A32,education,448.0,0.0,1.0,4.0,female,divorced/separated/married,none,4.0,building,23.0,none,own,1.0,2.0,1.0,none,yes,2
+472,0.0,9.0,A32,car (new),654.0,0.0,2.0,4.0,male,single,none,3.0,car or other,28.0,none,own,1.0,1.0,1.0,none,yes,2
+474,1.0,18.0,A34,radio/TV,1245.0,0.0,2.0,4.0,male,divorced/separated/married,none,2.0,car or other,33.0,none,own,1.0,2.0,1.0,none,yes,2
+475,0.0,18.0,A30,furniture/equipment,3114.0,0.0,1.0,1.0,female,divorced/separated/married,none,4.0,building,26.0,none,rent,1.0,2.0,1.0,none,yes,2
+477,2.0,24.0,A32,radio/TV,5152.0,0.0,3.0,4.0,male,single,none,2.0,car or other,25.0,bank,own,1.0,2.0,1.0,none,yes,1
+478,1.0,12.0,A32,business,1037.0,1.0,3.0,3.0,male,single,none,4.0,real_estate,39.0,none,own,1.0,1.0,1.0,none,yes,1
+479,0.0,15.0,A34,furniture/equipment,1478.0,0.0,4.0,4.0,male,single,none,4.0,car or other,44.0,none,own,2.0,2.0,2.0,yes,yes,1
+480,1.0,12.0,A34,radio/TV,3573.0,0.0,2.0,1.0,female,divorced/separated/married,none,1.0,real_estate,23.0,none,own,1.0,1.0,1.0,none,yes,1
+481,1.0,24.0,A32,car (new),1201.0,0.0,1.0,4.0,male,single,none,1.0,building,26.0,none,own,1.0,2.0,1.0,none,yes,1
+482,0.0,30.0,A32,furniture/equipment,3622.0,3.0,4.0,4.0,female,divorced/separated/married,none,4.0,building,57.0,none,rent,2.0,2.0,1.0,yes,yes,1
+485,1.0,6.0,A33,car (new),1209.0,0.0,0.0,4.0,male,single,none,4.0,building,47.0,none,own,1.0,3.0,1.0,yes,yes,2
+491,1.0,27.0,A30,business,8318.0,0.0,4.0,2.0,female,divorced/separated/married,none,4.0,unknown/none,42.0,none,free,2.0,3.0,1.0,yes,yes,2
+494,0.0,12.0,A34,car (new),2122.0,0.0,2.0,3.0,male,single,none,2.0,real_estate,39.0,none,rent,2.0,1.0,2.0,none,no,1
+496,1.0,36.0,A32,furniture/equipment,9034.0,1.0,1.0,4.0,male,single,co-applicant,1.0,unknown/none,29.0,none,rent,1.0,3.0,1.0,yes,yes,2
+498,1.0,18.0,A32,radio/TV,1301.0,0.0,4.0,4.0,male,divorced/separated/married,guarantor,2.0,real_estate,32.0,none,own,1.0,1.0,1.0,none,yes,1
+499,2.0,6.0,A34,car (new),1323.0,1.0,4.0,2.0,male,divorced/separated/married,none,4.0,car or other,28.0,none,own,2.0,2.0,2.0,yes,yes,1
+500,0.0,24.0,A32,car (new),3123.0,0.0,1.0,4.0,female,divorced/separated/married,none,1.0,building,27.0,none,own,1.0,2.0,1.0,none,yes,2
+501,0.0,36.0,A32,car (used),5493.0,0.0,4.0,2.0,male,single,none,4.0,unknown/none,42.0,none,free,1.0,2.0,2.0,none,yes,1
+502,2.0,9.0,A32,radio/TV,1126.0,1.0,4.0,2.0,male,divorced/separated/married,none,4.0,real_estate,49.0,none,own,1.0,2.0,1.0,none,yes,1
+503,1.0,24.0,A34,radio/TV,1216.0,1.0,1.0,4.0,male,single,none,4.0,unknown/none,38.0,bank,own,2.0,2.0,2.0,none,yes,2
+504,0.0,24.0,A32,car (new),1207.0,0.0,1.0,4.0,female,divorced/separated/married,none,4.0,building,24.0,none,rent,1.0,2.0,1.0,none,yes,2
+506,2.0,15.0,A34,car (used),2360.0,2.0,2.0,2.0,male,single,none,2.0,car or other,36.0,none,own,1.0,2.0,1.0,yes,yes,1
+507,1.0,15.0,A31,car (new),6850.0,1.0,0.0,1.0,male,single,none,2.0,building,34.0,none,own,1.0,3.0,2.0,yes,yes,2
+510,0.0,12.0,A32,car (new),759.0,0.0,3.0,4.0,male,single,none,2.0,real_estate,26.0,none,own,1.0,2.0,1.0,none,yes,2
+512,2.0,15.0,A32,business,2687.0,0.0,3.0,2.0,male,single,none,4.0,building,26.0,none,rent,1.0,2.0,1.0,yes,yes,1
+513,1.0,12.0,A33,radio/TV,585.0,0.0,2.0,4.0,male,divorced/separated/married,co-applicant,4.0,real_estate,20.0,none,rent,2.0,2.0,1.0,none,yes,1
+515,0.0,6.0,A34,car (new),609.0,0.0,3.0,4.0,female,divorced/separated/married,none,3.0,building,37.0,none,own,2.0,2.0,1.0,none,no,1
+516,0.0,6.0,A34,car (new),1361.0,0.0,1.0,2.0,male,single,none,4.0,real_estate,40.0,none,own,1.0,1.0,2.0,none,no,1
+518,0.0,6.0,A32,car (new),1203.0,1.0,4.0,3.0,male,single,none,2.0,building,43.0,none,own,1.0,2.0,1.0,yes,yes,1
+521,0.0,18.0,A32,radio/TV,3190.0,0.0,2.0,2.0,female,divorced/separated/married,none,2.0,real_estate,24.0,none,own,1.0,2.0,1.0,none,yes,2
+522,0.0,48.0,A30,furniture/equipment,7119.0,0.0,2.0,3.0,male,single,none,4.0,unknown/none,53.0,none,free,2.0,2.0,2.0,none,yes,2
+524,1.0,18.0,A32,radio/TV,1113.0,0.0,2.0,4.0,female,divorced/separated/married,guarantor,4.0,real_estate,26.0,none,own,1.0,1.0,2.0,none,yes,1
+525,1.0,26.0,A32,car (used),7966.0,0.0,1.0,2.0,male,single,none,3.0,car or other,30.0,none,own,2.0,2.0,1.0,none,yes,1
+528,0.0,36.0,A32,radio/TV,2302.0,0.0,2.0,4.0,male,divorced/separated/married,none,4.0,car or other,31.0,none,rent,1.0,2.0,1.0,none,yes,2
+529,0.0,6.0,A32,car (new),662.0,0.0,1.0,3.0,male,single,none,4.0,real_estate,41.0,none,own,1.0,1.0,2.0,yes,yes,1
+530,1.0,36.0,A32,education,2273.0,0.0,3.0,3.0,male,single,none,1.0,car or other,32.0,none,own,2.0,2.0,2.0,none,yes,1
+531,1.0,15.0,A32,car (new),2631.0,1.0,2.0,2.0,female,divorced/separated/married,none,4.0,car or other,28.0,none,rent,2.0,2.0,1.0,yes,yes,2
+535,2.0,21.0,A34,education,2319.0,0.0,1.0,2.0,male,divorced/separated/married,none,1.0,car or other,33.0,none,rent,1.0,2.0,1.0,none,yes,2
+537,1.0,18.0,A34,furniture/equipment,3612.0,0.0,4.0,3.0,female,divorced/separated/married,none,4.0,building,37.0,none,own,1.0,2.0,1.0,yes,yes,1
+538,0.0,48.0,A32,car (new),7763.0,0.0,4.0,4.0,male,single,none,4.0,unknown/none,42.0,bank,free,1.0,3.0,1.0,none,yes,2
+539,2.0,18.0,A32,furniture/equipment,3049.0,0.0,1.0,1.0,female,divorced/separated/married,none,1.0,building,45.0,stores,own,1.0,1.0,1.0,none,yes,1
+540,1.0,12.0,A32,radio/TV,1534.0,0.0,1.0,1.0,male,divorced/separated/married,none,1.0,real_estate,23.0,none,rent,1.0,2.0,1.0,none,yes,2
+543,2.0,18.0,A32,furniture/equipment,2864.0,0.0,2.0,2.0,male,single,none,1.0,real_estate,34.0,none,own,1.0,1.0,2.0,none,yes,2
+545,0.0,24.0,A33,car (new),1333.0,0.0,0.0,4.0,male,single,none,2.0,real_estate,43.0,none,free,2.0,2.0,2.0,none,yes,2
+548,0.0,12.0,A31,radio/TV,626.0,0.0,2.0,4.0,female,divorced/separated/married,none,4.0,real_estate,24.0,bank,own,1.0,1.0,1.0,none,yes,2
+552,0.0,48.0,A32,radio/TV,6999.0,0.0,3.0,1.0,male,divorced/separated/married,guarantor,1.0,real_estate,34.0,none,own,2.0,2.0,1.0,yes,yes,2
+553,1.0,12.0,A34,car (new),1995.0,1.0,1.0,4.0,male,single,none,1.0,car or other,27.0,none,own,1.0,2.0,1.0,none,yes,1
+554,1.0,9.0,A32,education,1199.0,0.0,3.0,4.0,female,divorced/separated/married,none,4.0,building,67.0,none,own,2.0,3.0,1.0,yes,yes,1
+555,1.0,12.0,A32,radio/TV,1331.0,0.0,1.0,2.0,male,single,none,1.0,car or other,22.0,stores,own,1.0,2.0,1.0,none,yes,2
+556,1.0,18.0,A30,car (new),2278.0,1.0,1.0,3.0,female,divorced/separated/married,none,3.0,car or other,28.0,none,own,2.0,2.0,1.0,none,yes,2
+558,0.0,24.0,A31,furniture/equipment,3552.0,0.0,3.0,3.0,male,single,none,4.0,car or other,27.0,bank,own,1.0,2.0,1.0,none,yes,2
+559,1.0,18.0,A34,furniture/equipment,1928.0,0.0,1.0,2.0,male,single,none,2.0,real_estate,31.0,none,own,2.0,1.0,1.0,none,yes,2
+561,0.0,24.0,A31,radio/TV,1546.0,0.0,3.0,4.0,male,single,guarantor,4.0,car or other,24.0,bank,rent,1.0,1.0,1.0,none,yes,2
+562,2.0,6.0,A33,radio/TV,683.0,0.0,1.0,2.0,female,divorced/separated/married,none,1.0,building,29.0,bank,own,1.0,2.0,1.0,none,yes,1
+565,1.0,24.0,A33,radio/TV,1553.0,1.0,3.0,3.0,female,divorced/separated/married,none,2.0,building,23.0,none,rent,2.0,2.0,1.0,yes,yes,1
+566,0.0,12.0,A32,car (new),1372.0,0.0,3.0,2.0,male,divorced/separated/married,none,3.0,car or other,36.0,none,own,1.0,2.0,1.0,none,yes,2
+569,0.0,48.0,A32,radio/TV,6758.0,0.0,2.0,3.0,female,divorced/separated/married,none,2.0,car or other,31.0,none,own,1.0,2.0,1.0,yes,yes,2
+570,0.0,24.0,A32,furniture/equipment,3234.0,0.0,1.0,4.0,female,divorced/separated/married,none,4.0,real_estate,23.0,none,rent,1.0,1.0,1.0,yes,yes,2
+573,0.0,15.0,A32,business,806.0,0.0,2.0,4.0,female,divorced/separated/married,none,4.0,building,22.0,none,own,1.0,1.0,1.0,none,yes,1
+574,1.0,9.0,A32,radio/TV,1082.0,0.0,4.0,4.0,male,single,none,4.0,car or other,27.0,none,own,2.0,1.0,1.0,none,yes,1
+576,1.0,12.0,A32,radio/TV,2930.0,0.0,3.0,2.0,female,divorced/separated/married,none,1.0,real_estate,27.0,none,own,1.0,2.0,1.0,none,yes,1
+578,1.0,36.0,A34,car (new),2820.0,0.0,1.0,4.0,male,divorced/separated/married,none,4.0,car or other,27.0,none,own,2.0,2.0,1.0,none,yes,2
+580,1.0,18.0,A34,car (new),1056.0,0.0,4.0,3.0,male,single,guarantor,3.0,real_estate,30.0,bank,own,2.0,2.0,1.0,none,yes,2
+581,1.0,12.0,A34,car (new),3124.0,0.0,1.0,1.0,male,single,none,3.0,real_estate,49.0,bank,own,2.0,1.0,2.0,none,yes,1
+583,1.0,36.0,A32,repairs,2384.0,0.0,1.0,4.0,male,single,none,1.0,unknown/none,33.0,none,rent,1.0,1.0,1.0,none,yes,2
+585,0.0,18.0,A32,furniture/equipment,2039.0,0.0,2.0,1.0,female,divorced/separated/married,none,4.0,real_estate,20.0,bank,rent,1.0,2.0,1.0,none,yes,2
+586,0.0,9.0,A34,car (new),2799.0,0.0,2.0,2.0,male,single,none,2.0,real_estate,36.0,none,rent,2.0,2.0,2.0,none,yes,1
+587,0.0,12.0,A32,furniture/equipment,1289.0,0.0,2.0,4.0,male,single,guarantor,1.0,building,21.0,none,own,1.0,1.0,1.0,none,yes,1
+588,0.0,18.0,A32,domestic_appliances,1217.0,0.0,2.0,4.0,male,divorced/separated/married,none,3.0,real_estate,47.0,none,own,1.0,1.0,1.0,yes,yes,2
+589,0.0,12.0,A34,furniture/equipment,2246.0,0.0,4.0,3.0,male,single,none,3.0,building,60.0,none,own,2.0,2.0,1.0,none,yes,2
+590,0.0,12.0,A34,radio/TV,385.0,0.0,3.0,4.0,female,divorced/separated/married,none,3.0,real_estate,58.0,none,own,4.0,1.0,1.0,yes,yes,1
+593,1.0,24.0,A32,car (new),2718.0,0.0,2.0,3.0,female,divorced/separated/married,none,4.0,building,20.0,none,rent,1.0,1.0,1.0,yes,yes,2
+595,1.0,6.0,A31,car (new),931.0,1.0,1.0,1.0,female,divorced/separated/married,none,1.0,building,32.0,stores,own,1.0,1.0,1.0,none,yes,2
+596,0.0,24.0,A32,car (new),1442.0,0.0,3.0,4.0,female,divorced/separated/married,none,4.0,car or other,23.0,none,rent,2.0,2.0,1.0,none,yes,2
+597,1.0,24.0,A30,business,4241.0,0.0,2.0,1.0,male,single,none,4.0,real_estate,36.0,none,own,3.0,1.0,1.0,yes,yes,2
+600,1.0,7.0,A32,radio/TV,2329.0,0.0,1.0,1.0,female,divorced/separated/married,guarantor,1.0,real_estate,45.0,none,own,1.0,2.0,1.0,none,yes,1
+601,1.0,9.0,A32,furniture/equipment,918.0,0.0,2.0,4.0,female,divorced/separated/married,none,1.0,building,30.0,none,own,1.0,2.0,1.0,none,yes,2
+602,1.0,24.0,A31,education,1837.0,0.0,3.0,4.0,female,divorced/separated/married,none,4.0,unknown/none,34.0,bank,free,1.0,1.0,1.0,none,yes,2
+604,2.0,10.0,A32,furniture/equipment,1275.0,0.0,1.0,4.0,female,divorced/separated/married,none,2.0,building,23.0,none,own,1.0,2.0,1.0,none,yes,1
+605,0.0,24.0,A31,furniture/equipment,2828.0,2.0,2.0,4.0,male,single,none,4.0,real_estate,22.0,stores,own,1.0,2.0,1.0,yes,yes,1
+607,1.0,36.0,A32,radio/TV,2671.0,1.0,2.0,4.0,female,divorced/separated/married,co-applicant,4.0,unknown/none,50.0,none,free,1.0,2.0,1.0,none,yes,2
+610,0.0,12.0,A32,domestic_appliances,741.0,1.0,0.0,4.0,female,divorced/separated/married,none,3.0,building,22.0,none,own,1.0,2.0,1.0,none,yes,2
+611,2.0,10.0,A32,car (new),1240.0,1.0,4.0,1.0,female,divorced/separated/married,none,4.0,unknown/none,48.0,none,free,1.0,1.0,2.0,none,yes,2
+612,0.0,21.0,A32,radio/TV,3357.0,3.0,1.0,4.0,female,divorced/separated/married,none,2.0,car or other,29.0,bank,own,1.0,2.0,1.0,none,yes,1
+613,0.0,24.0,A31,car (used),3632.0,0.0,2.0,1.0,female,divorced/separated/married,guarantor,4.0,car or other,22.0,bank,rent,1.0,2.0,1.0,none,no,1
+617,0.0,6.0,A34,car (new),3676.0,0.0,2.0,1.0,male,single,none,3.0,real_estate,37.0,none,rent,3.0,2.0,2.0,none,yes,1
+618,1.0,30.0,A32,furniture/equipment,3441.0,1.0,2.0,2.0,female,divorced/separated/married,co-applicant,4.0,car or other,21.0,none,rent,1.0,2.0,1.0,none,yes,2
+620,1.0,21.0,A34,business,3652.0,0.0,3.0,2.0,male,single,none,3.0,building,27.0,none,own,2.0,2.0,1.0,none,yes,1
+623,0.0,12.0,A32,furniture/equipment,1858.0,0.0,1.0,4.0,female,divorced/separated/married,none,1.0,car or other,22.0,none,rent,1.0,2.0,1.0,none,yes,1
+624,0.0,18.0,A32,radio/TV,2600.0,0.0,2.0,4.0,male,single,none,4.0,unknown/none,65.0,none,free,2.0,2.0,1.0,none,yes,2
+626,2.0,6.0,A32,furniture/equipment,2116.0,0.0,2.0,2.0,male,single,none,2.0,real_estate,41.0,none,own,1.0,2.0,1.0,yes,yes,1
+627,1.0,9.0,A31,car (new),1437.0,1.0,3.0,2.0,male,single,none,3.0,unknown/none,29.0,none,own,1.0,2.0,1.0,none,yes,2
+630,0.0,24.0,A32,radio/TV,3660.0,0.0,2.0,2.0,female,divorced/separated/married,none,4.0,car or other,28.0,none,own,1.0,2.0,1.0,none,yes,1
+631,0.0,18.0,A31,furniture/equipment,1553.0,0.0,2.0,4.0,male,single,none,3.0,car or other,44.0,bank,own,1.0,2.0,1.0,none,yes,2
+634,1.0,24.0,A32,car (new),1355.0,0.0,1.0,3.0,female,divorced/separated/married,none,4.0,car or other,25.0,none,own,1.0,1.0,1.0,yes,yes,2
+639,0.0,42.0,A33,radio/TV,4370.0,0.0,3.0,3.0,male,single,none,2.0,building,26.0,bank,own,2.0,2.0,2.0,yes,yes,2
+640,0.0,18.0,A32,education,750.0,0.0,0.0,4.0,female,divorced/separated/married,none,1.0,real_estate,27.0,none,own,1.0,0.0,1.0,none,yes,2
+641,1.0,15.0,A32,repairs,1308.0,0.0,4.0,4.0,male,single,none,4.0,car or other,38.0,none,own,2.0,1.0,1.0,none,yes,1
+644,0.0,18.0,A34,radio/TV,1880.0,0.0,3.0,4.0,male,divorced/separated/married,none,1.0,building,32.0,none,own,2.0,3.0,1.0,yes,yes,1
+646,0.0,30.0,A30,furniture/equipment,4583.0,0.0,2.0,2.0,male,divorced/separated/married,guarantor,2.0,real_estate,32.0,none,own,2.0,2.0,1.0,none,yes,1
+648,2.0,24.0,A32,car (new),947.0,0.0,3.0,4.0,male,single,none,3.0,unknown/none,38.0,bank,free,1.0,2.0,2.0,none,yes,2
+649,0.0,12.0,A32,education,684.0,0.0,2.0,4.0,male,single,none,4.0,car or other,40.0,none,rent,1.0,1.0,2.0,none,yes,2
+650,0.0,48.0,A32,education,7476.0,0.0,3.0,4.0,male,single,none,1.0,unknown/none,50.0,none,free,1.0,3.0,1.0,yes,yes,1
+651,1.0,12.0,A32,furniture/equipment,1922.0,0.0,2.0,4.0,male,single,none,2.0,building,37.0,none,own,1.0,1.0,1.0,none,yes,2
+652,0.0,24.0,A32,car (new),2303.0,0.0,4.0,4.0,male,single,co-applicant,1.0,real_estate,45.0,none,own,1.0,2.0,1.0,none,yes,2
+653,1.0,36.0,A33,car (new),8086.0,1.0,4.0,2.0,male,single,none,4.0,car or other,42.0,none,own,4.0,3.0,1.0,yes,yes,2
+655,0.0,14.0,A32,car (new),3973.0,0.0,0.0,1.0,male,single,none,4.0,unknown/none,22.0,none,free,1.0,2.0,1.0,none,yes,1
+656,1.0,12.0,A32,car (new),888.0,0.0,4.0,4.0,male,single,none,4.0,car or other,41.0,bank,own,1.0,1.0,2.0,none,yes,2
+658,1.0,30.0,A30,business,4221.0,0.0,2.0,2.0,female,divorced/separated/married,none,1.0,car or other,28.0,none,own,2.0,2.0,1.0,none,yes,1
+659,1.0,18.0,A34,furniture/equipment,6361.0,0.0,4.0,2.0,male,single,none,1.0,unknown/none,41.0,none,own,1.0,2.0,1.0,yes,yes,1
+660,2.0,12.0,A32,radio/TV,1297.0,0.0,2.0,3.0,male,divorced/separated/married,none,4.0,real_estate,23.0,none,rent,1.0,2.0,1.0,none,yes,1
+663,1.0,6.0,A33,furniture/equipment,1050.0,0.0,0.0,4.0,male,single,none,1.0,building,35.0,stores,own,2.0,3.0,1.0,yes,yes,1
+664,2.0,6.0,A34,education,1047.0,0.0,2.0,2.0,female,divorced/separated/married,none,4.0,building,50.0,none,own,1.0,1.0,1.0,none,yes,1
+666,1.0,30.0,A31,furniture/equipment,3496.0,3.0,2.0,4.0,male,single,none,2.0,car or other,34.0,stores,own,1.0,2.0,2.0,yes,yes,1
+668,0.0,12.0,A34,car (new),4843.0,0.0,4.0,3.0,male,single,co-applicant,4.0,building,43.0,none,rent,2.0,2.0,1.0,yes,yes,2
+669,2.0,30.0,A34,radio/TV,3017.0,0.0,4.0,4.0,male,single,none,4.0,building,47.0,none,own,1.0,2.0,1.0,none,yes,1
+677,1.0,72.0,A32,radio/TV,5595.0,1.0,2.0,2.0,male,divorced/separated/married,none,2.0,car or other,24.0,none,own,1.0,2.0,1.0,none,yes,2
+678,0.0,24.0,A32,radio/TV,2384.0,0.0,4.0,4.0,male,single,none,4.0,real_estate,64.0,bank,rent,1.0,1.0,1.0,none,yes,1
+684,1.0,36.0,A33,business,9857.0,1.0,3.0,1.0,male,single,none,3.0,building,31.0,none,own,2.0,1.0,2.0,yes,yes,1
+687,1.0,36.0,A33,car (new),2862.0,1.0,4.0,4.0,male,single,none,3.0,unknown/none,30.0,none,free,1.0,2.0,1.0,none,yes,1
+689,0.0,12.0,A32,car (new),3651.0,3.0,2.0,1.0,male,single,none,3.0,building,31.0,none,own,1.0,2.0,2.0,none,yes,1
+690,0.0,15.0,A34,furniture/equipment,975.0,0.0,2.0,2.0,male,divorced/separated/married,none,3.0,building,25.0,none,own,2.0,2.0,1.0,none,yes,1
+691,1.0,15.0,A32,repairs,2631.0,1.0,2.0,3.0,female,divorced/separated/married,none,2.0,real_estate,25.0,none,own,1.0,1.0,1.0,none,yes,1
+692,1.0,24.0,A32,radio/TV,2896.0,1.0,1.0,2.0,male,single,none,1.0,car or other,29.0,none,own,1.0,2.0,1.0,none,yes,1
+696,1.0,12.0,A32,radio/TV,1103.0,0.0,3.0,4.0,male,single,guarantor,3.0,real_estate,29.0,none,own,2.0,2.0,1.0,none,no,1
+699,2.0,15.0,A32,education,1905.0,0.0,4.0,4.0,male,single,none,4.0,car or other,40.0,none,rent,1.0,3.0,1.0,yes,yes,1
+701,0.0,48.0,A34,car (used),6331.0,0.0,4.0,4.0,male,single,none,4.0,unknown/none,46.0,none,free,2.0,2.0,1.0,yes,yes,2
+702,2.0,24.0,A32,radio/TV,1377.0,1.0,4.0,4.0,female,divorced/separated/married,none,2.0,unknown/none,47.0,none,free,1.0,2.0,1.0,yes,yes,1
+703,1.0,30.0,A33,business,2503.0,1.0,4.0,4.0,male,single,none,2.0,building,41.0,stores,own,2.0,2.0,1.0,none,yes,1
+704,1.0,27.0,A32,business,2528.0,0.0,1.0,4.0,female,divorced/separated/married,none,1.0,building,32.0,none,own,1.0,2.0,2.0,yes,yes,1
+706,1.0,48.0,A32,car (new),6560.0,1.0,3.0,3.0,male,single,none,2.0,building,24.0,none,own,1.0,2.0,1.0,none,yes,2
+707,1.0,12.0,A30,furniture/equipment,2969.0,0.0,1.0,4.0,female,divorced/separated/married,none,3.0,building,25.0,none,rent,2.0,2.0,1.0,none,yes,2
+708,1.0,9.0,A32,radio/TV,1206.0,0.0,4.0,4.0,female,divorced/separated/married,none,4.0,real_estate,25.0,none,own,1.0,2.0,1.0,none,yes,1
+709,1.0,9.0,A32,radio/TV,2118.0,0.0,2.0,2.0,male,single,none,2.0,real_estate,37.0,none,own,1.0,1.0,2.0,none,yes,1
+711,0.0,6.0,A31,education,1198.0,0.0,4.0,4.0,female,divorced/separated/married,none,4.0,unknown/none,35.0,none,free,1.0,2.0,1.0,none,yes,2
+713,0.0,9.0,A34,radio/TV,1138.0,0.0,2.0,4.0,male,single,none,4.0,real_estate,25.0,none,own,2.0,1.0,1.0,none,yes,1
+714,1.0,60.0,A32,car (new),14027.0,0.0,3.0,4.0,male,single,none,2.0,unknown/none,27.0,none,own,1.0,3.0,1.0,yes,yes,2
+719,1.0,20.0,A30,car (used),6148.0,1.0,4.0,3.0,male,divorced/separated/married,none,4.0,car or other,31.0,bank,own,2.0,2.0,1.0,yes,yes,1
+720,2.0,9.0,A30,radio/TV,1337.0,0.0,1.0,4.0,male,single,none,2.0,car or other,34.0,none,own,2.0,3.0,1.0,yes,yes,2
+721,1.0,6.0,A31,education,433.0,3.0,1.0,4.0,female,divorced/separated/married,none,2.0,building,24.0,bank,rent,1.0,2.0,2.0,none,yes,2
+722,0.0,12.0,A32,car (new),1228.0,0.0,2.0,4.0,female,divorced/separated/married,none,2.0,real_estate,24.0,none,own,1.0,1.0,1.0,none,yes,2
+723,1.0,9.0,A32,radio/TV,790.0,2.0,2.0,4.0,female,divorced/separated/married,none,3.0,real_estate,66.0,none,own,1.0,1.0,1.0,none,yes,1
+727,0.0,18.0,A32,radio/TV,1882.0,0.0,2.0,4.0,female,divorced/separated/married,none,4.0,car or other,25.0,bank,rent,2.0,2.0,1.0,none,yes,2
+728,1.0,48.0,A31,business,6416.0,0.0,4.0,4.0,female,divorced/separated/married,none,3.0,unknown/none,59.0,none,rent,1.0,2.0,1.0,none,yes,2
+729,2.0,24.0,A34,business,1275.0,3.0,2.0,2.0,male,divorced/separated/married,none,4.0,real_estate,36.0,none,own,2.0,2.0,1.0,yes,yes,1
+730,1.0,24.0,A33,radio/TV,6403.0,0.0,1.0,1.0,male,single,none,2.0,car or other,33.0,none,own,1.0,2.0,1.0,none,yes,1
+731,0.0,24.0,A32,radio/TV,1987.0,0.0,2.0,2.0,male,single,none,4.0,real_estate,21.0,none,rent,1.0,1.0,2.0,none,yes,2
+732,1.0,8.0,A32,radio/TV,760.0,0.0,3.0,4.0,female,divorced/separated/married,guarantor,2.0,real_estate,44.0,none,own,1.0,1.0,1.0,none,yes,1
+736,1.0,24.0,A32,car (used),11560.0,0.0,2.0,1.0,female,divorced/separated/married,none,4.0,car or other,23.0,none,rent,2.0,3.0,1.0,none,yes,2
+737,0.0,18.0,A32,car (new),4380.0,1.0,2.0,3.0,male,single,none,4.0,car or other,35.0,none,own,1.0,1.0,2.0,yes,yes,1
+739,1.0,30.0,A30,business,4280.0,1.0,2.0,4.0,female,divorced/separated/married,none,4.0,car or other,26.0,none,rent,2.0,1.0,1.0,none,yes,2
+740,0.0,24.0,A31,car (new),2325.0,1.0,3.0,2.0,male,single,none,3.0,car or other,32.0,bank,own,1.0,2.0,1.0,none,yes,1
+741,1.0,10.0,A31,radio/TV,1048.0,0.0,2.0,4.0,male,single,none,4.0,real_estate,23.0,stores,own,1.0,1.0,1.0,none,yes,1
+743,0.0,24.0,A31,furniture/equipment,2483.0,2.0,2.0,4.0,male,single,none,4.0,real_estate,22.0,stores,own,1.0,2.0,1.0,yes,yes,1
+745,0.0,13.0,A34,business,1797.0,0.0,1.0,3.0,male,single,none,1.0,building,28.0,bank,own,2.0,1.0,1.0,none,yes,1
+746,0.0,15.0,A32,car (new),2511.0,0.0,0.0,1.0,female,divorced/separated/married,none,4.0,car or other,23.0,none,rent,1.0,2.0,1.0,none,yes,1
+747,0.0,12.0,A32,car (new),1274.0,0.0,1.0,3.0,female,divorced/separated/married,none,1.0,real_estate,37.0,none,own,1.0,1.0,1.0,none,yes,2
+750,0.0,6.0,A32,furniture/equipment,428.0,0.0,4.0,2.0,female,divorced/separated/married,none,1.0,building,49.0,bank,own,1.0,2.0,1.0,yes,yes,1
+751,0.0,18.0,A32,car (new),976.0,0.0,1.0,1.0,female,divorced/separated/married,none,2.0,car or other,23.0,none,own,1.0,1.0,1.0,none,yes,2
+752,1.0,12.0,A32,business,841.0,1.0,3.0,2.0,female,divorced/separated/married,none,4.0,real_estate,23.0,none,rent,1.0,1.0,1.0,none,yes,1
+756,2.0,6.0,A34,car (new),1299.0,0.0,2.0,1.0,male,single,none,1.0,real_estate,74.0,none,own,3.0,0.0,2.0,none,no,1
+759,0.0,12.0,A34,car (new),691.0,0.0,4.0,4.0,male,single,none,3.0,building,35.0,none,own,2.0,2.0,1.0,none,yes,2
+761,0.0,18.0,A34,furniture/equipment,2124.0,0.0,2.0,4.0,female,divorced/separated/married,none,4.0,real_estate,24.0,none,rent,2.0,2.0,1.0,none,yes,2
+762,0.0,12.0,A32,radio/TV,2214.0,0.0,2.0,4.0,male,single,none,3.0,building,24.0,none,own,1.0,1.0,1.0,none,yes,1
+765,1.0,12.0,A32,radio/TV,1155.0,0.0,4.0,3.0,male,divorced/separated/married,guarantor,3.0,real_estate,40.0,bank,own,2.0,1.0,1.0,none,yes,1
+766,0.0,30.0,A32,furniture/equipment,3108.0,0.0,1.0,2.0,male,divorced/separated/married,none,4.0,building,31.0,none,own,1.0,1.0,1.0,none,yes,2
+768,1.0,12.0,A34,furniture/equipment,3617.0,0.0,4.0,1.0,male,single,none,4.0,car or other,28.0,none,rent,3.0,2.0,1.0,yes,yes,1
+771,0.0,36.0,A34,education,8065.0,0.0,2.0,3.0,female,divorced/separated/married,none,2.0,unknown/none,25.0,none,own,2.0,3.0,1.0,yes,yes,2
+774,2.0,12.0,A34,car (new),1480.0,2.0,0.0,2.0,male,single,none,4.0,unknown/none,66.0,bank,free,3.0,0.0,1.0,none,yes,1
+777,0.0,18.0,A32,radio/TV,3509.0,0.0,3.0,4.0,female,divorced/separated/married,guarantor,1.0,real_estate,25.0,none,own,1.0,2.0,1.0,none,yes,1
+779,1.0,18.0,A32,repairs,3872.0,0.0,0.0,2.0,female,divorced/separated/married,none,4.0,car or other,67.0,none,own,1.0,2.0,1.0,yes,yes,1
+780,1.0,39.0,A34,radio/TV,4933.0,0.0,3.0,2.0,male,single,guarantor,2.0,real_estate,25.0,none,own,2.0,2.0,1.0,none,yes,2
+782,1.0,12.0,A30,retraining,1410.0,0.0,2.0,2.0,male,single,none,2.0,real_estate,31.0,none,own,1.0,1.0,1.0,yes,yes,1
+783,1.0,12.0,A32,car (new),836.0,1.0,1.0,4.0,female,divorced/separated/married,none,2.0,building,23.0,bank,own,1.0,1.0,1.0,none,yes,2
+785,1.0,18.0,A32,business,1941.0,3.0,2.0,4.0,male,single,none,2.0,building,35.0,none,own,1.0,1.0,1.0,yes,yes,1
+788,1.0,48.0,A33,education,6224.0,0.0,4.0,4.0,male,single,none,4.0,unknown/none,50.0,none,free,1.0,2.0,1.0,none,yes,2
+789,0.0,40.0,A34,education,5998.0,0.0,2.0,4.0,male,single,none,3.0,unknown/none,27.0,bank,own,1.0,2.0,1.0,yes,yes,2
+790,1.0,21.0,A32,business,1188.0,0.0,4.0,2.0,female,divorced/separated/married,none,4.0,building,39.0,none,own,1.0,2.0,2.0,none,yes,2
+793,2.0,24.0,A32,furniture/equipment,2892.0,0.0,4.0,3.0,male,divorced/separated/married,none,4.0,unknown/none,51.0,none,free,1.0,2.0,1.0,none,yes,1
+801,1.0,18.0,A34,radio/TV,1795.0,0.0,4.0,3.0,female,divorced/separated/married,guarantor,4.0,real_estate,48.0,bank,rent,2.0,1.0,1.0,yes,yes,1
+802,0.0,20.0,A34,furniture/equipment,4272.0,0.0,4.0,1.0,female,divorced/separated/married,none,4.0,building,24.0,none,own,2.0,2.0,1.0,none,yes,1
+805,0.0,36.0,A32,car (new),9271.0,0.0,3.0,2.0,male,single,none,1.0,car or other,24.0,none,own,1.0,2.0,1.0,yes,yes,2
+806,1.0,6.0,A32,radio/TV,590.0,0.0,1.0,3.0,male,divorced/separated/married,none,3.0,real_estate,26.0,none,own,1.0,1.0,1.0,none,no,1
+808,1.0,42.0,A31,car (used),9283.0,0.0,0.0,1.0,male,single,none,2.0,unknown/none,55.0,bank,free,1.0,3.0,1.0,yes,yes,1
+809,1.0,15.0,A30,car (new),1778.0,0.0,1.0,2.0,female,divorced/separated/married,none,1.0,real_estate,26.0,none,rent,2.0,0.0,1.0,none,yes,2
+810,1.0,8.0,A32,business,907.0,0.0,1.0,3.0,male,divorced/separated/married,none,2.0,real_estate,26.0,none,own,1.0,2.0,1.0,yes,yes,1
+811,1.0,6.0,A32,radio/TV,484.0,0.0,3.0,3.0,male,divorced/separated/married,guarantor,3.0,real_estate,28.0,bank,own,1.0,1.0,1.0,none,yes,1
+812,0.0,36.0,A34,car (used),9629.0,0.0,3.0,4.0,male,single,none,4.0,car or other,24.0,none,own,2.0,2.0,1.0,yes,yes,2
+813,0.0,48.0,A32,domestic_appliances,3051.0,0.0,2.0,3.0,male,single,none,4.0,car or other,54.0,none,own,1.0,2.0,1.0,none,yes,2
+814,0.0,48.0,A32,car (new),3931.0,0.0,3.0,4.0,male,single,none,4.0,unknown/none,46.0,none,free,1.0,2.0,2.0,none,yes,2
+815,1.0,36.0,A33,car (new),7432.0,0.0,2.0,2.0,female,divorced/separated/married,none,2.0,building,54.0,none,rent,1.0,2.0,1.0,none,yes,1
+819,0.0,18.0,A32,radio/TV,1345.0,0.0,2.0,4.0,male,divorced/separated/married,none,3.0,real_estate,26.0,bank,own,1.0,2.0,1.0,none,yes,2
+821,2.0,12.0,A32,radio/TV,3016.0,0.0,2.0,3.0,male,divorced/separated/married,none,1.0,car or other,24.0,none,own,1.0,2.0,1.0,none,yes,1
+822,0.0,36.0,A32,furniture/equipment,2712.0,0.0,4.0,2.0,male,single,none,2.0,building,41.0,bank,own,1.0,2.0,2.0,none,yes,2
+823,0.0,8.0,A34,car (new),731.0,0.0,4.0,4.0,male,single,none,4.0,real_estate,47.0,none,own,2.0,1.0,1.0,none,yes,1
+825,0.0,21.0,A34,car (new),1602.0,0.0,4.0,4.0,male,divorced/separated/married,none,3.0,car or other,30.0,none,own,2.0,2.0,1.0,yes,yes,1
+826,0.0,18.0,A34,car (new),3966.0,0.0,4.0,1.0,female,divorced/separated/married,none,4.0,real_estate,33.0,bank,rent,3.0,2.0,1.0,yes,yes,2
+831,0.0,18.0,A32,car (new),1216.0,0.0,1.0,4.0,female,divorced/separated/married,none,3.0,car or other,23.0,none,rent,1.0,2.0,1.0,yes,yes,2
+832,0.0,45.0,A30,business,11816.0,0.0,4.0,2.0,male,single,none,4.0,car or other,29.0,none,rent,2.0,2.0,1.0,none,yes,2
+834,2.0,15.0,A32,radio/TV,2327.0,0.0,1.0,2.0,female,divorced/separated/married,none,3.0,real_estate,25.0,none,own,1.0,1.0,1.0,none,yes,2
+835,0.0,12.0,A30,car (new),1082.0,0.0,2.0,4.0,male,single,none,4.0,car or other,48.0,bank,own,2.0,2.0,1.0,none,yes,2
+838,0.0,24.0,A34,car (used),2957.0,0.0,4.0,4.0,male,single,none,4.0,building,63.0,none,own,2.0,2.0,1.0,yes,yes,1
+840,0.0,36.0,A32,furniture/equipment,5179.0,0.0,3.0,4.0,male,single,none,2.0,building,29.0,none,own,1.0,2.0,1.0,none,yes,2
+848,0.0,9.0,A32,radio/TV,1364.0,0.0,3.0,3.0,male,single,none,4.0,real_estate,59.0,none,own,1.0,2.0,1.0,none,yes,1
+849,0.0,12.0,A32,radio/TV,709.0,0.0,4.0,4.0,male,single,none,4.0,real_estate,57.0,stores,own,1.0,1.0,1.0,none,yes,2
+850,0.0,20.0,A34,car (new),2235.0,0.0,2.0,4.0,male,divorced/separated/married,guarantor,2.0,building,33.0,bank,rent,2.0,2.0,1.0,none,no,2
+853,0.0,18.0,A31,car (new),1442.0,0.0,3.0,4.0,male,single,none,4.0,unknown/none,32.0,none,free,2.0,1.0,2.0,none,yes,2
+858,0.0,15.0,A32,car (new),3959.0,0.0,2.0,3.0,female,divorced/separated/married,none,2.0,building,29.0,none,own,1.0,2.0,1.0,yes,yes,2
+862,0.0,24.0,A32,radio/TV,2439.0,0.0,1.0,4.0,female,divorced/separated/married,none,4.0,real_estate,35.0,none,own,1.0,2.0,1.0,yes,yes,2
+866,0.0,18.0,A32,radio/TV,2389.0,0.0,1.0,4.0,female,divorced/separated/married,none,1.0,car or other,27.0,stores,own,1.0,2.0,1.0,none,yes,1
+869,0.0,12.0,A32,furniture/equipment,652.0,0.0,4.0,4.0,female,divorced/separated/married,none,4.0,building,24.0,none,rent,1.0,2.0,1.0,none,yes,1
+871,2.0,6.0,A34,car (new),1343.0,0.0,4.0,1.0,male,single,none,4.0,real_estate,46.0,none,own,2.0,2.0,2.0,none,no,1
+872,0.0,24.0,A34,business,1382.0,1.0,3.0,4.0,male,single,none,1.0,real_estate,26.0,none,own,2.0,2.0,1.0,yes,yes,1
+874,0.0,12.0,A32,furniture/equipment,3590.0,0.0,2.0,2.0,male,single,co-applicant,2.0,building,29.0,none,own,1.0,1.0,2.0,none,yes,1
+875,1.0,11.0,A34,car (new),1322.0,3.0,2.0,4.0,female,divorced/separated/married,none,4.0,car or other,40.0,none,own,2.0,2.0,1.0,none,yes,1
+876,0.0,18.0,A31,radio/TV,1940.0,0.0,1.0,3.0,male,single,co-applicant,4.0,unknown/none,36.0,bank,free,1.0,3.0,1.0,yes,yes,1
+878,0.0,9.0,A32,car (new),1422.0,0.0,1.0,3.0,male,single,none,2.0,unknown/none,27.0,none,free,1.0,3.0,1.0,yes,yes,2
+884,1.0,24.0,A32,furniture/equipment,4057.0,0.0,3.0,3.0,male,divorced/separated/married,none,3.0,car or other,43.0,none,own,1.0,2.0,1.0,yes,yes,2
+885,0.0,12.0,A32,education,795.0,0.0,1.0,4.0,female,divorced/separated/married,none,4.0,building,53.0,none,own,1.0,2.0,1.0,none,yes,2
+887,1.0,48.0,A32,business,15672.0,0.0,2.0,2.0,male,single,none,2.0,car or other,23.0,none,own,1.0,2.0,1.0,yes,yes,2
+890,0.0,27.0,A34,business,2442.0,0.0,4.0,4.0,male,single,none,4.0,car or other,43.0,stores,own,4.0,3.0,2.0,yes,yes,1
+892,0.0,12.0,A34,car (new),2171.0,0.0,2.0,4.0,male,single,none,4.0,building,38.0,bank,own,2.0,1.0,1.0,none,no,1
+893,1.0,36.0,A34,car (used),5800.0,0.0,2.0,3.0,male,single,none,4.0,car or other,34.0,none,own,2.0,2.0,1.0,yes,yes,1
+896,0.0,21.0,A32,radio/TV,2606.0,0.0,1.0,4.0,female,divorced/separated/married,none,4.0,building,28.0,none,rent,1.0,3.0,1.0,yes,yes,1
+899,0.0,18.0,A32,furniture/equipment,4153.0,0.0,2.0,2.0,male,single,co-applicant,3.0,car or other,42.0,none,own,1.0,2.0,1.0,none,yes,2
+900,0.0,16.0,A34,car (new),2625.0,0.0,4.0,2.0,male,single,guarantor,4.0,building,43.0,bank,rent,1.0,2.0,1.0,yes,yes,2
+905,0.0,12.0,A32,radio/TV,1107.0,0.0,2.0,2.0,male,single,none,2.0,real_estate,20.0,none,rent,1.0,3.0,2.0,yes,yes,1
+911,1.0,24.0,A34,furniture/equipment,4736.0,0.0,1.0,2.0,female,divorced/separated/married,none,4.0,car or other,25.0,bank,own,1.0,1.0,1.0,none,yes,2
+914,0.0,24.0,A31,business,3161.0,0.0,2.0,4.0,male,single,none,2.0,building,31.0,none,rent,1.0,2.0,1.0,yes,yes,2
+917,0.0,6.0,A32,car (new),14896.0,0.0,4.0,1.0,male,single,none,4.0,unknown/none,68.0,bank,own,1.0,3.0,1.0,yes,yes,2
+918,0.0,24.0,A32,furniture/equipment,2359.0,1.0,0.0,1.0,male,divorced/separated/married,none,1.0,building,33.0,none,own,1.0,2.0,1.0,none,yes,2
+919,0.0,24.0,A32,furniture/equipment,3345.0,0.0,4.0,4.0,male,single,none,2.0,building,39.0,none,rent,1.0,3.0,1.0,yes,yes,2
+922,0.0,9.0,A32,radio/TV,1366.0,0.0,1.0,3.0,female,divorced/separated/married,none,4.0,building,22.0,none,rent,1.0,2.0,1.0,none,yes,2
+923,1.0,12.0,A32,car (new),2002.0,0.0,3.0,3.0,male,single,none,4.0,building,30.0,none,rent,1.0,2.0,2.0,yes,yes,1
+924,0.0,24.0,A31,furniture/equipment,6872.0,0.0,1.0,2.0,male,divorced/separated/married,none,1.0,building,55.0,bank,own,1.0,2.0,1.0,yes,yes,2
+925,0.0,12.0,A31,car (new),697.0,0.0,1.0,4.0,male,single,none,2.0,car or other,46.0,bank,own,2.0,2.0,1.0,yes,yes,2
+926,0.0,18.0,A34,furniture/equipment,1049.0,0.0,1.0,4.0,female,divorced/separated/married,none,4.0,building,21.0,none,rent,1.0,2.0,1.0,none,yes,1
+927,0.0,48.0,A32,car (used),10297.0,0.0,3.0,4.0,male,single,none,4.0,unknown/none,39.0,stores,free,3.0,2.0,2.0,yes,yes,2
+929,0.0,12.0,A33,car (new),1344.0,0.0,2.0,4.0,male,single,none,2.0,real_estate,43.0,none,own,2.0,1.0,2.0,none,yes,1
+930,0.0,24.0,A32,furniture/equipment,1747.0,0.0,1.0,4.0,male,single,co-applicant,1.0,building,24.0,none,own,1.0,1.0,1.0,none,no,1
+931,1.0,9.0,A32,radio/TV,1670.0,0.0,1.0,4.0,female,divorced/separated/married,none,2.0,car or other,22.0,none,own,1.0,2.0,1.0,yes,yes,2
+934,0.0,12.0,A32,radio/TV,1498.0,0.0,2.0,4.0,female,divorced/separated/married,none,1.0,car or other,23.0,bank,own,1.0,2.0,1.0,none,yes,1
+935,1.0,30.0,A33,radio/TV,1919.0,1.0,1.0,4.0,male,single,none,3.0,unknown/none,30.0,stores,own,2.0,3.0,1.0,none,yes,2
+936,2.0,9.0,A32,radio/TV,745.0,0.0,2.0,3.0,female,divorced/separated/married,none,2.0,real_estate,28.0,none,own,1.0,1.0,1.0,none,yes,2
+937,1.0,6.0,A32,radio/TV,2063.0,0.0,1.0,4.0,male,divorced/separated/married,none,3.0,car or other,30.0,none,rent,1.0,3.0,1.0,yes,yes,1
+938,1.0,60.0,A32,education,6288.0,0.0,2.0,4.0,male,single,none,4.0,unknown/none,42.0,none,free,1.0,2.0,1.0,none,yes,2
+944,0.0,15.0,A32,furniture/equipment,1845.0,0.0,1.0,4.0,female,divorced/separated/married,guarantor,1.0,building,46.0,none,rent,1.0,2.0,1.0,none,yes,1
+945,1.0,48.0,A30,car (new),8358.0,2.0,1.0,1.0,female,divorced/separated/married,none,1.0,car or other,30.0,none,own,2.0,2.0,1.0,none,yes,1
+946,0.0,24.0,A31,furniture/equipment,3349.0,2.0,1.0,4.0,male,single,none,4.0,unknown/none,30.0,none,free,1.0,2.0,2.0,yes,yes,2
+950,1.0,18.0,A34,business,3590.0,0.0,0.0,3.0,male,divorced/separated/married,none,3.0,car or other,40.0,none,own,3.0,0.0,2.0,yes,yes,1
+951,0.0,36.0,A33,business,2145.0,0.0,3.0,2.0,male,single,none,1.0,car or other,24.0,none,own,2.0,2.0,1.0,yes,yes,2
+952,1.0,24.0,A32,car (used),4113.0,2.0,1.0,3.0,female,divorced/separated/married,none,4.0,car or other,28.0,none,rent,1.0,2.0,1.0,none,yes,2
+954,0.0,12.0,A32,car (new),1893.0,0.0,2.0,4.0,female,divorced/separated/married,guarantor,4.0,building,29.0,none,own,1.0,2.0,1.0,yes,yes,1
+955,0.0,24.0,A34,radio/TV,1231.0,3.0,4.0,4.0,female,divorced/separated/married,none,4.0,building,57.0,none,rent,2.0,3.0,1.0,yes,yes,1
+957,1.0,9.0,A34,radio/TV,1154.0,0.0,4.0,2.0,male,single,none,4.0,real_estate,37.0,none,own,3.0,1.0,1.0,none,yes,1
+958,0.0,28.0,A32,car (new),4006.0,0.0,2.0,3.0,male,single,none,2.0,car or other,45.0,none,own,1.0,1.0,1.0,none,yes,2
+959,1.0,24.0,A32,furniture/equipment,3069.0,1.0,4.0,4.0,male,single,none,4.0,unknown/none,30.0,none,free,1.0,2.0,1.0,none,yes,1
+961,1.0,21.0,A33,car (new),2353.0,0.0,2.0,1.0,male,divorced/separated/married,none,4.0,building,47.0,none,own,2.0,2.0,1.0,none,yes,1
+964,1.0,6.0,A32,repairs,454.0,0.0,1.0,3.0,male,divorced/separated/married,none,1.0,building,22.0,none,own,1.0,1.0,1.0,none,yes,1
+966,1.0,27.0,A34,radio/TV,2520.0,2.0,2.0,4.0,male,single,none,2.0,building,23.0,none,own,2.0,1.0,1.0,none,yes,2
+969,0.0,11.0,A34,car (new),3939.0,0.0,2.0,1.0,male,single,none,2.0,real_estate,40.0,none,own,2.0,1.0,2.0,none,yes,1
+970,1.0,15.0,A32,repairs,1514.0,1.0,2.0,4.0,male,single,guarantor,2.0,real_estate,22.0,none,own,1.0,2.0,1.0,none,yes,1
+972,0.0,24.0,A31,car (new),1193.0,0.0,0.0,1.0,female,divorced/separated/married,co-applicant,4.0,unknown/none,29.0,none,rent,2.0,0.0,1.0,none,yes,2
+973,0.0,60.0,A32,business,7297.0,0.0,4.0,4.0,male,single,co-applicant,4.0,unknown/none,36.0,none,rent,1.0,2.0,1.0,none,yes,2
+975,2.0,24.0,A32,radio/TV,1258.0,2.0,2.0,3.0,female,divorced/separated/married,none,3.0,car or other,57.0,none,own,1.0,1.0,1.0,none,yes,1
+976,1.0,6.0,A32,radio/TV,753.0,0.0,2.0,2.0,female,divorced/separated/married,guarantor,3.0,real_estate,64.0,none,own,1.0,2.0,1.0,none,yes,1
+979,1.0,15.0,A31,car (new),1264.0,1.0,2.0,2.0,male,divorced/separated/married,none,2.0,building,25.0,none,rent,1.0,2.0,1.0,none,yes,2
+980,1.0,30.0,A34,furniture/equipment,8386.0,0.0,3.0,2.0,male,single,none,2.0,building,49.0,none,own,1.0,2.0,1.0,none,yes,2
+982,2.0,21.0,A32,car (new),2923.0,1.0,2.0,1.0,female,divorced/separated/married,none,1.0,car or other,28.0,bank,own,1.0,3.0,1.0,yes,yes,1
+983,0.0,36.0,A32,car (used),8229.0,0.0,2.0,2.0,male,single,none,2.0,building,26.0,none,own,1.0,2.0,2.0,none,yes,2
+985,0.0,15.0,A34,furniture/equipment,1433.0,0.0,2.0,4.0,female,divorced/separated/married,none,3.0,building,25.0,none,rent,2.0,2.0,1.0,none,yes,1
+986,2.0,42.0,A30,business,6289.0,0.0,1.0,2.0,male,divorced/separated/married,none,1.0,building,33.0,none,own,2.0,2.0,1.0,none,yes,1
+988,0.0,24.0,A32,car (used),6579.0,0.0,0.0,4.0,male,single,none,2.0,unknown/none,29.0,none,free,1.0,3.0,1.0,yes,yes,1
+989,1.0,24.0,A34,radio/TV,1743.0,0.0,4.0,4.0,male,single,none,2.0,building,48.0,none,own,2.0,1.0,1.0,none,yes,1
+993,0.0,36.0,A32,furniture/equipment,3959.0,0.0,0.0,4.0,male,single,none,3.0,building,30.0,none,own,1.0,3.0,1.0,yes,yes,1
+996,0.0,30.0,A32,car (used),3857.0,0.0,2.0,4.0,male,divorced/separated/married,none,4.0,building,40.0,none,own,1.0,3.0,1.0,yes,yes,1
+998,0.0,45.0,A32,radio/TV,1845.0,0.0,2.0,4.0,male,single,none,4.0,unknown/none,23.0,none,free,1.0,2.0,1.0,yes,yes,2
+999,1.0,45.0,A34,car (used),4576.0,1.0,0.0,3.0,male,single,none,4.0,car or other,27.0,none,own,1.0,2.0,1.0,none,yes,1

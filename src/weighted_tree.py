@@ -66,7 +66,7 @@ class WeightedTree:
         self.p_right = 0
         self.node_importance = 0
 
-    def fit(self, X, y, w = None):
+    def fit(self, X, y, w=None):
         """Recursive method to fit the decision tree.
 
         Will call itself to create daughter nodes if applicable.
@@ -81,7 +81,7 @@ class WeightedTree:
         """
         X, y, w = fix_datatypes(X, y, w)
         if w is None:
-            w = pd.Series(index = y.index, dtype = float)
+            w = pd.Series(index=y.index, dtype=float)
             w.loc[:] = 1
 
         self.features = X.columns
@@ -90,9 +90,9 @@ class WeightedTree:
 
         self.y_hat, self.y_prob, self.categories = fit_response(y, self.categories, w)
         if self.categories is not None:
-            self.response_type = 'object'
+            self.response_type = "object"
         else:
-            self.response_type = 'float'
+            self.response_type = "float"
 
         self.loss = calculate_loss(y, w=w)
 
@@ -113,12 +113,14 @@ class WeightedTree:
         )
 
         # Node weights
-        self.p_left, self.p_right = self._get_split_probabilities(index_left,index_right)
+        self.p_left, self.p_right = self._get_split_probabilities(
+            index_left, index_right
+        )
         w_left, w_right = w.copy(), w.copy()
-        index_na = (~index_left)&(~index_right)
+        index_na = (~index_left) & (~index_right)
         w_left.loc[index_na] *= self.p_left
         w_right.loc[index_na] *= self.p_right
-        index_left  |= index_na
+        index_left |= index_na
         index_right |= index_na
 
         # Send data to daughter nodes
@@ -128,9 +130,9 @@ class WeightedTree:
 
         self.node_importance = self._calculate_importance()
 
-    def _get_split_probabilities(self, index_left,index_right):
+    def _get_split_probabilities(self, index_left, index_right):
         n_left, n_right = index_left.sum(), index_right.sum()
-        p_left, p_right = n_left/(n_left+n_right), n_right/(n_left+n_right)
+        p_left, p_right = n_left / (n_left + n_right), n_right / (n_left + n_right)
         return p_left, p_right
 
     def _find_split(self, X, y, w) -> tuple:
@@ -155,9 +157,7 @@ class WeightedTree:
         for feature in features:
             splitters = get_splitter_candidates(X[feature])
             for splitter in splitters:
-                loss = self._calculate_split_loss(
-                    X, y, w, feature, splitter
-                )
+                loss = self._calculate_split_loss(X, y, w, feature, splitter)
                 if loss < loss_best:
                     loss_best = loss
                     best_feature, best_splitter = (
@@ -190,13 +190,19 @@ class WeightedTree:
         index_right |= index_na
 
         # To avoid hyperparameter-illegal splits
-        if (w.loc[index_left].sum()  < self.min_samples_leaf) or (
+        if (w.loc[index_left].sum() < self.min_samples_leaf) or (
             w.loc[index_right].sum() < self.min_samples_leaf
         ):
             return self.loss
 
-        loss_left_weighted = calculate_loss(y=y.loc[index_left], w=w_left.loc[index_left]) * w_left.loc[index_left].sum()
-        loss_right_weighted = calculate_loss(y=y.loc[index_right], w=w_right.loc[index_right]) * w_right.loc[index_right].sum()
+        loss_left_weighted = (
+            calculate_loss(y=y.loc[index_left], w=w_left.loc[index_left])
+            * w_left.loc[index_left].sum()
+        )
+        loss_right_weighted = (
+            calculate_loss(y=y.loc[index_right], w=w_right.loc[index_right])
+            * w_right.loc[index_right].sum()
+        )
 
         return (loss_left_weighted + loss_right_weighted) / self.n
 
@@ -271,42 +277,42 @@ class WeightedTree:
         X, _, _ = fix_datatypes(X)
         X = check_features(X, self.features)
 
-        if self.response_type == 'object':
+        if self.response_type == "object":
             y_prob = pd.DataFrame(index=X.index, columns=self.categories, dtype=float)
             if self.left is None:
                 for category in self.categories:
                     y_prob[category] = self.y_prob[category]
             else:
-                index_left, index_right = get_indices(
-                    X[self.feature], self.splitter
-                )
-                index_na = (~index_left)&(~index_right)
+                index_left, index_right = get_indices(X[self.feature], self.splitter)
+                index_na = (~index_left) & (~index_right)
 
                 y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
-                y_prob.loc[index_right] =  self.right.predict(X.loc[index_right], prob=True)
-                y_prob.loc[index_na] = self.p_left * self.left.predict(X.loc[index_na], prob=True) + self.p_right * self.right.predict(X.loc[index_na], prob=True)
+                y_prob.loc[index_right] = self.right.predict(
+                    X.loc[index_right], prob=True
+                )
+                y_prob.loc[index_na] = self.p_left * self.left.predict(
+                    X.loc[index_na], prob=True
+                ) + self.p_right * self.right.predict(X.loc[index_na], prob=True)
 
         else:
-            y_hat = pd.Series(
-                index=X.index, dtype=self.response_type
-            )
+            y_hat = pd.Series(index=X.index, dtype=self.response_type)
             if self.left is None:
                 y_hat.loc[:] = self.y_hat
             else:
-                index_left, index_right = get_indices(
-                    X[self.feature], self.splitter
-                )
-                index_na = (~index_left)&(~index_right)
+                index_left, index_right = get_indices(X[self.feature], self.splitter)
+                index_na = (~index_left) & (~index_right)
 
                 y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
                 y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
-                y_hat.loc[index_na] = self.p_left * self.left.predict(X.loc[index_na]) + self.p_right * self.right.predict(X.loc[index_na])
+                y_hat.loc[index_na] = self.p_left * self.left.predict(
+                    X.loc[index_na]
+                ) + self.p_right * self.right.predict(X.loc[index_na])
 
         if prob:
             return y_prob
-        elif self.response_type == 'float':
+        elif self.response_type == "float":
             return y_hat
-        else: # categorical prediction
+        else:  # categorical prediction
             return y_prob.idxmax(axis=1)
 
     def print(self):
@@ -339,15 +345,16 @@ class WeightedTree:
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
     from src.common.functions import get_feature_importance
-    folder_path = '/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data'
-    df_train = pd.read_csv(f'{folder_path}/train_data_weighted_cat.csv', index_col=0)
-    X_train = df_train.drop('y', axis=1)
-    y_train = df_train['y']
 
-    df_test = pd.read_csv(f'{folder_path}/test_data_weighted_cat.csv', index_col=0)
-    X_test = df_test[['number', 'fruit']]
-    y_prob = df_test[['bad', 'good', 'great']]
-    y_test = df_test['y']
+    folder_path = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data"
+    df_train = pd.read_csv(f"{folder_path}/train_data_weighted_cat.csv", index_col=0)
+    X_train = df_train.drop("y", axis=1)
+    y_train = df_train["y"]
+
+    df_test = pd.read_csv(f"{folder_path}/test_data_weighted_cat.csv", index_col=0)
+    X_test = df_test[["number", "fruit"]]
+    y_prob = df_test[["bad", "good", "great"]]
+    y_test = df_test["y"]
 
     tree = WeightedTree(max_depth=2, min_samples_leaf=1)
     tree.fit(X_train, y_train)
