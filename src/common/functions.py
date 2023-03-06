@@ -83,7 +83,13 @@ def calculate_mse(y, y_hat, w):
 
 def calculate_xe(y, y_prob, w):
     """Calculate cross entropy"""
-    xes = [-w[i] * np.log(y_prob[y[i]]) for i in y.index]
+    eps = 1e-30
+    if isinstance(y_prob,dict):
+        # This is for one probability prediction (a dict)
+        xes = [-w[i] * np.log(y_prob[y[i]]+eps) for i in y.index]
+    else:
+        # This is for predicting for an entire set (a series)
+        xes = [-w[i] * np.log(y_prob.loc[i, y[i]]+eps) for i in y.index]
     return sum(xes)
 
 def check_terminal_node(tree):
