@@ -102,8 +102,8 @@ class TrinaryTree:
         else:
             self.response_type = "float"
 
-        self.loss = calculate_loss(y, self.y_hat)
-        self.loss_true = calculate_loss(y_true, self.y_hat)
+        self.loss = calculate_loss(y = y, y_hat = self.y_hat, y_prob = self.y_prob)
+        self.loss_true = calculate_loss(y = y_true, y_hat = self.y_hat, y_prob = self.y_prob)
 
         # Check pruning conditions
         if check_terminal_node(self):
@@ -202,12 +202,9 @@ class TrinaryTree:
 
         loss_left_weighted = calculate_loss(y=y.loc[index_left]) * sum(index_left)
         loss_right_weighted = calculate_loss(y=y.loc[index_right]) * sum(index_right)
-        if self.response_type == "float":
-            loss_middle_weighted = calculate_loss(
-                y=y.loc[index_middle], y_hat=self.y_hat
-            ) * sum(index_middle)
-        else:  # The loss of the middle node is that of the entire data set since no actual split is made
-            loss_middle_weighted = calculate_loss(y=y) * sum(index_middle)
+        loss_middle_weighted = calculate_loss(
+            y=y.loc[index_middle], y_hat=self.y_hat, y_prob = self.y_prob
+        ) * sum(index_middle)
         return (
             loss_left_weighted + loss_right_weighted + loss_middle_weighted
         ) / self.n
@@ -364,7 +361,7 @@ class TrinaryTree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    folder_path = "/Users/Henning/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data"
+    folder_path = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data"
     df_train = pd.read_csv(
         f"{folder_path}/train_data_trinary.csv",
         index_col=0,

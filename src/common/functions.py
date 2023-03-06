@@ -45,14 +45,10 @@ def fit_response(y, categories=None, w = None):
             categories = list(y.unique())
         y_prob = {category: sum((y==category)*w)/sum(w) for category in categories}
         y_hat = max(y_prob, key=y_prob.get)
-        for category in categories:
-            if category not in y_prob:
-                y_prob[category] = 0
 
     return y_hat, y_prob, categories
 
-
-def calculate_loss(y, y_hat=None, w = None):
+def calculate_loss(y, y_hat=None, y_prob = None, w = None):
     """Calculate the loss of the response set
 
     Gini if classification problem, sse if regression
@@ -72,19 +68,27 @@ def calculate_loss(y, y_hat=None, w = None):
         w = pd.Series(index = y.index, dtype = float)
         w.loc[:] = 1
 
-    if y.dtype == "float":
+    if y.dtype == 'float':
         if y_hat is None:
-            y_hat,_,_ = fit_response(y, w)
-        return (w * (y - y_hat).pow(2)).sum()/w.sum()
+            y_hat,_,_ = fit_response(y, w = w)
+        return calculate_mse(y, y_hat = y_hat, w = w)
     else:
-        ps = [(w * (y == y_value)).sum()/w.sum() for y_value in y.unique()]
-        return sum([p * (1 - p) for p in ps])
+        if y_prob is None:
+            _,y_prob,_ = fit_response(y, w=w)
+        return calculate_xe(y, y_prob = y_prob, w = w)
 
+def calculate_mse(y, y_hat, w):
+    """ Calculate mean squared error"""
+    return (w * (y - y_hat).pow(2)).sum() / w.sum()
+
+def calculate_xe(y, y_prob, w):
+    """Calculate cross entropy"""
+    xes = [-w[i] * np.log(y_prob[y[i]]) for i in y.index]
+    return sum(xes)
 
 def check_terminal_node(tree):
     """ " Check if pruning conditions are fulfilled"""
     return (tree.depth >= tree.max_depth) or (tree.n <= tree.min_samples_leaf)
-
 
 def get_splitter_candidates(x):
     """Get potential candidates for splitters
