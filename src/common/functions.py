@@ -86,10 +86,13 @@ def calculate_xe(y, y_prob, w):
     eps = 1e-30
     if isinstance(y_prob,dict):
         # This is for one probability prediction (a dict)
-        xes = [-w[i] * np.log(y_prob[y[i]]+eps) for i in y.index]
+        ps = y.replace(y_prob)
+        xes = -w * np.log(ps + eps)
     else:
         # This is for predicting for an entire set (a series)
-        xes = [-w[i] * np.log(y_prob.loc[i, y[i]]+eps) for i in y.index]
+        idx, cols = pd.factorize(y)
+        ps = y_prob.reindex(cols, axis=1).to_numpy()[np.arange(len(y_prob)), idx]
+        xes = -w * np.log(ps + eps)
     return sum(xes)
 
 def check_terminal_node(tree):

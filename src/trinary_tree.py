@@ -224,7 +224,7 @@ class TrinaryTree:
         middle = TrinaryTree(
             min_samples_leaf=self.min_samples_leaf,
             max_depth=self.max_depth,
-            depth=self.depth + 1,
+            depth=self.depth,
             categories=self.categories,
         )
         right = TrinaryTree(
