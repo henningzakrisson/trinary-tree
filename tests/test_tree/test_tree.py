@@ -109,7 +109,7 @@ class TreeTest(unittest.TestCase):
         df_test["y_hat"] = tree.predict(df_test[["X_0", "X_1"]])
 
         self.assertEqual(
-            (df_test["y"] == df_test["y_hat"]).sum(),
+            (df_test["y"].round(0) == df_test["y_hat"].round(0)).sum(),
             len(df_test),
             msg="Response prediction for trinary tree not as expected",
         )

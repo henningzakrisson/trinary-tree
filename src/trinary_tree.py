@@ -362,6 +362,7 @@ class TrinaryTree:
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
     folder_path = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data"
+
     df_train = pd.read_csv(
         f"{folder_path}/train_data_trinary.csv",
         index_col=0,
