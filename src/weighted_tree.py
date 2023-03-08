@@ -94,7 +94,7 @@ class WeightedTree:
         else:
             self.response_type = "float"
 
-        self.loss = calculate_loss(y, w=w)
+        self.loss = calculate_loss(y = y, w=w)
 
         # Check pruning conditions
         if check_terminal_node(self):
