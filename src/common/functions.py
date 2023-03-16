@@ -15,7 +15,7 @@ def fix_datatypes(X, y=None, w = None):
             X[feature] = X[feature].astype(float)
     if y is not None:
         y = pd.Series(y).copy() if isinstance(y, np.ndarray) else y.copy()
-        if y.dtype in ["float", "int"]:
+        if y.dtype == "float" or y.dtype == "int":
             y = y.astype(float)
 
         if np.any(y.isna()) or np.any(y.isna()):
@@ -36,7 +36,7 @@ def fit_response(y, categories=None, w = None):
         w = pd.Series(index = y.index, dtype = float)
         w.loc[:] = 1
 
-    if y.dtype == "float":
+    if y.dtype == "float" or y.dtype == 'int':
         y_hat = (w*y).sum()/w.sum()
         y_prob = {}
         categories = None
@@ -68,7 +68,7 @@ def calculate_loss(y, y_hat=None, y_prob = None, w = None):
         w = pd.Series(index = y.index, dtype = float)
         w.loc[:] = 1
 
-    if y.dtype == 'float':
+    if y.dtype == 'float' or y.dtype == 'int':
         if y_hat is None:
             y_hat,_,_ = fit_response(y, w = w)
         return calculate_mse(y, y_hat = y_hat, w = w)
