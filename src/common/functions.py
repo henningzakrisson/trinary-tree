@@ -102,7 +102,7 @@ def check_terminal_node(tree):
 def get_splitter_candidates(x):
     """Get potential candidates for splitters
 
-    For continous variables, all values that split the data in a unique way is found by looking at
+    For continous variables, all values that split the test_data in a unique way is found by looking at
      values between all unique non-missing datapoints. For categorical variables, all possible
      ways to split the set of unique categories are tried.
 
