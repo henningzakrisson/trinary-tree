@@ -28,7 +28,7 @@ from src.common.functions import (
 class TrinaryTree:
     """Module for classification and regression trees with third-node handling of missing values
 
-    The missing data strategy creates a third node for missing values, which inherits data and output from mother node
+    The missing test_data strategy creates a third node for missing values, which inherits test_data and output from mother node
     """
 
     def __init__(
@@ -79,9 +79,9 @@ class TrinaryTree:
         Args:
             X: covariate vector (n x p). numpy array or pandas DataFrame.
             y: response vector (n x 1). numpy array or pandas Series.
-            X_true: covariate vector (n x p) of data that ends up in this node
+            X_true: covariate vector (n x p) of test_data that ends up in this node
             during training.
-            y_true: response vector (n x 1) of data that ends up in this node
+            y_true: response vector (n x 1) of test_data that ends up in this node
             during training.
 
         Raises:
@@ -107,13 +107,16 @@ class TrinaryTree:
 
         # Check pruning conditions
         if check_terminal_node(self):
+            self.left, self.middle, self.right = None, None, None
             return
 
         # Find splitting parameters
         self.feature, self.splitter = self._find_split(X, y)
 
         if self.feature is None:
+            self.left, self.middle, self.right = None, None, None
             return
+
         self.feature_type = "float" if X[self.feature].dtype == "float" else "object"
 
         index_left, index_right = get_indices(X[self.feature], self.splitter)
@@ -122,7 +125,7 @@ class TrinaryTree:
         )
         index_middle_true = (~index_left_true) & (~index_right_true)
 
-        # Send data to daughter nodes
+        # Send test_data to daughter nodes
         self.left, self.middle, self.right = self._initiate_daughter_nodes()
         self.left.fit(
             X=X.loc[index_left],
@@ -185,7 +188,7 @@ class TrinaryTree:
         Args:
             X: covariate vector
             y: response vector
-            feature: feature of X to split data on
+            feature: feature of X to split test_data on
             splitter: threshold or set of categories that will go to the left node
 
         Returns:
@@ -241,7 +244,7 @@ class TrinaryTree:
         Return:
             Node importance as a float
         """
-        # If no values of the training data actually end up here it is of no importance
+        # If no values of the training test_data actually end up here it is of no importance
         if self.n_true == 0:
             importance = 0
         else:
@@ -331,7 +334,7 @@ class TrinaryTree:
     def print(self):
         """Print the tree structure"""
         if self.y_hat is None:
-            raise CantPrintUnfittedTree("Can't print tree before fitting to data")
+            raise CantPrintUnfittedTree("Can't print tree before fitting to test_data")
 
         hspace = "---" * self.depth
         print(hspace + f"Number of observations: {self.n_true}")
@@ -361,7 +364,7 @@ class TrinaryTree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    folder_path = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data"
+    folder_path = "/tests/test_data"
 
     df_train = pd.read_csv(
         f"{folder_path}/train_data_trinary.csv",

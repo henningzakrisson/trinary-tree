@@ -22,12 +22,12 @@ from src.common.functions import (
 
 
 class BinaryTree:
-    """Module for classification and regression trees with standard handling missing data
+    """Module for classification and regression trees with standard handling missing test_data
 
-    The missing data strategies are:
-     - Majority rule: missing datapoints go to the node with the most training data
+    The missing test_data strategies are:
+     - Majority rule: missing datapoints go to the node with the most training test_data
      - Missing Incorporated in Attributes (MIA): missing datapoints go to the node
-      which improved the loss the most in the training data
+      which improved the loss the most in the training test_data
     """
 
     def __init__(
@@ -96,12 +96,14 @@ class BinaryTree:
 
         # Check pruning conditions
         if check_terminal_node(self):
+            self.left, self.right = None, None
             return
 
         # Find splitting parameters
         self.feature, self.splitter, self.default_split = self._find_split(X, y)
 
         if self.feature is None:
+            self.left, self.right = None, None
             return
 
         self.feature_type = "float" if X[self.feature].dtype == "float" else "object"
@@ -110,7 +112,7 @@ class BinaryTree:
             X[self.feature], self.splitter, self.default_split
         )
 
-        # Send data to daughter nodes
+        # Send test_data to daughter nodes
         self.left, self.right = self._initiate_daughter_nodes()
         self.left.fit(X.loc[index_left], y.loc[index_left])
         self.right.fit(X.loc[index_right], y.loc[index_right])
@@ -165,7 +167,7 @@ class BinaryTree:
             splitter: threshold or sets
 
         Return:
-            list of 'left' or 'right' depending on which node gets the most data
+            list of 'left' or 'right' depending on which node gets the most test_data
         """
         if (self.missing_rule == "majority") or (
             (self.missing_rule == "mia") & (X[feature].isna().sum() == 0)
@@ -192,7 +194,7 @@ class BinaryTree:
         Args:
             X: covariate vector
             y: response vector
-            feature: feature of X to split data on
+            feature: feature of X to split test_data on
             splitter: threshold or set of categories that will go to the left node
             default_split: node to put missing values in
 
@@ -241,7 +243,7 @@ class BinaryTree:
         Return:
             Node importance as a float
         """
-        # If no values of the training data actually end up here it is of no importance
+        # If no values of the training test_data actually end up here it is of no importance
         if self.n == 0:
             return 0
         else:
@@ -321,7 +323,7 @@ class BinaryTree:
     def print(self):
         """Print the tree structure"""
         if self.y_hat is None:
-            raise CantPrintUnfittedTree("Can't print tree before fitting to data")
+            raise CantPrintUnfittedTree("Can't print tree before fitting to test_data")
 
         hspace = "---" * self.depth
         print(hspace + f"Number of observations: {self.n}")
@@ -351,7 +353,7 @@ class BinaryTree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    file_path = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data/test_data_cat.csv"
+    file_path = "/tests/test_data/test_data_cat.csv"
 
     df = pd.read_csv(file_path, index_col=0)
     X = df.drop("y", axis=1)

@@ -22,9 +22,9 @@ from src.common.functions import (
 
 
 class WeightedTree:
-    """Module for classification and regression trees with standard handling missing data
+    """Module for classification and regression trees with standard handling missing test_data
 
-    The missing data points are assigned weights as to which branch to join
+    The missing test_data points are assigned weights as to which branch to join
     """
 
     def __init__(
@@ -98,12 +98,14 @@ class WeightedTree:
 
         # Check pruning conditions
         if check_terminal_node(self):
+            self.left, self.right = None, None
             return
 
         # Find splitting parameters
         self.feature, self.splitter = self._find_split(X, y, w)
 
         if self.feature is None:
+            self.left, self.right = None, None
             return
 
         self.feature_type = "float" if X[self.feature].dtype == "float" else "object"
@@ -123,7 +125,7 @@ class WeightedTree:
         index_left |= index_na
         index_right |= index_na
 
-        # Send data to daughter nodes
+        # Send test_data to daughter nodes
         self.left, self.right = self._initiate_daughter_nodes()
         self.left.fit(X.loc[index_left], y.loc[index_left], w_left.loc[index_left])
         self.right.fit(X.loc[index_right], y.loc[index_right], w_right.loc[index_right])
@@ -174,7 +176,7 @@ class WeightedTree:
             X: covariate vector
             y: response vector
             w: node weights
-            feature: feature of X to split data on
+            feature: feature of X to split test_data on
             splitter: threshold or set of categories that will go to the left node
 
         Returns:
@@ -233,7 +235,7 @@ class WeightedTree:
         Return:
             Node importance as a float
         """
-        # If no values of the training data actually end up here it is of no importance
+        # If no values of the training test_data actually end up here it is of no importance
         if self.n == 0:
             importance = 0
         else:
@@ -318,7 +320,7 @@ class WeightedTree:
     def print(self):
         """Print the tree structure"""
         if self.y_hat is None:
-            raise CantPrintUnfittedTree("Can't print tree before fitting to data")
+            raise CantPrintUnfittedTree("Can't print tree before fitting to test_data")
 
         hspace = "---" * self.depth
         print(hspace + f"Number of observations: {np.round(self.n,2)}")
@@ -346,7 +348,7 @@ if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
     from src.common.functions import get_feature_importance
 
-    folder_path = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_tree/data"
+    folder_path = "/tests/test_data"
     df_train = pd.read_csv(f"{folder_path}/train_data_weighted_cat.csv", index_col=0)
     X_train = df_train.drop("y", axis=1)
     y_train = df_train["y"]

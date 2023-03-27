@@ -1,0 +1,7 @@
+,number,fruit,bad,good,great,y
+0,1.0,,1.0,0.0,0.0,bad
+1,100.0,,0.0,0.58,0.42,good
+2,,apple,0.5,0.5,0.0,bad
+3,,orange,0.5,0.0,0.5,bad
+4,,banana,0.5,0.0,0.5,bad
+5,,,0.5,0.29,0.21,bad
