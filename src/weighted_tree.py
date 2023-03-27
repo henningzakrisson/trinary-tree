@@ -1,14 +1,9 @@
-import itertools
-import warnings
 import pandas as pd
 import numpy as np
+from typing import List, Union, Dict, Tuple
+from nptyping import NDArray
 from src.common.custom_exceptions import (
-    MissingValuesInResponse,
     CantPrintUnfittedTree,
-)
-from src.common.custom_warnings import (
-    MissingFeatureWarning,
-    ExtraFeatureWarning,
 )
 from src.common.functions import (
     fix_datatypes,
@@ -29,18 +24,17 @@ class WeightedTree:
 
     def __init__(
         self,
-        min_samples_leaf=20,
-        max_depth=2,
-        depth=0,
-        categories=None,
-    ):
+        min_samples_leaf: int = 20,
+        max_depth: int = 2,
+        depth: int = 0,
+        categories: List[str] = None,
+    ) -> None:
         """Initiate the tree
 
         Args:
             min_samples_leaf: number of datapoints as minimum to allow for daughter nodes (-1)
             max_depth: number of levels allowed in the tree
             depth: current depth. root node has depth 0
-            missing_rule: strategy to handle missing values
             categories: Possible values of response - learnt from original dataset
 
         Returns:
@@ -66,7 +60,12 @@ class WeightedTree:
         self.p_right = 0
         self.node_importance = 0
 
-    def fit(self, X, y, w=None):
+    def fit(
+        self,
+        X: Union[NDArray, pd.DataFrame],
+        y: Union[NDArray, pd.Series],
+        w: pd.Series = None,
+    ) -> None:
         """Recursive method to fit the decision tree.
 
         Will call itself to create daughter nodes if applicable.
@@ -79,7 +78,7 @@ class WeightedTree:
         Raises:
             MissingValuesInResponse: Can not fit to missing categories, thus errors out
         """
-        X, y, w = fix_datatypes(X, y, w)
+        X, y, w = fix_datatypes(X=X, y=y, w=w)
         if w is None:
             w = pd.Series(index=y.index, dtype=float)
             w.loc[:] = 1
@@ -88,21 +87,23 @@ class WeightedTree:
 
         self.n = w.sum()
 
-        self.y_hat, self.y_prob, self.categories = fit_response(y, self.categories, w)
+        self.y_hat, self.y_prob, self.categories = fit_response(
+            y=y, categories=self.categories, w=w
+        )
         if self.categories is not None:
             self.response_type = "object"
         else:
             self.response_type = "float"
 
-        self.loss = calculate_loss(y = y, w=w)
+        self.loss = calculate_loss(y=y, w=w)
 
         # Check pruning conditions
-        if check_terminal_node(self):
+        if check_terminal_node(tree=self):
             self.left, self.right = None, None
             return
 
         # Find splitting parameters
-        self.feature, self.splitter = self._find_split(X, y, w)
+        self.feature, self.splitter = self._find_split(X=X, y=y, w=w)
 
         if self.feature is None:
             self.left, self.right = None, None
@@ -111,12 +112,12 @@ class WeightedTree:
         self.feature_type = "float" if X[self.feature].dtype == "float" else "object"
 
         index_left, index_right = get_indices(
-            X[self.feature], self.splitter, self.default_split
+            x=X[self.feature], splitter=self.splitter, default_split=self.default_split
         )
 
         # Node weights
         self.p_left, self.p_right = self._get_split_probabilities(
-            index_left, index_right
+            index_left=index_left, index_right=index_right
         )
         w_left, w_right = w.copy(), w.copy()
         index_na = (~index_left) & (~index_right)
@@ -137,7 +138,11 @@ class WeightedTree:
         p_left, p_right = n_left / (n_left + n_right), n_right / (n_left + n_right)
         return p_left, p_right
 
-    def _find_split(self, X, y, w) -> tuple:
+    def _find_split(
+        self, X: pd.DataFrame, y: pd.Series, w: pd.Series
+    ) -> Tuple[
+        Union[str, int, float], Union[float, Dict[str : Union[str, int, float]]]
+    ]:
         """Calculate the best split for a decision tree
 
         Args:
@@ -169,7 +174,13 @@ class WeightedTree:
 
         return best_feature, best_splitter
 
-    def _calculate_split_loss(self, X, y, w, feature, splitter):
+    def _calculate_split_loss(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        feature: Union[str, int, float],
+        splitter: Union[float, Dict[str : List[str]]],
+    ) -> float:
         """Calculates the sum of squared errors for this split
 
         Args:
@@ -208,7 +219,7 @@ class WeightedTree:
 
         return (loss_left_weighted + loss_right_weighted) / self.n
 
-    def _initiate_daughter_nodes(self):
+    def _initiate_daughter_nodes(self) -> Tuple:
         """Create daughter nodes
 
         Return:
@@ -229,7 +240,7 @@ class WeightedTree:
 
         return left, right
 
-    def _calculate_importance(self):
+    def _calculate_importance(self) -> None:
         """ "Calculate node importance for the split in this node
 
         Return:
@@ -246,7 +257,9 @@ class WeightedTree:
             )
         return importance
 
-    def _get_node_importances(self, node_importances):
+    def _get_node_importances(
+        self, node_importances: Dict[Union[str, int, float] : float]
+    ) -> Dict[Union[str, int, float] : float]:
         """Get node importances for this node and all its daughters
 
         Args:
@@ -266,7 +279,7 @@ class WeightedTree:
             )
         return node_importances
 
-    def predict(self, X, prob=False):
+    def predict(self, X, prob=False) -> Union[pd.DataFrame, pd.Series]:
         """Recursive method to predict from new of features
 
         Args:
@@ -276,8 +289,8 @@ class WeightedTree:
         Returns:
             response predictions y_hat as a pandas Series. DataFrame if probabilities.
         """
-        X, _, _ = fix_datatypes(X)
-        X = check_features(X, self.features)
+        X, _, _ = fix_datatypes(X = X)
+        X = check_features(X = X, features = self.features)
 
         if self.response_type == "object":
             y_prob = pd.DataFrame(index=X.index, columns=self.categories, dtype=float)
@@ -290,10 +303,10 @@ class WeightedTree:
 
                 y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
                 y_prob.loc[index_right] = self.right.predict(
-                    X.loc[index_right], prob=True
+                    X = X.loc[index_right], prob=True
                 )
                 y_prob.loc[index_na] = self.p_left * self.left.predict(
-                    X.loc[index_na], prob=True
+                    X = X.loc[index_na], prob=True
                 ) + self.p_right * self.right.predict(X.loc[index_na], prob=True)
 
         else:
@@ -304,11 +317,11 @@ class WeightedTree:
                 index_left, index_right = get_indices(X[self.feature], self.splitter)
                 index_na = (~index_left) & (~index_right)
 
-                y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
-                y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
+                y_hat.loc[index_left] = self.left.predict(X = X.loc[index_left])
+                y_hat.loc[index_right] = self.right.predict(X = X.loc[index_right])
                 y_hat.loc[index_na] = self.p_left * self.left.predict(
-                    X.loc[index_na]
-                ) + self.p_right * self.right.predict(X.loc[index_na])
+                    X = X.loc[index_na]
+                ) + self.p_right * self.right.predict(X = X.loc[index_na])
 
         if prob:
             return y_prob
@@ -317,7 +330,7 @@ class WeightedTree:
         else:  # categorical prediction
             return y_prob.idxmax(axis=1)
 
-    def print(self):
+    def print(self) -> None:
         """Print the tree structure"""
         if self.y_hat is None:
             raise CantPrintUnfittedTree("Can't print tree before fitting to test_data")

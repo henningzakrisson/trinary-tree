@@ -1,14 +1,9 @@
-import itertools
-import warnings
 import pandas as pd
 import numpy as np
+from typing import List, Union, Dict, Tuple
+from nptyping import NDArray
 from src.common.custom_exceptions import (
-    MissingValuesInResponse,
     CantPrintUnfittedTree,
-)
-from src.common.custom_warnings import (
-    MissingFeatureWarning,
-    ExtraFeatureWarning,
 )
 from src.common.functions import (
     fix_datatypes,
@@ -32,12 +27,12 @@ class BinaryTree:
 
     def __init__(
         self,
-        min_samples_leaf=20,
-        max_depth=2,
-        depth=0,
-        categories=None,
-        missing_rule="majority",
-    ):
+        min_samples_leaf: int = 20,
+        max_depth: int = 2,
+        depth: int = 0,
+        categories: List[str] = None,
+        missing_rule: str = "majority",
+    ) -> None:
         """Initiate the tree
 
         Args:
@@ -69,7 +64,9 @@ class BinaryTree:
         self.right = None
         self.node_importance = 0
 
-    def fit(self, X, y):
+    def fit(
+        self, X: Union[NDArray, pd.DataFrame], y: Union[NDArray, pd.Series]
+    ) -> None:
         """Recursive method to fit the decision tree.
 
         Will call itself to create daughter nodes if applicable.
@@ -81,26 +78,28 @@ class BinaryTree:
         Raises:
             MissingValuesInResponse: Can not fit to missing categories, thus errors out
         """
-        X, y, _ = fix_datatypes(X, y)
+        X, y, _ = fix_datatypes(X=X, y=y)
         self.features = X.columns
 
         self.n = len(y)
 
-        self.y_hat, self.y_prob, self.categories = fit_response(y, self.categories)
+        self.y_hat, self.y_prob, self.categories = fit_response(
+            y=y, categories=self.categories
+        )
         if self.categories is not None:
             self.response_type = "object"
         else:
             self.response_type = "float"
 
-        self.loss = calculate_loss(y)
+        self.loss = calculate_loss(y=y)
 
         # Check pruning conditions
-        if check_terminal_node(self):
+        if check_terminal_node(tree=self):
             self.left, self.right = None, None
             return
 
         # Find splitting parameters
-        self.feature, self.splitter, self.default_split = self._find_split(X, y)
+        self.feature, self.splitter, self.default_split = self._find_split(X=X, y=y)
 
         if self.feature is None:
             self.left, self.right = None, None
@@ -109,7 +108,7 @@ class BinaryTree:
         self.feature_type = "float" if X[self.feature].dtype == "float" else "object"
 
         index_left, index_right = get_indices(
-            X[self.feature], self.splitter, self.default_split
+            x=X[self.feature], splitter=self.splitter, default_split=self.default_split
         )
 
         # Send test_data to daughter nodes
@@ -119,7 +118,11 @@ class BinaryTree:
 
         self.node_importance = self._calculate_importance()
 
-    def _find_split(self, X, y) -> tuple:
+    def _find_split(
+        self, X: pd.DataFrame, y: pd.Series
+    ) -> Tuple[
+        Union[str, int, float], Union[float, Dict[str : Union[str, int, float]]], str
+    ]:
         """Calculate the best split for a decision tree
 
         Args:
@@ -139,14 +142,18 @@ class BinaryTree:
             feature for feature in X.columns if X[feature].isna().sum() < len(X)
         ]
         for feature in features:
-            splitters = get_splitter_candidates(X[feature])
+            splitters = get_splitter_candidates(x=X[feature])
             for splitter in splitters:
                 default_splits = self._get_default_split_candidates(
-                    X, feature, splitter
+                    X=X, feature=feature, splitter=splitter
                 )
                 for default_split in default_splits:
                     loss = self._calculate_split_loss(
-                        X, y, feature, splitter, default_split
+                        X=X,
+                        y=y,
+                        feature=feature,
+                        splitter=splitter,
+                        default_split=default_split,
                     )
                     if loss < loss_best:
                         loss_best = loss
@@ -158,7 +165,12 @@ class BinaryTree:
 
         return best_feature, best_splitter, best_default_split
 
-    def _get_default_split_candidates(self, X, feature, splitter):
+    def _get_default_split_candidates(
+        self,
+        X: pd.DataFrame,
+        feature: Union[str, int, float],
+        splitter: Union[float, Dict[str : List[str]]],
+    ) -> List[str]:
         """Get default split candidates given the rule, covariates and features
 
         Args:
@@ -188,7 +200,14 @@ class BinaryTree:
         else:  # mia strategy
             return ["left", "right"]
 
-    def _calculate_split_loss(self, X, y, feature, splitter, default_split):
+    def _calculate_split_loss(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        feature: Union[str, int, float],
+        splitter: Union[float, Dict[str : List[str]]],
+        default_split: str,
+    ) -> float:
         """Calculates the sum of squared errors for this split
 
         Args:
@@ -201,7 +220,9 @@ class BinaryTree:
         Returns:
             Total loss of this split for all daughter nodes
         """
-        index_left, index_right = get_indices(X[feature], splitter, default_split)
+        index_left, index_right = get_indices(
+            x=X[feature], splitter=splitter, default_split=default_split
+        )
 
         # To avoid hyperparameter-illegal splits
         if (sum(index_left) < self.min_samples_leaf) or (
@@ -214,7 +235,7 @@ class BinaryTree:
 
         return (loss_left_weighted + loss_right_weighted) / self.n
 
-    def _initiate_daughter_nodes(self):
+    def _initiate_daughter_nodes(self) -> Tuple:
         """Create daughter nodes
 
         Return:
@@ -237,7 +258,7 @@ class BinaryTree:
 
         return left, right
 
-    def _calculate_importance(self):
+    def _calculate_importance(self) -> None:
         """ "Calculate node importance for the split in this node
 
         Return:
@@ -253,7 +274,9 @@ class BinaryTree:
                 / self.n
             )
 
-    def _get_node_importances(self, node_importances):
+    def _get_node_importances(
+        self, node_importances: Dict[Union[str, int, float] : float]
+    ) -> Dict[Union[str, int, float] : float]:
         """Get node importances for this node and all its daughters
 
         Args:
@@ -273,7 +296,9 @@ class BinaryTree:
             )
         return node_importances
 
-    def predict(self, X, prob=False):
+    def predict(
+        self, X: Union[NDArray, pd.DataFrame], prob: bool = False
+    ) -> Union[pd.Series, pd.DataFrame]:
         """Recursive method to predict from new of features
 
         Args:
@@ -283,8 +308,8 @@ class BinaryTree:
         Returns:
             response predictions y_hat as a pandas Series. DataFrame if probabilities.
         """
-        X, _, _ = fix_datatypes(X)
-        X = check_features(X, self.features)
+        X, _, _ = fix_datatypes(X=X)
+        X = check_features(X=X, features=self.features)
 
         if self.response_type == "object":
             y_prob = pd.DataFrame(index=X.index, columns=self.categories, dtype=float)
@@ -293,12 +318,16 @@ class BinaryTree:
                     y_prob[category] = self.y_prob[category]
             else:
                 index_left, index_right = get_indices(
-                    X[self.feature], self.splitter, default_split=self.default_split
+                    x=X[self.feature],
+                    splitter=self.splitter,
+                    default_split=self.default_split,
                 )
 
-                y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
+                y_prob.loc[index_left] = self.left.predict(
+                    X=X.loc[index_left], prob=True
+                )
                 y_prob.loc[index_right] = self.right.predict(
-                    X.loc[index_right], prob=True
+                    X=X.loc[index_right], prob=True
                 )
 
         else:
@@ -307,11 +336,13 @@ class BinaryTree:
                 y_hat.loc[:] = self.y_hat
             else:
                 index_left, index_right = get_indices(
-                    X[self.feature], self.splitter, default_split=self.default_split
+                    x=X[self.feature],
+                    splitter=self.splitter,
+                    default_split=self.default_split,
                 )
 
-                y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
-                y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
+                y_hat.loc[index_left] = self.left.predict(X=X.loc[index_left])
+                y_hat.loc[index_right] = self.right.predict(X=X.loc[index_right])
 
         if prob:
             return y_prob
@@ -320,7 +351,7 @@ class BinaryTree:
         else:  # categorical prediction
             return y_prob.idxmax(axis=1)
 
-    def print(self):
+    def print(self) -> None:
         """Print the tree structure"""
         if self.y_hat is None:
             raise CantPrintUnfittedTree("Can't print tree before fitting to test_data")

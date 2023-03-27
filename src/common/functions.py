@@ -3,11 +3,17 @@ import numpy as np
 import pandas as pd
 import itertools
 import warnings
+from typing import List, Union, Dict, Tuple
+from nptyping import NDArray
 from src.common.custom_exceptions import MissingValuesInResponse
 from src.common.custom_warnings import MissingFeatureWarning, ExtraFeatureWarning
 
 
-def fix_datatypes(X, y=None, w = None):
+def fix_datatypes(
+    X: Union[NDArray, pd.DataFrame],
+    y: Union[NDArray, pd.Series] = None,
+    w: pd.Series = None,
+) -> Tuple[pd.DataFrame, pd.Series, pd.Series]:
     """Make sure datasets are pandas DataFrames and Series"""
     X = pd.DataFrame(X).copy() if isinstance(X, np.ndarray) else X.copy()
     for feature in X:
@@ -29,26 +35,36 @@ def fix_datatypes(X, y=None, w = None):
     return X, y, w
 
 
-def fit_response(y, categories=None, w = None):
+def fit_response(
+    y: pd.Series, categories: List[Union[str, int, float]] = None, w: pd.Series = None
+) -> Tuple[pd.Series, pd.DataFrame, List[Union[str, int, float]]]:
     """Get the response estimate given this set of responses"""
 
     if w is None:
-        w = pd.Series(index = y.index, dtype = float)
+        w = pd.Series(index=y.index, dtype=float)
         w.loc[:] = 1
 
-    if y.dtype == "float" or y.dtype == 'int':
-        y_hat = (w*y).sum()/w.sum()
+    if y.dtype == "float" or y.dtype == "int":
+        y_hat = (w * y).sum() / w.sum()
         y_prob = {}
         categories = None
     else:
         if categories is None:
             categories = list(y.unique())
-        y_prob = {category: sum((y==category)*w)/sum(w) for category in categories}
+        y_prob = {
+            category: sum((y == category) * w) / sum(w) for category in categories
+        }
         y_hat = max(y_prob, key=y_prob.get)
 
     return y_hat, y_prob, categories
 
-def calculate_loss(y, y_hat=None, y_prob = None, w = None):
+
+def calculate_loss(
+    y: pd.Series,
+    y_hat: Union[float, pd.Series] = None,
+    y_prob: pd.DataFrame = None,
+    w: pd.Series = None,
+) -> float:
     """Calculate the loss of the response set
 
     Gini if classification problem, sse if regression
@@ -65,26 +81,32 @@ def calculate_loss(y, y_hat=None, y_prob = None, w = None):
         return 0
 
     if w is None:
-        w = pd.Series(index = y.index, dtype = float)
+        w = pd.Series(index=y.index, dtype=float)
         w.loc[:] = 1
 
-    if y.dtype == 'float' or y.dtype == 'int':
+    if y.dtype == "float" or y.dtype == "int":
         if y_hat is None:
-            y_hat,_,_ = fit_response(y, w = w)
-        return calculate_mse(y, y_hat = y_hat, w = w)
+            y_hat, _, _ = fit_response(y, w=w)
+        return calculate_mse(y, y_hat=y_hat, w=w)
     else:
         if y_prob is None:
-            _,y_prob,_ = fit_response(y, w=w)
-        return calculate_xe(y, y_prob = y_prob, w = w)
+            _, y_prob, _ = fit_response(y, w=w)
+        return calculate_xe(y, y_prob=y_prob, w=w)
 
-def calculate_mse(y, y_hat, w):
-    """ Calculate mean squared error"""
+
+def calculate_mse(y: pd.Series, y_hat: Union[float, pd.Series], w: pd.Series):
+    """Calculate mean squared error"""
     return (w * (y - y_hat).pow(2)).sum() / w.sum()
 
-def calculate_xe(y, y_prob, w):
+
+def calculate_xe(
+    y: pd.Series,
+    y_prob: Union[Dict[Union[str, int, float] : pd.DataFrame], pd.DataFrame],
+    w: pd.Series,
+) -> float:
     """Calculate cross entropy"""
     eps = 1e-30
-    if isinstance(y_prob,dict):
+    if isinstance(y_prob, dict):
         # This is for one probability prediction (a dict)
         ps = y.replace(y_prob)
         xes = -w * np.log(ps + eps)
@@ -95,11 +117,15 @@ def calculate_xe(y, y_prob, w):
         xes = -w * np.log(ps + eps)
     return sum(xes)
 
-def check_terminal_node(tree):
+
+def check_terminal_node(tree) -> bool:
     """ " Check if pruning conditions are fulfilled"""
     return (tree.depth >= tree.max_depth) or (tree.n <= tree.min_samples_leaf)
 
-def get_splitter_candidates(x):
+
+def get_splitter_candidates(
+    x: pd.Seres,
+) -> Union[NDArray, Dict[str : List[Union[str, int, float]]]]:
     """Get potential candidates for splitters
 
     For continous variables, all values that split the test_data in a unique way is found by looking at
@@ -134,7 +160,11 @@ def get_splitter_candidates(x):
         ]
 
 
-def get_indices(x, splitter, default_split="none"):
+def get_indices(
+    x: pd.Series,
+    splitter: Union[NDArray, Dict[str : List[Union[str, int, float]]]],
+    default_split: str = "none",
+) -> Tuple[pd.Index, pd.Index]:
     """Get left and right indices given a splitter"""
     if x.dtype == "float":
         index_left = x < splitter
@@ -150,7 +180,9 @@ def get_indices(x, splitter, default_split="none"):
     return index_left, index_right
 
 
-def get_feature_importance(tree):
+def get_feature_importance(
+    tree
+) -> Dict[Union[str, int, float] : float]:
     """Calculate feature importance for all features in X
 
     Return:
@@ -163,7 +195,7 @@ def get_feature_importance(tree):
         feature: sum(node_importances[feature]) for feature in node_importances
     }
     if sum(total_importances.values()) == 0:
-        feature_importances = {feature:0 for feature in node_importances}
+        feature_importances = {feature: 0 for feature in node_importances}
     else:
         feature_importances = {
             feature: total_importances[feature] / sum(total_importances.values())
@@ -172,7 +204,9 @@ def get_feature_importance(tree):
     return feature_importances
 
 
-def check_features(X, features):
+def check_features(
+    X: pd.DataFrame, features: List[Union[str, int, float]]
+) -> pd.DataFrame:
     """Check so that all relevant features are available and none are redundant. Return fixed X"""
     missing_features = [feature for feature in features if feature not in X.columns]
     if len(missing_features) > 0:

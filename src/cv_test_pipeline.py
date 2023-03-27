@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import logging
+from typing import List, Union, Dict, Tuple
+from nptyping import NDArray
 
 from src.binary_tree import BinaryTree
 from src.trinary_tree import TrinaryTree

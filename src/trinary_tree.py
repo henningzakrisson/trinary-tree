@@ -1,16 +1,10 @@
-import itertools
-import warnings
 import pandas as pd
 import numpy as np
-import warnings
+from typing import List, Union, Dict, Tuple
+from nptyping import NDArray
 
 from src.common.custom_exceptions import (
-    MissingValuesInResponse,
     CantPrintUnfittedTree,
-)
-from src.common.custom_warnings import (
-    MissingFeatureWarning,
-    ExtraFeatureWarning,
 )
 
 from src.common.functions import (
@@ -33,10 +27,10 @@ class TrinaryTree:
 
     def __init__(
         self,
-        min_samples_leaf=20,
-        max_depth=2,
-        depth=0,
-        categories=None,
+        min_samples_leaf: int = 20,
+        max_depth: int = 2,
+        depth: int = 0,
+        categories: List[str] = None,
     ):
         """Initiate the tree
 
@@ -71,7 +65,13 @@ class TrinaryTree:
         self.loss_true = None
         self.middle = None
 
-    def fit(self, X, y, X_true=None, y_true=None):
+    def fit(
+        self,
+        X: Union[NDArray, pd.DataFrame],
+        y: Union[NDArray, pd.Series],
+        X_true: Union[NDArray, pd.DataFrame] = None,
+        y_true: Union[NDArray, pd.Series] = None,
+    ) -> None:
         """Recursive method to fit the decision tree.
 
         Will call itself to create daughter nodes if applicable.
@@ -87,31 +87,33 @@ class TrinaryTree:
         Raises:
             MissingValuesInResponse: Can not fit to missing categories, thus errors out
         """
-        X, y, _ = fix_datatypes(X, y)
+        X, y, _ = fix_datatypes(X=X, y=y)
         if X_true is None and y_true is None:
             X_true, y_true = X, y
-        X_true, y_true, _ = fix_datatypes(X_true, y_true)
+        X_true, y_true, _ = fix_datatypes(X=X_true, y=y_true)
         self.features = X.columns
 
         self.n = len(y)
         self.n_true = len(y_true)
 
-        self.y_hat, self.y_prob, self.categories = fit_response(y, self.categories)
+        self.y_hat, self.y_prob, self.categories = fit_response(
+            y=y, categories=self.categories
+        )
         if self.categories is not None:
             self.response_type = "object"
         else:
             self.response_type = "float"
 
-        self.loss = calculate_loss(y = y, y_hat = self.y_hat, y_prob = self.y_prob)
-        self.loss_true = calculate_loss(y = y_true, y_hat = self.y_hat, y_prob = self.y_prob)
+        self.loss = calculate_loss(y=y, y_hat=self.y_hat, y_prob=self.y_prob)
+        self.loss_true = calculate_loss(y=y_true, y_hat=self.y_hat, y_prob=self.y_prob)
 
         # Check pruning conditions
-        if check_terminal_node(self):
+        if check_terminal_node(tree=self):
             self.left, self.middle, self.right = None, None, None
             return
 
         # Find splitting parameters
-        self.feature, self.splitter = self._find_split(X, y)
+        self.feature, self.splitter = self._find_split(X=X, y=y)
 
         if self.feature is None:
             self.left, self.middle, self.right = None, None, None
@@ -119,9 +121,9 @@ class TrinaryTree:
 
         self.feature_type = "float" if X[self.feature].dtype == "float" else "object"
 
-        index_left, index_right = get_indices(X[self.feature], self.splitter)
+        index_left, index_right = get_indices(x=X[self.feature], splitter=self.splitter)
         index_left_true, index_right_true = get_indices(
-            X_true[self.feature], self.splitter
+            x=X_true[self.feature], splitter=self.splitter
         )
         index_middle_true = (~index_left_true) & (~index_right_true)
 
@@ -151,7 +153,11 @@ class TrinaryTree:
 
         self.node_importance = self._calculate_importance()
 
-    def _find_split(self, X, y) -> tuple:
+    def _find_split(
+        self, X: pd.DataFrame, y: pd.Series
+    ) -> Tuple[
+        Union[str, int, float], Union[float, Dict[str : Union[str, int, float]]]
+    ]:
         """Calculate the best split for a decision tree
 
         Args:
@@ -170,9 +176,11 @@ class TrinaryTree:
             feature for feature in X.columns if X[feature].isna().sum() < len(X)
         ]
         for feature in features:
-            splitters = get_splitter_candidates(X[feature])
+            splitters = get_splitter_candidates(x=X[feature])
             for splitter in splitters:
-                loss = self._calculate_split_loss(X, y, feature, splitter)
+                loss = self._calculate_split_loss(
+                    X=X, y=y, feature=feature, splitter=splitter
+                )
                 if loss < loss_best:
                     loss_best = loss
                     best_feature, best_splitter = (
@@ -182,7 +190,13 @@ class TrinaryTree:
 
         return best_feature, best_splitter
 
-    def _calculate_split_loss(self, X, y, feature, splitter):
+    def _calculate_split_loss(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        feature: Union[str, int, float],
+        splitter: Union[float, Dict[str : List[str]]],
+    ) -> float:
         """Calculates the sum of squared errors for this split
 
         Args:
@@ -194,7 +208,7 @@ class TrinaryTree:
         Returns:
             Total loss of this split for all daughter nodes
         """
-        index_left, index_right = get_indices(X[feature], splitter)
+        index_left, index_right = get_indices(x=X[feature], splitter=splitter)
         index_middle = (~index_left) & (~index_right)
 
         # To avoid hyperparameter-illegal splits
@@ -206,13 +220,13 @@ class TrinaryTree:
         loss_left_weighted = calculate_loss(y=y.loc[index_left]) * sum(index_left)
         loss_right_weighted = calculate_loss(y=y.loc[index_right]) * sum(index_right)
         loss_middle_weighted = calculate_loss(
-            y=y.loc[index_middle], y_hat=self.y_hat, y_prob = self.y_prob
+            y=y.loc[index_middle], y_hat=self.y_hat, y_prob=self.y_prob
         ) * sum(index_middle)
         return (
             loss_left_weighted + loss_right_weighted + loss_middle_weighted
         ) / self.n
 
-    def _initiate_daughter_nodes(self):
+    def _initiate_daughter_nodes(self) -> Tuple:
         """Create daughter nodes
 
         Return:
@@ -238,7 +252,7 @@ class TrinaryTree:
         )
         return left, middle, right
 
-    def _calculate_importance(self):
+    def _calculate_importance(self) -> None:
         """ "Calculate node importance for the split in this node
 
         Return:
@@ -260,7 +274,9 @@ class TrinaryTree:
 
         return importance
 
-    def _get_node_importances(self, node_importances):
+    def _get_node_importances(
+        self, node_importances: Dict[Union[str, int, float] : float]
+    ) -> Dict[Union[str, int, float] : float]:
         """Get node importances for this node and all its daughters
 
         Args:
@@ -283,7 +299,9 @@ class TrinaryTree:
             )
         return node_importances
 
-    def predict(self, X, prob=False):
+    def predict(
+        self, X: Union[NDArray, pd.DataFrame], prob: bool = False
+    ) -> Union[pd.Series, pd.DataFrame]:
         """Recursive method to predict from new of features
 
         Args:
@@ -293,8 +311,8 @@ class TrinaryTree:
         Returns:
             response predictions y_hat as a pandas Series. DataFrame if probabilities.
         """
-        X, _, _ = fix_datatypes(X)
-        X = check_features(X, self.features)
+        X, _, _ = fix_datatypes(X=X)
+        X = check_features(X=X, features=self.features)
 
         if self.response_type == "object":
             y_prob = pd.DataFrame(index=X.index, columns=self.categories, dtype=float)
@@ -302,14 +320,18 @@ class TrinaryTree:
                 for category in self.categories:
                     y_prob[category] = self.y_prob[category]
             else:
-                index_left, index_right = get_indices(X[self.feature], self.splitter)
+                index_left, index_right = get_indices(
+                    x=X[self.feature], splitter=self.splitter
+                )
                 index_middle = (~index_left) & (~index_right)
-                y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
+                y_prob.loc[index_left] = self.left.predict(
+                    X=X.loc[index_left], prob=True
+                )
                 y_prob.loc[index_right] = self.right.predict(
-                    X.loc[index_right], prob=True
+                    X=X.loc[index_right], prob=True
                 )
                 y_prob.loc[index_middle] = self.middle.predict(
-                    X.loc[index_middle], prob=True
+                    X=X.loc[index_middle], prob=True
                 )
 
         else:
@@ -317,12 +339,14 @@ class TrinaryTree:
             if self.left is None:
                 y_hat.loc[:] = self.y_hat
             else:
-                index_left, index_right = get_indices(X[self.feature], self.splitter)
+                index_left, index_right = get_indices(
+                    x=X[self.feature], splitter=self.splitter
+                )
                 index_middle = (~index_left) & (~index_right)
 
-                y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
-                y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
-                y_hat.loc[index_middle] = self.middle.predict(X.loc[index_middle])
+                y_hat.loc[index_left] = self.left.predict(X=X.loc[index_left])
+                y_hat.loc[index_right] = self.right.predict(X=X.loc[index_right])
+                y_hat.loc[index_middle] = self.middle.predict(X=X.loc[index_middle])
 
         if prob:
             return y_prob
@@ -331,7 +355,7 @@ class TrinaryTree:
         else:  # categorical prediction
             return y_prob.idxmax(axis=1)
 
-    def print(self):
+    def print(self) -> None:
         """Print the tree structure"""
         if self.y_hat is None:
             raise CantPrintUnfittedTree("Can't print tree before fitting to test_data")
