@@ -107,13 +107,16 @@ class TrinaryTree:
 
         # Check pruning conditions
         if check_terminal_node(self):
+            self.left, self.middle, self.right = None, None, None
             return
 
         # Find splitting parameters
         self.feature, self.splitter = self._find_split(X, y)
 
         if self.feature is None:
+            self.left, self.middle, self.right = None, None, None
             return
+
         self.feature_type = "float" if X[self.feature].dtype == "float" else "object"
 
         index_left, index_right = get_indices(X[self.feature], self.splitter)

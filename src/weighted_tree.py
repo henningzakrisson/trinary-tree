@@ -98,12 +98,14 @@ class WeightedTree:
 
         # Check pruning conditions
         if check_terminal_node(self):
+            self.left, self.right = None, None
             return
 
         # Find splitting parameters
         self.feature, self.splitter = self._find_split(X, y, w)
 
         if self.feature is None:
+            self.left, self.right = None, None
             return
 
         self.feature_type = "float" if X[self.feature].dtype == "float" else "object"
