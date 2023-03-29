@@ -63,9 +63,9 @@ def tune_max_depth(folds, max_max_depth=10, min_samples_leaf=20):
     losses = pd.Series(index=max_depths, dtype=float)
 
     for max_depth in max_depths:
-        logging.info(f'Testing max_depth = {max_depth}')
+        logging.info(f"Testing max_depth = {max_depth}")
         tree = BinaryTree(max_depth=max_depth, min_samples_leaf=min_samples_leaf)
-        losses[max_depth] = calculate_cv_loss(folds, tree)
+        losses[max_depth] = calculate_cv_loss(folds = folds, tree = tree)
 
         if losses.iloc[max_depth] >= losses.iloc[max_depth - 1]:
             break
@@ -98,9 +98,9 @@ def setup_equal_trees(max_depth=None, min_samples_leaf=None, tree_types="all"):
 def calculate_missing_cvs_loss(missing_folds, trees):
     losses = pd.DataFrame(index=missing_folds.keys(), columns=trees.keys(), dtype=float)
     for p in missing_folds:
-        logging.info(f'Calculating loss with missingness = {p}')
+        logging.info(f"Calculating loss with missingness = {p}")
         for tree_type in trees:
-            logging.info(f'Calculating loss for {tree_type.lower()} tree')
+            logging.info(f"Calculating loss for {tree_type.lower()} tree")
             losses.loc[p, tree_type] = calculate_cv_loss(
                 missing_folds[p], trees[tree_type]
             )
@@ -115,7 +115,7 @@ def calculate_cv_loss(folds, tree):
     else:
         y_hat = pd.Series(index=y.index, dtype="float")
     for i, fold in folds.items():
-        logging.info(f'Calculating loss for fold {i}/{len(folds.items())}')
+        logging.info(f"Calculating loss for fold {i+1}/{len(folds.items())}")
         X_train, y_train = fold["Train"]
         X_test, _ = fold["Test"]
 
@@ -123,8 +123,8 @@ def calculate_cv_loss(folds, tree):
         if y.dtype == "object":
             # This is done via update + fillna since there is no guarantee that all classes are in all folds
             # Then missing classes are assigned probability 0
-            y_prob.loc[X_test.index].update(tree.predict(X_test, prob=True))
-            y_prob.loc[X_test.index].fillna(0)
+            y_prob.update(tree.predict(X_test, prob=True))
+            y_prob.loc[X_test.index].fillna(0, inplace = True)
         else:
             y_hat.loc[X_test.index] = tree.predict(X_test)
 
@@ -145,7 +145,7 @@ def calculate_dataset_missing_losses(
     max_max_depth,
     tree_types,
 ):
-    logging.info(f'Pre-processing {data_set} data')
+    logging.info(f"Pre-processing {data_set} data")
     X = pd.read_csv(f"{data_folder}/{data_set}.csv", index_col=0)
     y = X.pop("y")
 
@@ -158,7 +158,7 @@ def calculate_dataset_missing_losses(
         max_max_depth=max_max_depth,
         min_samples_leaf=min_samples_leaf,
     )
-    logging.info(f'{data_set} max_depth set to {max_depth}')
+    logging.info(f"{data_set} max_depth set to {max_depth}")
     trees = setup_equal_trees(
         max_depth=max_depth,
         min_samples_leaf=min_samples_leaf,
@@ -178,7 +178,7 @@ def calculate_loss_for_files(
     max_max_depth,
     tree_types,
 ):
-    log_folder = '/home/heza7322/PycharmProjects/missing-value-handling-in-carts/logs'
+    log_folder = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/logs"
     logging.basicConfig(level=logging.INFO)
     losses = {}
     for data_set in data_sets:
@@ -205,25 +205,29 @@ if __name__ == "__main__":
         "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/data/results"
     )
     data_sets = [
-        "auto_mpg",
-        "balance_scale",
-        "black_friday",
-        "boston_housing",
-        "cement",
-        "iris",
-        "kr_vs_kp",
-        "life_expectancy",
-        "lymphography",
-        "titanic",
-        "wine_quality",
+        #"auto_mpg",
+        #"balance_scale",
+        #"black_friday",
+         #"boston_housing",
+         #"cement",
+         #"iris",
+         #"kr_vs_kp",
+         #"life_expectancy",
+         #"lymphography",
+        #"titanic",
+         "wine_quality",
     ]
-    tree_types = ["Majority","MIA", "Weighted","Trinary"]
+    tree_types = [
+        "Majority",
+        #"MIA",
+       # "Weighted",
+        "Trinary"]
     seed_missingness = 10
     seed_fold_split = 11
-    ps = [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
-    n_folds = 10
+    ps = [0,0.5]
+    n_folds = 2
     min_samples_leaf = 20
-    max_max_depth = 15
+    max_max_depth = 2
 
     losses = calculate_loss_for_files(
         data_sets=data_sets,
