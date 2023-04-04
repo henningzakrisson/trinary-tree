@@ -6,6 +6,7 @@ from src.binary_tree import BinaryTree
 from src.trinary_tree import TrinaryTree
 from src.weighted_tree import WeightedTree
 from src.common.functions import calculate_loss
+from sklearn.model_selection import StratifiedKFold, KFold
 
 
 def create_missing_Xs(X, ps, seed=None):
@@ -14,12 +15,9 @@ def create_missing_Xs(X, ps, seed=None):
     of modified versions of X, with values randomly set to NaN based on the corresponding
     probabilities in ps.
     """
-    if seed is None:
-        rng = np.random.default_rng()
-    else:
-        rng = np.random.default_rng(seed)
-    n = len(X)
+    rng = np.random.default_rng(seed) if seed else np.random.default_rng()
     Xs = {}
+    n = len(X)
 
     X = X.copy()
     n_to_drop = []
@@ -35,19 +33,18 @@ def create_missing_Xs(X, ps, seed=None):
 
 
 def split_dataset_into_folds(X, y, n_folds, seed=None):
-    if seed is None:
-        rng = np.random.default_rng()
+    if y.dtype == "float" or y.dtype == "int":
+        cv = KFold(n_splits=n_folds, shuffle=True, random_state=seed)
     else:
-        rng = np.random.default_rng(seed)
-    orig_index = X.index
-    shuffled_index = rng.permutation(orig_index)
-    test_indices = np.array_split(shuffled_index, n_folds)
+        cv = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=seed)
+    folds = {}
+    for i, (train_idx, test_idx) in enumerate(cv.split(X, y)):
+        X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+        y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
 
-    folds = {fold: {} for fold in range(n_folds)}
-    for fold, test_index in enumerate(test_indices):
-        train_index = [i for i in orig_index if i not in test_index]
-        folds[fold]["Train"] = X.loc[train_index], y.loc[train_index]
-        folds[fold]["Test"] = X.loc[test_index], y.loc[test_index]
+        fold = {i: {"Train": (X_train, y_train), "Test": (X_test, y_test)}}
+        folds.update(fold)
+
     return folds
 
 
@@ -65,7 +62,7 @@ def tune_max_depth(folds, max_max_depth=10, min_samples_leaf=20):
     for max_depth in max_depths:
         logging.info(f"Testing max_depth = {max_depth}")
         tree = BinaryTree(max_depth=max_depth, min_samples_leaf=min_samples_leaf)
-        losses[max_depth] = calculate_cv_loss(folds = folds, tree = tree)
+        losses[max_depth] = calculate_cv_loss(folds=folds, tree=tree)
 
         if losses.iloc[max_depth] >= losses.iloc[max_depth - 1]:
             break
@@ -124,7 +121,7 @@ def calculate_cv_loss(folds, tree):
             # This is done via update + fillna since there is no guarantee that all classes are in all folds
             # Then missing classes are assigned probability 0
             y_prob.update(tree.predict(X_test, prob=True))
-            y_prob.loc[X_test.index].fillna(0, inplace = True)
+            y_prob.loc[X_test.index].fillna(0, inplace=True)
         else:
             y_hat.loc[X_test.index] = tree.predict(X_test)
 
@@ -177,6 +174,7 @@ def calculate_loss_for_files(
     min_samples_leaf,
     max_max_depth,
     tree_types,
+    output_data_folder=None,
 ):
     log_folder = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/logs"
     logging.basicConfig(level=logging.INFO)
@@ -193,6 +191,8 @@ def calculate_loss_for_files(
             max_max_depth,
             tree_types,
         )
+        if output_data_folder is not None:
+            losses[data_set].to_csv(f"{output_data_folder}/cv_results_{data_set}.csv")
     return pd.concat(losses, names=["data_set", "missingness"])
 
 
@@ -205,29 +205,25 @@ if __name__ == "__main__":
         "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/data/results"
     )
     data_sets = [
-        #"auto_mpg",
-        #"balance_scale",
-        #"black_friday",
-         #"boston_housing",
-         #"cement",
-         #"iris",
-         #"kr_vs_kp",
-         #"life_expectancy",
-         #"lymphography",
+        # "auto_mpg",
+        # "balance_scale",
+        # "black_friday",
+        # "boston_housing",
+        # "cement",
+        #"iris",
         #"titanic",
-         "wine_quality",
+        "life_expectancy",
+        #"lymphography",
+        # "wine_quality",
+        # "kr_vs_kp",
     ]
-    tree_types = [
-        "Majority",
-        #"MIA",
-       # "Weighted",
-        "Trinary"]
+    tree_types = ["Majority", "MIA", "Weighted", "Trinary"]
     seed_missingness = 10
     seed_fold_split = 11
-    ps = [0,0.5]
-    n_folds = 2
+    ps = [0,0.2,0.5] #np.arange(10) / 10
+    n_folds = 10
     min_samples_leaf = 20
-    max_max_depth = 2
+    max_max_depth = 10
 
     losses = calculate_loss_for_files(
         data_sets=data_sets,
@@ -239,6 +235,7 @@ if __name__ == "__main__":
         min_samples_leaf=min_samples_leaf,
         max_max_depth=max_max_depth,
         tree_types=tree_types,
+        output_data_folder=output_data_folder,
     )
 
     losses.to_csv(f"{output_data_folder}/cv_results.csv")

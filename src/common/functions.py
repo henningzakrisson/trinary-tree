@@ -143,9 +143,9 @@ def get_indices(x, splitter, default_split="none"):
         index_left = x.isin(splitter["left"])
         index_right = x.isin(splitter["right"])
     if default_split == "left":
-        index_left |= x.isna()
+        index_left |= (~index_left & ~index_right)
     elif default_split == "right":
-        index_right |= x.isna()
+        index_right |= (~index_left & ~index_right)
 
     return index_left, index_right
 
