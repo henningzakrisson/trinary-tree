@@ -13,7 +13,6 @@
 11,metastases,displaced,yes,no,no,no,yes,no,no,1.0,3.0,round,lac. central,lac. marginal,faint,vesicles,yes,yes,45.0
 12,metastases,displaced,yes,no,no,no,no,no,yes,1.0,2.0,oval,lacunar,lacunar,drop-like,chalices,no,no,0.0
 13,malign,displaced,no,no,no,no,yes,no,yes,1.0,4.0,oval,lacunar,lac. central,stripped,vesicles,yes,yes,45.0
-14,fibrosis,deformed,yes,yes,yes,yes,yes,yes,yes,3.0,1.0,bean,lacunar,lacunar,faint,no,yes,yes,135.0
 15,metastases,arched,yes,no,no,no,yes,no,yes,1.0,2.0,round,lac. marginal,lac. marginal,diluted,vesicles,yes,yes,45.0
 16,metastases,deformed,yes,no,no,no,yes,no,yes,1.0,2.0,round,lac. marginal,lac. marginal,grainy,chalices,yes,yes,90.0
 17,metastases,arched,yes,no,no,no,yes,no,no,1.0,2.0,oval,lacunar,lac. marginal,diluted,chalices,no,yes,45.0
@@ -35,7 +34,6 @@
 33,metastases,arched,yes,no,no,no,no,no,no,1.0,1.0,oval,lacunar,lac. marginal,drop-like,no,no,no,0.0
 34,metastases,displaced,yes,no,no,yes,yes,no,yes,1.0,3.0,round,lac. central,lac. marginal,coarse,vesicles,yes,yes,45.0
 35,metastases,arched,yes,yes,no,yes,yes,no,yes,1.0,3.0,round,lac. marginal,lac. marginal,faint,vesicles,no,yes,45.0
-36,fibrosis,deformed,no,no,no,yes,yes,yes,no,3.0,1.0,bean,lac. central,lacunar,diluted,vesicles,no,yes,135.0
 37,malign,deformed,no,no,no,no,yes,no,yes,1.0,4.0,round,lac. central,lacunar,coarse,vesicles,yes,yes,225.0
 38,malign,arched,no,no,no,no,no,no,yes,1.0,3.0,round,lacunar,lac. marginal,coarse,vesicles,yes,yes,45.0
 39,malign,arched,no,no,no,no,no,no,yes,1.0,2.0,oval,lacunar,no,stripped,no,yes,yes,45.0
@@ -43,7 +41,6 @@
 41,malign,arched,yes,yes,no,yes,yes,yes,yes,1.0,4.0,oval,lacunar,lacunar,coarse,vesicles,yes,yes,225.0
 42,metastases,deformed,yes,yes,no,no,yes,no,no,1.0,3.0,oval,lac. marginal,lac. marginal,coarse,vesicles,no,yes,45.0
 43,metastases,displaced,yes,no,no,yes,no,no,yes,1.0,3.0,round,lac. marginal,lac. marginal,grainy,chalices,yes,yes,90.0
-44,fibrosis,deformed,yes,yes,yes,yes,yes,yes,no,2.0,2.0,oval,lac. central,lacunar,coarse,vesicles,yes,yes,270.0
 45,malign,arched,no,no,no,no,no,no,yes,1.0,2.0,oval,lacunar,lacunar,faint,chalices,yes,yes,0.0
 46,metastases,deformed,yes,yes,no,yes,no,no,yes,1.0,2.0,oval,lac. marginal,lac. marginal,faint,vesicles,no,yes,0.0
 47,metastases,displaced,no,no,no,no,no,no,no,2.0,1.0,round,lac. central,lacunar,faint,no,yes,yes,0.0
@@ -77,7 +74,6 @@
 75,metastases,displaced,yes,yes,no,yes,yes,no,yes,1.0,3.0,round,lac. central,lac. marginal,faint,chalices,yes,yes,90.0
 76,metastases,displaced,yes,yes,no,no,no,no,yes,1.0,2.0,oval,lacunar,lac. marginal,drop-like,chalices,yes,yes,45.0
 77,metastases,deformed,no,no,no,yes,no,no,yes,1.0,2.0,round,lac. marginal,lac. marginal,diluted,vesicles,no,no,0.0
-78,normal,normal,no,no,no,no,no,no,no,1.0,1.0,bean,no,no,no,no,no,no,0.0
 79,malign,deformed,yes,no,no,no,no,no,yes,1.0,3.0,oval,lacunar,lac. central,faint,vesicles,yes,yes,90.0
 80,malign,arched,yes,no,no,no,yes,no,yes,1.0,3.0,round,lac. marginal,lac. central,faint,vesicles,yes,yes,45.0
 81,metastases,displaced,yes,no,no,no,no,no,no,1.0,4.0,round,lac. marginal,lac. marginal,coarse,chalices,yes,no,0.0
@@ -135,10 +131,8 @@
 133,metastases,deformed,yes,no,no,no,no,no,yes,1.0,2.0,round,lac. marginal,lac. marginal,diluted,chalices,yes,no,0.0
 134,metastases,arched,yes,no,no,no,yes,no,yes,1.0,2.0,oval,lac. central,lac. central,diluted,vesicles,yes,yes,0.0
 135,metastases,deformed,yes,yes,yes,yes,yes,no,yes,1.0,2.0,round,lac. marginal,lac. marginal,coarse,vesicles,yes,yes,270.0
-136,normal,normal,no,no,no,no,yes,no,yes,1.0,2.0,oval,no,no,grainy,no,no,no,45.0
 137,malign,arched,no,no,no,no,yes,no,yes,1.0,3.0,round,lacunar,lacunar,coarse,vesicles,yes,yes,225.0
 138,metastases,arched,yes,no,no,no,no,no,no,1.0,2.0,round,lac. marginal,lac. marginal,drop-like,vesicles,no,yes,0.0
-139,fibrosis,deformed,no,no,no,yes,yes,yes,no,3.0,1.0,bean,lacunar,no,diluted,vesicles,no,no,270.0
 140,metastases,arched,yes,no,no,no,no,no,no,1.0,2.0,round,lac. marginal,lac. marginal,grainy,chalices,yes,yes,0.0
 141,malign,arched,no,no,no,no,no,no,yes,1.0,2.0,oval,lac. central,lac. central,faint,chalices,no,yes,45.0
 142,metastases,arched,yes,no,no,no,yes,no,yes,1.0,2.0,round,lac. marginal,lac. marginal,diluted,vesicles,yes,yes,0.0

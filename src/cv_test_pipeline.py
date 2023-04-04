@@ -177,6 +177,7 @@ def calculate_loss_for_files(
     min_samples_leaf,
     max_max_depth,
     tree_types,
+    output_data_folder = None
 ):
     log_folder = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/logs"
     logging.basicConfig(level=logging.INFO)
@@ -193,6 +194,8 @@ def calculate_loss_for_files(
             max_max_depth,
             tree_types,
         )
+        if output_data_folder is not None:
+            losses[data_set].to_csv(f"{output_data_folder}/cv_results_{data_set}.csv")
     return pd.concat(losses, names=["data_set", "missingness"])
 
 
@@ -208,26 +211,26 @@ if __name__ == "__main__":
         #"auto_mpg",
         #"balance_scale",
         #"black_friday",
-         #"boston_housing",
-         #"cement",
-         #"iris",
-         #"kr_vs_kp",
-         #"life_expectancy",
-         #"lymphography",
+        #"boston_housing",
+        #"cement",
+        #"iris",
         #"titanic",
-         "wine_quality",
+        #"life_expectancy",
+        "lymphography",
+        #"wine_quality",
+        #"kr_vs_kp",
     ]
     tree_types = [
-        "Majority",
-        #"MIA",
-       # "Weighted",
+        #"Majority",
+        "MIA",
+        #"Weighted",
         "Trinary"]
     seed_missingness = 10
     seed_fold_split = 11
-    ps = [0,0.5]
-    n_folds = 2
+    ps = np.arange(5)/10
+    n_folds = 10
     min_samples_leaf = 20
-    max_max_depth = 2
+    max_max_depth = 10
 
     losses = calculate_loss_for_files(
         data_sets=data_sets,
@@ -239,6 +242,7 @@ if __name__ == "__main__":
         min_samples_leaf=min_samples_leaf,
         max_max_depth=max_max_depth,
         tree_types=tree_types,
+        output_data_folder = output_data_folder,
     )
 
     losses.to_csv(f"{output_data_folder}/cv_results.csv")
