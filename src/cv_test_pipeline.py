@@ -234,17 +234,22 @@ if __name__ == "__main__":
         "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/data/results"
     )
     data_sets = [
-        #"auto_mpg",
-        #"balance_scale",
-        #"black_friday",
-        #"boston_housing",
-        #"cement",
-        #"iris",
-        #"titanic",
+        # Regression
+        #'auto_mpg',
+        #'black_friday',
+        #'cement',
         #"life_expectancy",
-        "lymphography",
-        "wine_quality",
-        #"kr_vs_kp",
+
+        # Classification
+        #'titanic',
+        #"lymphography",
+        #'boston_housing',
+        "seeds",
+
+        # Remove
+        # 'iris',
+        # 'balance_scale',
+        # "kr_vs_kp",
     ]
     tree_types = ["Majority", "MIA", "Weighted", "Trinary"]
     seed_missingness = 10
