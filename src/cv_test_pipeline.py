@@ -6,6 +6,7 @@ import logging
 
 from src.binary_tree import BinaryTree
 from src.trinary_tree import TrinaryTree
+from src.trinary_mia_tree import TrinaryMiaTree
 from src.weighted_tree import WeightedTree
 from src.common.functions import calculate_loss
 from sklearn.model_selection import StratifiedKFold, KFold
@@ -82,10 +83,11 @@ def setup_equal_trees(max_depth=None, min_samples_leaf=None, tree_types="all"):
         "MIA": BinaryTree(
             max_depth=max_depth, min_samples_leaf=min_samples_leaf, missing_rule="mia"
         ),
-        "Trinary": TrinaryTree(max_depth=max_depth, min_samples_leaf=min_samples_leaf),
         "Weighted": WeightedTree(
             max_depth=max_depth, min_samples_leaf=min_samples_leaf
         ),
+        "Trinary": TrinaryTree(max_depth=max_depth, min_samples_leaf=min_samples_leaf),
+        "TrinaryMia": TrinaryMiaTree(max_depth=max_depth, min_samples_leaf=min_samples_leaf),
     }
 
     if tree_types == "all":
@@ -234,6 +236,11 @@ if __name__ == "__main__":
         "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/data/results"
     )
     data_sets = [
+        'auto_mpg',
+        'cement',
+        'black_friday',
+        'boston_housing'
+
         # Regression
         #'auto_mpg',
         #'black_friday',
@@ -244,20 +251,20 @@ if __name__ == "__main__":
         #'titanic',
         #"lymphography",
         #'boston_housing',
-        "seeds",
+        #"seeds",
 
         # Remove
         # 'iris',
         # 'balance_scale',
         # "kr_vs_kp",
     ]
-    tree_types = ["Majority", "MIA", "Weighted", "Trinary"]
+    tree_types = ['Majority','MIA','Weighted','Trinary','TrinaryMia']
     seed_missingness = 10
     seed_fold_split = 11
-    ps = np.arange(10) / 10
+    ps = np.arange(10)/10
     n_folds = 10
     min_samples_leaf = 20
-    max_max_depth = 10
+    max_max_depth = 5
     missing_set = 'all'
 
     losses = calculate_loss_for_files(
