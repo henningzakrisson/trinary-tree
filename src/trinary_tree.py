@@ -102,8 +102,8 @@ class TrinaryTree:
         else:
             self.response_type = "float"
 
-        self.loss = calculate_loss(y = y, y_hat = self.y_hat, y_prob = self.y_prob)
-        self.loss_true = calculate_loss(y = y_true, y_hat = self.y_hat, y_prob = self.y_prob)
+        self.loss = calculate_loss(y=y, y_hat=self.y_hat, y_prob=self.y_prob)
+        self.loss_true = calculate_loss(y=y_true, y_hat=self.y_hat, y_prob=self.y_prob)
 
         # Check pruning conditions
         if check_terminal_node(self):
@@ -206,7 +206,7 @@ class TrinaryTree:
         loss_left_weighted = calculate_loss(y=y.loc[index_left]) * sum(index_left)
         loss_right_weighted = calculate_loss(y=y.loc[index_right]) * sum(index_right)
         loss_middle_weighted = calculate_loss(
-            y=y.loc[index_middle], y_hat=self.y_hat, y_prob = self.y_prob
+            y=y.loc[index_middle], y_hat=self.y_hat, y_prob=self.y_prob
         ) * sum(index_middle)
         return (
             loss_left_weighted + loss_right_weighted + loss_middle_weighted
@@ -364,7 +364,9 @@ class TrinaryTree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    folder_path = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_data"
+    folder_path = (
+        "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_data"
+    )
 
     df_train = pd.read_csv(
         f"{folder_path}/train_data_trinary.csv",
