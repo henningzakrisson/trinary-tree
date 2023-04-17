@@ -243,8 +243,8 @@ if __name__ == "__main__":
         "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/data/results"
     )
     data_sets = [
-        #"auto_mpg",
-        "cement",
+        # "auto_mpg",
+        #"cement",
         "black_friday",
         "boston_housing"
         # Regression
