@@ -25,7 +25,7 @@ from src.common.functions import (
 )
 
 
-class TrinaryTree:
+class TrinaryMiaTree:
     """Module for classification and regression trees with third-node handling of missing values
 
     The missing test_data strategy creates a third node for missing values, which inherits test_data and output from mother node
@@ -111,7 +111,7 @@ class TrinaryTree:
             return
 
         # Find splitting parameters
-        self.feature, self.splitter = self._find_split(X, y)
+        self.feature, self.splitter, self.default_split = self._find_split(X, y)
 
         if self.feature is None:
             self.left, self.middle, self.right = None, None, None
@@ -119,9 +119,13 @@ class TrinaryTree:
 
         self.feature_type = "float" if X[self.feature].dtype == "float" else "object"
 
-        index_left, index_right = get_indices(X[self.feature], self.splitter)
+        index_left, index_right = get_indices(
+            x=X[self.feature], splitter=self.splitter, default_split=self.default_split
+        )
         index_left_true, index_right_true = get_indices(
-            X_true[self.feature], self.splitter
+            x=X_true[self.feature],
+            splitter=self.splitter,
+            default_split=self.default_split,
         )
         index_middle_true = (~index_left_true) & (~index_right_true)
 
@@ -139,15 +143,15 @@ class TrinaryTree:
             X_true=X_true.loc[index_right_true],
             y_true=y_true.loc[index_right_true],
         )
-
-        X_middle = X.copy()
-        X_middle[self.feature] = np.nan
-        self.middle.fit(
-            X_middle,
-            y,
-            X_true=X_true.loc[index_middle_true],
-            y_true=y_true.loc[index_middle_true],
-        )
+        if self.default_split == "middle":
+            X_middle = X.copy()
+            X_middle[self.feature] = np.nan
+            self.middle.fit(
+                X_middle,
+                y,
+                X_true=X_true.loc[index_middle_true],
+                y_true=y_true.loc[index_middle_true],
+            )
 
         self.node_importance = self._calculate_importance()
 
@@ -161,10 +165,11 @@ class TrinaryTree:
         Returns:
             best_feature: feature to split by for minimum loss
             best_splitter: threshold or left-category-set to split feature by for minimum loss
+            best_default split: node to send missing values to
         """
         # Initiate here in order to not grow more if this loss is not beaten
         loss_best = self.loss
-        best_feature, best_splitter = None, None
+        best_feature, best_splitter, best_default_split = None, None, None
 
         features = [
             feature for feature in X.columns if X[feature].isna().sum() < len(X)
@@ -172,17 +177,37 @@ class TrinaryTree:
         for feature in features:
             splitters = get_splitter_candidates(X[feature])
             for splitter in splitters:
-                loss = self._calculate_split_loss(X, y, feature, splitter)
-                if loss < loss_best:
-                    loss_best = loss
-                    best_feature, best_splitter = (
-                        feature,
-                        splitter,
+                default_splits = self._get_default_split_candidates(X, feature)
+                for default_split in default_splits:
+                    loss = self._calculate_split_loss(
+                        X, y, feature, splitter, default_split
                     )
+                    if loss < loss_best:
+                        loss_best = loss
+                        best_feature, best_splitter, best_default_split = (
+                            feature,
+                            splitter,
+                            default_split,
+                        )
 
-        return best_feature, best_splitter
+        return best_feature, best_splitter, best_default_split
 
-    def _calculate_split_loss(self, X, y, feature, splitter):
+    def _get_default_split_candidates(self, X, feature):
+        """Get default split candidates given the rule, covariates and features
+
+        Args:
+            X: covariate vector
+            feature: feature to split on
+
+        Return:
+            list of 'left' or 'right' or 'middle' elements
+        """
+        if X[feature].isna().sum() == 0:
+            return ["middle"]
+        else:
+            return ["left", "middle", "right"]
+
+    def _calculate_split_loss(self, X, y, feature, splitter, default_split):
         """Calculates the sum of squared errors for this split
 
         Args:
@@ -194,7 +219,7 @@ class TrinaryTree:
         Returns:
             Total loss of this split for all daughter nodes
         """
-        index_left, index_right = get_indices(X[feature], splitter)
+        index_left, index_right = get_indices(X[feature], splitter, default_split)
         index_middle = (~index_left) & (~index_right)
 
         # To avoid hyperparameter-illegal splits
@@ -218,19 +243,22 @@ class TrinaryTree:
         Return:
             tuple of three Trees. The one in the middle is None for non-trinary trees.
         """
-        left = TrinaryTree(
+        left = TrinaryMiaTree(
             min_samples_leaf=self.min_samples_leaf,
             max_depth=self.max_depth,
             depth=self.depth + 1,
             categories=self.categories,
         )
-        middle = TrinaryTree(
-            min_samples_leaf=self.min_samples_leaf,
-            max_depth=self.max_depth,
-            depth=self.depth,
-            categories=self.categories,
-        )
-        right = TrinaryTree(
+        if self.default_split == "middle":
+            middle = TrinaryMiaTree(
+                min_samples_leaf=self.min_samples_leaf,
+                max_depth=self.max_depth,
+                depth=self.depth,
+                categories=self.categories,
+            )
+        else:
+            middle = None
+        right = TrinaryMiaTree(
             min_samples_leaf=self.min_samples_leaf,
             max_depth=self.max_depth,
             depth=self.depth + 1,
@@ -248,15 +276,25 @@ class TrinaryTree:
         if self.n_true == 0:
             importance = 0
         else:
-            importance = (
-                self.loss_true
-                - (
-                    self.left.n_true * self.left.loss_true
-                    + self.middle.n_true * self.middle.loss_true
-                    + self.right.n_true * self.right.loss_true
+            if self.default_split == "middle":
+                importance = (
+                    self.loss_true
+                    - (
+                        self.left.n_true * self.left.loss_true
+                        + self.middle.n_true * self.middle.loss_true
+                        + self.right.n_true * self.right.loss_true
+                    )
+                    / self.n_true
                 )
-                / self.n_true
-            )
+            else:
+                importance = (
+                    self.loss_true
+                    - (
+                        self.left.n_true * self.left.loss_true
+                        + self.right.n_true * self.right.loss_true
+                    )
+                    / self.n_true
+                )
 
         return importance
 
@@ -278,9 +316,10 @@ class TrinaryTree:
             node_importances = self.right._get_node_importances(
                 node_importances=node_importances
             )
-            node_importances = self.middle._get_node_importances(
-                node_importances=node_importances
-            )
+            if self.default_split == "middle":
+                node_importances = self.middle._get_node_importances(
+                    node_importances=node_importances
+                )
         return node_importances
 
     def predict(self, X, prob=False):
@@ -302,27 +341,37 @@ class TrinaryTree:
                 for category in self.categories:
                     y_prob[category] = self.y_prob[category]
             else:
-                index_left, index_right = get_indices(X[self.feature], self.splitter)
+                index_left, index_right = get_indices(
+                    x=X[self.feature],
+                    splitter=self.splitter,
+                    default_split=self.default_split,
+                )
                 index_middle = (~index_left) & (~index_right)
                 y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
                 y_prob.loc[index_right] = self.right.predict(
                     X.loc[index_right], prob=True
                 )
-                y_prob.loc[index_middle] = self.middle.predict(
-                    X.loc[index_middle], prob=True
-                )
+                if self.default_split == "middle":
+                    y_prob.loc[index_middle] = self.middle.predict(
+                        X.loc[index_middle], prob=True
+                    )
 
         else:
             y_hat = pd.Series(index=X.index, dtype=self.response_type)
             if self.left is None:
                 y_hat.loc[:] = self.y_hat
             else:
-                index_left, index_right = get_indices(X[self.feature], self.splitter)
+                index_left, index_right = get_indices(
+                    x=X[self.feature],
+                    splitter=self.splitter,
+                    default_split=self.default_split,
+                )
                 index_middle = (~index_left) & (~index_right)
 
                 y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
                 y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
-                y_hat.loc[index_middle] = self.middle.predict(X.loc[index_middle])
+                if self.default_split == "middle":
+                    y_hat.loc[index_middle] = self.middle.predict(X.loc[index_middle])
 
         if prob:
             return y_prob
@@ -352,12 +401,17 @@ class TrinaryTree:
                 right_rule = f"if {self.feature} is " + ", ".join(
                     self.splitter["right"]
                 )
-            middle_rule = f"if {self.feature} n/a"
+            if self.default_split == "left":
+                left_rule += " or n/a"
+            elif self.default_split == "right":
+                right_rule += " or n/a"
 
             print(hspace + f"{left_rule}:")
             self.left.print()
-            print(hspace + f"{middle_rule}:")
-            self.middle.print()
+            if self.default_split == "middle":
+                middle_rule = f"if {self.feature} n/a"
+                print(hspace + f"{middle_rule}:")
+                self.middle.print()
             print(hspace + f"{right_rule}:")
             self.right.print()
 
@@ -383,7 +437,7 @@ if __name__ == "__main__":
         index_col=0,
     )
 
-    tree = TrinaryTree(max_depth=2)
+    tree = TrinaryMiaTree(max_depth=2)
     tree.fit(df_train[["X_0", "X_1"]], df_train["y"])
 
     df_test["y_hat"] = tree.predict(df_test[["X_0", "X_1"]])

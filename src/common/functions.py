@@ -7,7 +7,7 @@ from src.common.custom_exceptions import MissingValuesInResponse
 from src.common.custom_warnings import MissingFeatureWarning, ExtraFeatureWarning
 
 
-def fix_datatypes(X, y=None, w = None):
+def fix_datatypes(X, y=None, w=None):
     """Make sure datasets are pandas DataFrames and Series"""
     X = pd.DataFrame(X).copy() if isinstance(X, np.ndarray) else X.copy()
     for feature in X:
@@ -29,26 +29,29 @@ def fix_datatypes(X, y=None, w = None):
     return X, y, w
 
 
-def fit_response(y, categories=None, w = None):
+def fit_response(y, categories=None, w=None):
     """Get the response estimate given this set of responses"""
 
     if w is None:
-        w = pd.Series(index = y.index, dtype = float)
+        w = pd.Series(index=y.index, dtype=float)
         w.loc[:] = 1
 
-    if y.dtype == "float" or y.dtype == 'int':
-        y_hat = (w*y).sum()/w.sum()
+    if y.dtype == "float" or y.dtype == "int":
+        y_hat = (w * y).sum() / w.sum()
         y_prob = {}
         categories = None
     else:
         if categories is None:
             categories = list(y.unique())
-        y_prob = {category: sum((y==category)*w)/sum(w) for category in categories}
+        y_prob = {
+            category: sum((y == category) * w) / sum(w) for category in categories
+        }
         y_hat = max(y_prob, key=y_prob.get)
 
     return y_hat, y_prob, categories
 
-def calculate_loss(y, y_hat=None, y_prob = None, w = None):
+
+def calculate_loss(y, y_hat=None, y_prob=None, w=None):
     """Calculate the loss of the response set
 
     Gini if classification problem, sse if regression
@@ -65,26 +68,28 @@ def calculate_loss(y, y_hat=None, y_prob = None, w = None):
         return 0
 
     if w is None:
-        w = pd.Series(index = y.index, dtype = float)
+        w = pd.Series(index=y.index, dtype=float)
         w.loc[:] = 1
 
-    if y.dtype == 'float' or y.dtype == 'int':
+    if y.dtype == "float" or y.dtype == "int":
         if y_hat is None:
-            y_hat,_,_ = fit_response(y, w = w)
-        return calculate_mse(y, y_hat = y_hat, w = w)
+            y_hat, _, _ = fit_response(y, w=w)
+        return calculate_mse(y, y_hat=y_hat, w=w)
     else:
         if y_prob is None:
-            _,y_prob,_ = fit_response(y, w=w)
-        return calculate_xe(y, y_prob = y_prob, w = w)
+            _, y_prob, _ = fit_response(y, w=w)
+        return calculate_xe(y, y_prob=y_prob, w=w)
+
 
 def calculate_mse(y, y_hat, w):
-    """ Calculate mean squared error"""
+    """Calculate mean squared error"""
     return (w * (y - y_hat).pow(2)).sum() / w.sum()
+
 
 def calculate_xe(y, y_prob, w):
     """Calculate cross entropy"""
     eps = 1e-30
-    if isinstance(y_prob,dict):
+    if isinstance(y_prob, dict):
         # This is for one probability prediction (a dict)
         ps = y.replace(y_prob)
         xes = -w * np.log(ps + eps)
@@ -95,9 +100,11 @@ def calculate_xe(y, y_prob, w):
         xes = -w * np.log(ps + eps)
     return sum(xes)
 
+
 def check_terminal_node(tree):
     """ " Check if pruning conditions are fulfilled"""
     return (tree.depth >= tree.max_depth) or (tree.n <= tree.min_samples_leaf)
+
 
 def get_splitter_candidates(x):
     """Get potential candidates for splitters
@@ -143,9 +150,9 @@ def get_indices(x, splitter, default_split="none"):
         index_left = x.isin(splitter["left"])
         index_right = x.isin(splitter["right"])
     if default_split == "left":
-        index_left |= (~index_left & ~index_right)
+        index_left |= ~index_left & ~index_right
     elif default_split == "right":
-        index_right |= (~index_left & ~index_right)
+        index_right |= ~index_left & ~index_right
 
     return index_left, index_right
 
@@ -163,7 +170,7 @@ def get_feature_importance(tree):
         feature: sum(node_importances[feature]) for feature in node_importances
     }
     if sum(total_importances.values()) == 0:
-        feature_importances = {feature:0 for feature in node_importances}
+        feature_importances = {feature: 0 for feature in node_importances}
     else:
         feature_importances = {
             feature: total_importances[feature] / sum(total_importances.values())

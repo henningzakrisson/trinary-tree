@@ -6,6 +6,7 @@ import logging
 
 from src.binary_tree import BinaryTree
 from src.trinary_tree import TrinaryTree
+from src.trinary_mia_tree import TrinaryMiaTree
 from src.weighted_tree import WeightedTree
 from src.common.functions import calculate_loss
 from sklearn.model_selection import StratifiedKFold, KFold
@@ -82,8 +83,11 @@ def setup_equal_trees(max_depth=None, min_samples_leaf=None, tree_types="all"):
         "MIA": BinaryTree(
             max_depth=max_depth, min_samples_leaf=min_samples_leaf, missing_rule="mia"
         ),
-        "Trinary": TrinaryTree(max_depth=max_depth, min_samples_leaf=min_samples_leaf),
         "Weighted": WeightedTree(
+            max_depth=max_depth, min_samples_leaf=min_samples_leaf
+        ),
+        "Trinary": TrinaryTree(max_depth=max_depth, min_samples_leaf=min_samples_leaf),
+        "TrinaryMia": TrinaryMiaTree(
             max_depth=max_depth, min_samples_leaf=min_samples_leaf
         ),
     }
@@ -96,16 +100,18 @@ def setup_equal_trees(max_depth=None, min_samples_leaf=None, tree_types="all"):
 
 def calculate_missing_cvs_loss(missing_folds, trees, missing_set):
     losses = pd.DataFrame(index=missing_folds.keys(), columns=trees.keys(), dtype=float)
-    if missing_set == 'test':
+    if missing_set == "test":
         fitted_trees = fit_non_missing_trees(missing_folds[0], trees)
 
     for p in missing_folds:
         logging.info(f"Calculating loss with missingness = {p}")
         for tree_type in trees:
             logging.info(f"Calculating loss for {tree_type.lower()} tree")
-            if missing_set == 'test':
+            if missing_set == "test":
                 losses.loc[p, tree_type] = calculate_cv_loss(
-                    missing_folds[p], trees[tree_type], fitted_trees = fitted_trees[tree_type]
+                    missing_folds[p],
+                    trees[tree_type],
+                    fitted_trees=fitted_trees[tree_type],
                 )
             else:
                 losses.loc[p, tree_type] = calculate_cv_loss(
@@ -113,6 +119,7 @@ def calculate_missing_cvs_loss(missing_folds, trees, missing_set):
                 )
 
     return losses
+
 
 def fit_non_missing_trees(folds, trees):
     fitted_trees = {}
@@ -129,7 +136,7 @@ def fit_non_missing_trees(folds, trees):
     return fitted_trees
 
 
-def calculate_cv_loss(folds, tree, fitted_trees = None):
+def calculate_cv_loss(folds, tree, fitted_trees=None):
     y = pd.concat([folds[fold]["Test"][1] for fold in folds]).sort_index()
     if y.dtype == "object":
         y_prob = pd.DataFrame(columns=y.unique(), index=y.index, dtype="float")
@@ -167,7 +174,7 @@ def calculate_dataset_missing_losses(
     min_samples_leaf,
     max_max_depth,
     tree_types,
-    missing_set
+    missing_set,
 ):
     logging.info(f"Pre-processing {data_set} data")
     X = pd.read_csv(f"{data_folder}/{data_set}.csv", index_col=0)
@@ -202,7 +209,7 @@ def calculate_loss_for_files(
     max_max_depth,
     tree_types,
     output_data_folder=None,
-    missing_set = 'all'
+    missing_set="all",
 ):
     log_folder = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/logs"
     logging.basicConfig(level=logging.INFO)
@@ -218,10 +225,12 @@ def calculate_loss_for_files(
             min_samples_leaf,
             max_max_depth,
             tree_types,
-            missing_set = missing_set
+            missing_set=missing_set,
         )
         if output_data_folder is not None:
-            losses[data_set].to_csv(f"{output_data_folder}/missing_{missing_set}/cv_results_{data_set}.csv")
+            losses[data_set].to_csv(
+                f"{output_data_folder}/missing_{missing_set}/cv_results_{data_set}.csv"
+            )
     return pd.concat(losses, names=["data_set", "missingness"])
 
 
@@ -234,31 +243,33 @@ if __name__ == "__main__":
         "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/data/results"
     )
     data_sets = [
+        # "auto_mpg",
+        #"cement",
+        "black_friday",
+        "boston_housing"
         # Regression
         #'auto_mpg',
         #'black_friday',
         #'cement',
-        #"life_expectancy",
-
+        # "life_expectancy",
         # Classification
         #'titanic',
-        #"lymphography",
+        # "lymphography",
         #'boston_housing',
-        "seeds",
-
+        # "seeds",
         # Remove
         # 'iris',
         # 'balance_scale',
         # "kr_vs_kp",
     ]
-    tree_types = ["Majority", "MIA", "Weighted", "Trinary"]
+    tree_types = ["Majority", "MIA", "Weighted", "Trinary", "TrinaryMia"]
     seed_missingness = 10
     seed_fold_split = 11
     ps = np.arange(10) / 10
     n_folds = 10
     min_samples_leaf = 20
-    max_max_depth = 10
-    missing_set = 'all'
+    max_max_depth = 5
+    missing_set = "all"
 
     losses = calculate_loss_for_files(
         data_sets=data_sets,
@@ -271,5 +282,5 @@ if __name__ == "__main__":
         max_max_depth=max_max_depth,
         tree_types=tree_types,
         output_data_folder=output_data_folder,
-        missing_set=missing_set
+        missing_set=missing_set,
     )
