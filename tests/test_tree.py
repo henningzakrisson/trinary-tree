@@ -1,18 +1,14 @@
 import unittest
 import pandas as pd
 import numpy as np
-import warnings
-from src.trinary_tree import TrinaryTree
-from src.binary_tree import BinaryTree
-from src.weighted_tree import WeightedTree
+from src.trees import TrinaryTree, BinaryTree, WeightedTree
 
-from src.common.custom_warnings import (
+from src.trees.utils import (
     MissingFeatureWarning,
     ExtraFeatureWarning,
 )
 
-from src.common.functions import get_feature_importance
-
+from src.trees.utils import get_feature_importance
 
 class TreeTest(unittest.TestCase):
     """Module to test the functionality of the regression trees"""

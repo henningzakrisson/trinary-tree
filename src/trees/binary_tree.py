@@ -1,16 +1,8 @@
-import itertools
-import warnings
 import pandas as pd
 import numpy as np
-from src.common.custom_exceptions import (
-    MissingValuesInResponse,
+from typing import Union, List, Tuple, Dict
+from src.trees.utils import (
     CantPrintUnfittedTree,
-)
-from src.common.custom_warnings import (
-    MissingFeatureWarning,
-    ExtraFeatureWarning,
-)
-from src.common.functions import (
     fix_datatypes,
     fit_response,
     calculate_loss,
@@ -32,23 +24,19 @@ class BinaryTree:
 
     def __init__(
         self,
-        min_samples_leaf=20,
-        max_depth=2,
-        depth=0,
-        categories=None,
-        missing_rule="majority",
+        min_samples_leaf: int = 20,
+        max_depth: int = 2,
+        depth: int = 0,
+        categories: Union[None, List[str]] = None,
+        missing_rule: str = "majority",
     ):
-        """Initiate the tree
+        """Initialize the tree. Will be called recursively to create daughter nodes.
 
-        Args:
-            min_samples_leaf: number of datapoints as minimum to allow for daughter nodes (-1)
-            max_depth: number of levels allowed in the tree
-            depth: current depth. root node has depth 0
-            missing_rule: strategy to handle missing values
-            categories: Possible values of response - learnt from original dataset
-
-        Returns:
-            Tree object (which is a node. Can be a root node, a daughter node and/or a terminal node).
+        :param min_samples_leaf: Minimum number of samples in a leaf node
+        :param max_depth: Maximum depth of the tree
+        :param depth: Current depth of the tree
+        :param categories: Categories of the response variable. None if regression.
+        :param missing_rule: Missing test_data strategy. Either "majority" or "mia"
         """
         self.min_samples_leaf = min_samples_leaf
         self.max_depth = max_depth
@@ -69,21 +57,14 @@ class BinaryTree:
         self.right = None
         self.node_importance = 0
 
-    def fit(self, X, y):
-        """Recursive method to fit the decision tree.
+    def fit(self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray]):
+        """Recursive method to fit the decision tree. Will call itself to create daughter nodes if applicable.
 
-        Will call itself to create daughter nodes if applicable.
-
-        Args:
-            X: covariate vector (n x p). numpy array or pandas DataFrame.
-            y: response vector (n x 1). numpy array or pandas Series.
-
-        Raises:
-            MissingValuesInResponse: Can not fit to missing categories, thus errors out
+        :param X: Training features
+        :param y: Training response
         """
         X, y, _ = fix_datatypes(X, y)
         self.features = X.columns
-
         self.n = len(y)
 
         self.y_hat, self.y_prob, self.categories = fit_response(y, self.categories)
@@ -119,17 +100,13 @@ class BinaryTree:
 
         self.node_importance = self._calculate_importance()
 
-    def _find_split(self, X, y) -> tuple:
-        """Calculate the best split for a decision tree
+    def _find_split(self, X: pd.DataFrame, y: pd.Series):
+        """Calculate the best split for a decision tree.
 
-        Args:
-            X: Covariates to choose from
-            y: response to fit nodes to
+        :param X: Training features
+        :param y: Training response
 
-        Returns:
-            best_feature: feature to split by for minimum loss
-            best_splitter: threshold or left-category-set to split feature by for minimum loss
-            best_default split: node to send missing values to
+        :return: Best feature, best splitter, best default split
         """
         # Initiate here in order to not grow more if this loss is not beaten
         loss_best = self.loss
@@ -158,16 +135,14 @@ class BinaryTree:
 
         return best_feature, best_splitter, best_default_split
 
-    def _get_default_split_candidates(self, X, feature, splitter):
+    def _get_default_split_candidates(
+        self, X, feature, splitter
+    ):
         """Get default split candidates given the rule, covariates and features
 
-        Args:
-            X: covariate vector
-            feature: feature to split on
-            splitter: threshold or sets
-
-        Return:
-            list of 'left' or 'right' depending on which node gets the most test_data
+        :param X: Training features
+        :param feature: Feature to split on
+        :param splitter: Splitter to split with
         """
         if (self.missing_rule == "majority") or (
             (self.missing_rule == "mia") & (X[feature].isna().sum() == 0)
@@ -188,18 +163,20 @@ class BinaryTree:
         else:  # mia strategy
             return ["left", "right"]
 
-    def _calculate_split_loss(self, X, y, feature, splitter, default_split):
+    def _calculate_split_loss(self, X: pd.DataFrame,
+                              y: pd.Series,
+                              feature: str,
+                              splitter: Union[float, Dict[str: str]],
+                              default_split: str) -> float:
         """Calculates the sum of squared errors for this split
 
-        Args:
-            X: covariate vector
-            y: response vector
-            feature: feature of X to split test_data on
-            splitter: threshold or set of categories that will go to the left node
-            default_split: node to put missing values in
+        :param X: Training features
+        :param y: Training response
+        :param feature: Feature to split on
+        :param splitter: Splitter to split with
+        :param default_split: Default split to use if missing_rule is mia
 
-        Returns:
-            Total loss of this split for all daughter nodes
+        :return: loss for this split
         """
         index_left, index_right = get_indices(X[feature], splitter, default_split)
 
@@ -214,11 +191,10 @@ class BinaryTree:
 
         return (loss_left_weighted + loss_right_weighted) / self.n
 
-    def _initiate_daughter_nodes(self):
+    def _initiate_daughter_nodes(self) -> Tuple[Tree, Tree]:
         """Create daughter nodes
 
-        Return:
-            tuple of three Trees. The one in the middle is None for non-trinary trees.
+        :return: Tuple of left and right daughter nodes
         """
         left = BinaryTree(
             min_samples_leaf=self.min_samples_leaf,
@@ -240,8 +216,7 @@ class BinaryTree:
     def _calculate_importance(self):
         """ "Calculate node importance for the split in this node
 
-        Return:
-            Node importance as a float
+        :return: node importance
         """
         # If no values of the training test_data actually end up here it is of no importance
         if self.n == 0:
@@ -253,14 +228,12 @@ class BinaryTree:
                 / self.n
             )
 
-    def _get_node_importances(self, node_importances):
+    def _get_node_importances(self, node_importances: Dict[str, List]):
         """Get node importances for this node and all its daughters
 
-        Args:
-            node_importances: dict with keys corresponding to feature and values corresponding to their node importances.
+        :param node_importances: Dictionary of previous node importances
 
-        Return:
-            dict with keys corresponding to feature and values corresponding to their feature importances.
+        :return: Updated dictionary of node importances
         """
         if self.feature is not None:
             node_importances[self.feature].append(self.node_importance)
@@ -273,15 +246,14 @@ class BinaryTree:
             )
         return node_importances
 
-    def predict(self, X, prob=False):
+    def predict(self, X: Union[np.ndarray, pd.DataFrame],
+                prob: bool=False):
         """Recursive method to predict from new of features
 
-        Args:
-            Covariate vector X (m x p) of same secondary dimension as training covariate vector
-            prob: True if predict probabilities rather than responses
+        :param X: Features to predict from
+        :param prob: Whether to return category probabilities or response estimates
 
-        Returns:
-            response predictions y_hat as a pandas Series. DataFrame if probabilities.
+        :return: Predictions
         """
         X, _, _ = fix_datatypes(X)
         X = check_features(X, self.features)

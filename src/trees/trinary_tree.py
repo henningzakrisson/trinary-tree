@@ -1,19 +1,8 @@
-import itertools
-import warnings
 import pandas as pd
 import numpy as np
-import warnings
 
-from src.common.custom_exceptions import (
-    MissingValuesInResponse,
+from src.trees.utils import (
     CantPrintUnfittedTree,
-)
-from src.common.custom_warnings import (
-    MissingFeatureWarning,
-    ExtraFeatureWarning,
-)
-
-from src.common.functions import (
     fix_datatypes,
     fit_response,
     calculate_loss,
@@ -33,22 +22,17 @@ class TrinaryTree:
 
     def __init__(
         self,
-        min_samples_leaf=20,
-        max_depth=2,
-        depth=0,
-        categories=None,
+        min_samples_leaf: int = 20,
+        max_depth: int = 2,
+        depth: int = 0,
+        categories: Union[None, List[str]] = None,
     ):
         """Initiate the tree
 
-        Args:
-            min_samples_leaf: number of datapoints as minimum to allow for daughter nodes (-1)
-            max_depth: number of levels allowed in the tree
-            depth: current depth. root node has depth 0
-            missing_rule: strategy to handle missing values
-            categories: Possible values of response - learnt from original dataset
-
-        Returns:
-            Tree object (which is a node. Can be a root node, a daughter node and/or a terminal node).
+        :param min_samples_leaf: Minimum number of observations in a leaf node
+        :param max_depth: Maximum depth of the tree
+        :param depth: Current depth of the tree
+        :param categories: Categories in the response variable. None if regression
         """
         self.min_samples_leaf = min_samples_leaf
         self.max_depth = max_depth
@@ -71,21 +55,15 @@ class TrinaryTree:
         self.loss_true = None
         self.middle = None
 
-    def fit(self, X, y, X_true=None, y_true=None):
-        """Recursive method to fit the decision tree.
+    def fit(self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray],
+            X_true: Union[pd.DataFrame, np.ndarray] = None,
+            y_true: Union[pd.Series, np.ndarray] = None):
+        """Recursive method to fit the decision tree. Will call itself to create daughter nodes if applicable.
 
-        Will call itself to create daughter nodes if applicable.
-
-        Args:
-            X: covariate vector (n x p). numpy array or pandas DataFrame.
-            y: response vector (n x 1). numpy array or pandas Series.
-            X_true: covariate vector (n x p) of test_data that ends up in this node
-            during training.
-            y_true: response vector (n x 1) of test_data that ends up in this node
-            during training.
-
-        Raises:
-            MissingValuesInResponse: Can not fit to missing categories, thus errors out
+        :param X: Covariates to fit nodes to
+        :param y: Response to fit nodes to
+        :param X_true: Covariates that actually ended up in this node during training
+        :param y_true: Response that actually ended up in this node during training
         """
         X, y, _ = fix_datatypes(X, y)
         if X_true is None and y_true is None:
@@ -151,16 +129,12 @@ class TrinaryTree:
 
         self.node_importance = self._calculate_importance()
 
-    def _find_split(self, X, y) -> tuple:
+    def _find_split(self, X: pd.DataFrame, y: pd.Series) -> Tuple[str, Union[float, Dict[str, str]]]:
         """Calculate the best split for a decision tree
 
-        Args:
-            X: Covariates to choose from
-            y: response to fit nodes to
-
-        Returns:
-            best_feature: feature to split by for minimum loss
-            best_splitter: threshold or left-category-set to split feature by for minimum loss
+        :param X: Covariates to fit nodes to
+        :param y: Response to fit nodes to
+        :return: Best feature and best splitter
         """
         # Initiate here in order to not grow more if this loss is not beaten
         loss_best = self.loss
@@ -182,17 +156,15 @@ class TrinaryTree:
 
         return best_feature, best_splitter
 
-    def _calculate_split_loss(self, X, y, feature, splitter):
+    def _calculate_split_loss(self, X: pd.DataFrame, y: pd.Series, feature: str,
+                                splitter: Union[float, Dict[str, str]]) -> float:
         """Calculates the sum of squared errors for this split
 
-        Args:
-            X: covariate vector
-            y: response vector
-            feature: feature of X to split test_data on
-            splitter: threshold or set of categories that will go to the left node
-
-        Returns:
-            Total loss of this split for all daughter nodes
+        :param X: Covariates to fit nodes to
+        :param y: Response to fit nodes to
+        :param feature: Feature to split on
+        :param splitter: Splitter to split on
+        :return: Loss for this split
         """
         index_left, index_right = get_indices(X[feature], splitter)
         index_middle = (~index_left) & (~index_right)
@@ -212,11 +184,10 @@ class TrinaryTree:
             loss_left_weighted + loss_right_weighted + loss_middle_weighted
         ) / self.n
 
-    def _initiate_daughter_nodes(self):
+    def _initiate_daughter_nodes(self) -> Tuple:
         """Create daughter nodes
 
-        Return:
-            tuple of three Trees. The one in the middle is None for non-trinary trees.
+        return: Tuple of daughter nodes
         """
         left = TrinaryTree(
             min_samples_leaf=self.min_samples_leaf,
@@ -241,8 +212,7 @@ class TrinaryTree:
     def _calculate_importance(self):
         """ "Calculate node importance for the split in this node
 
-        Return:
-            Node importance as a float
+        :return: Node importance
         """
         # If no values of the training test_data actually end up here it is of no importance
         if self.n_true == 0:
@@ -260,14 +230,11 @@ class TrinaryTree:
 
         return importance
 
-    def _get_node_importances(self, node_importances):
+    def _get_node_importances(self, node_importances: Dict[str, List[float]] = None):
         """Get node importances for this node and all its daughters
 
-        Args:
-            node_importances: dict with keys corresponding to feature and values corresponding to their node importances.
-
-        Return:
-            dict with keys corresponding to feature and values corresponding to their feature importances.
+        :param node_importances: Dictionary of node importances
+        :return: Dictionary of node importances (updated)
         """
         if self.feature is not None:
             node_importances[self.feature].append(self.node_importance)
@@ -283,15 +250,12 @@ class TrinaryTree:
             )
         return node_importances
 
-    def predict(self, X, prob=False):
+    def predict(self, X: Union[pd.DataFrame, np.ndarray], prob: bool=False) -> Union[pd.Series, pd.DataFrame]:
         """Recursive method to predict from new of features
 
-        Args:
-            Covariate vector X (m x p) of same secondary dimension as training covariate vector
-            prob: True if predict probabilities rather than responses
-
-        Returns:
-            response predictions y_hat as a pandas Series. DataFrame if probabilities.
+        :param X: Features to predict from
+        :param prob: Whether to return probabilities or response estimates
+        :return: Predictions
         """
         X, _, _ = fix_datatypes(X)
         X = check_features(X, self.features)

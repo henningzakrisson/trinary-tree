@@ -1,16 +1,7 @@
-import itertools
-import warnings
 import pandas as pd
 import numpy as np
-from src.common.custom_exceptions import (
-    MissingValuesInResponse,
+from src.trees.utils import (
     CantPrintUnfittedTree,
-)
-from src.common.custom_warnings import (
-    MissingFeatureWarning,
-    ExtraFeatureWarning,
-)
-from src.common.functions import (
     fix_datatypes,
     fit_response,
     calculate_loss,
@@ -29,22 +20,17 @@ class WeightedTree:
 
     def __init__(
         self,
-        min_samples_leaf=20,
-        max_depth=2,
-        depth=0,
-        categories=None,
+        min_samples_leaf: int = 20,
+        max_depth: int = 2,
+        depth: int = 0,
+        categories: Union[None, List[str]] = None,
     ):
         """Initiate the tree
 
-        Args:
-            min_samples_leaf: number of datapoints as minimum to allow for daughter nodes (-1)
-            max_depth: number of levels allowed in the tree
-            depth: current depth. root node has depth 0
-            missing_rule: strategy to handle missing values
-            categories: Possible values of response - learnt from original dataset
-
-        Returns:
-            Tree object (which is a node. Can be a root node, a daughter node and/or a terminal node).
+        :param min_samples_leaf: Minimum number of total weight in a leaf node
+        :param max_depth: Maximum depth of the tree
+        :param depth: Current depth of the tree
+        :param categories: Categories of the response variable
         """
         self.min_samples_leaf = min_samples_leaf
         self.max_depth = max_depth
@@ -66,18 +52,14 @@ class WeightedTree:
         self.p_right = 0
         self.node_importance = 0
 
-    def fit(self, X, y, w=None):
-        """Recursive method to fit the decision tree.
+    def fit(self, X: Union[pd.DataFrame,np.ndarray],
+            y: Union[pd.Series,np.ndarray],
+            w: Union[pd.Series,np.ndarray]=None):
+        """Recursive method to fit the decision tree. Will call itself to create daughter nodes if applicable.
 
-        Will call itself to create daughter nodes if applicable.
-
-        Args:
-            X: covariate vector (n x p). numpy array or pandas DataFrame.
-            y: response vector (n x 1). numpy array or pandas Series.
-            w: node membership weight vector (n x 1). numpy array or pandas Series.
-
-        Raises:
-            MissingValuesInResponse: Can not fit to missing categories, thus errors out
+        :param X: Training data
+        :param y: Response variable
+        :param w: Weights for each observations node membership
         """
         X, y, w = fix_datatypes(X, y, w)
         if w is None:
@@ -132,22 +114,25 @@ class WeightedTree:
 
         self.node_importance = self._calculate_importance()
 
-    def _get_split_probabilities(self, index_left, index_right):
+    def _get_split_probabilities(self, index_left: pd.Index, index_right: pd.Index) -> Tuple[float, float]:
+        """Calculate the probability of a node belonging to the left or right daughter node
+
+        :param index_left: Boolean array of which observations belong to the left daughter node
+        :param index_right: Boolean array of which observations belong to the right daughter node
+        :return: Probability of belonging to the left daughter node, probability of belonging to the right daughter node
+        """
         n_left, n_right = index_left.sum(), index_right.sum()
         p_left, p_right = n_left / (n_left + n_right), n_right / (n_left + n_right)
         return p_left, p_right
 
-    def _find_split(self, X, y, w) -> tuple:
+    def _find_split(self, X: pd.DataFrame, y: pd.Series, w: pd.Series) -> Tuple[str, Union[float, Dict[str, str]]]:
         """Calculate the best split for a decision tree
 
-        Args:
-            X: Covariates to choose from
-            y: response to fit nodes to
-            w: node weights
+        :param X: Covariate vector
+        :param y: Response vector
+        :param w: Weights for each observations node membership
 
-        Returns:
-            best_feature: feature to split by for minimum loss
-            best_splitter: threshold or left-category-set to split feature by for minimum loss
+        :return: Best feature to split on, best split value
         """
         # Initiate here in order to not grow more if this loss is not beaten
         loss_best = self.loss
@@ -169,18 +154,15 @@ class WeightedTree:
 
         return best_feature, best_splitter
 
-    def _calculate_split_loss(self, X, y, w, feature, splitter):
-        """Calculates the sum of squared errors for this split
+    def _calculate_split_loss(self,X: pd.DataFrame, y: pd.Series, w: pd.Series, feature: str, splitter: Union[float, Dict[str, str]]) -> float:
+        """Calculates the loss
 
-        Args:
-            X: covariate vector
-            y: response vector
-            w: node weights
-            feature: feature of X to split test_data on
-            splitter: threshold or set of categories that will go to the left node
-
-        Returns:
-            Total loss of this split for all daughter nodes
+        :param X: Covariate vector
+        :param y: Response vector
+        :param w: Weights for each observations node membership
+        :param feature: Feature to split on
+        :param splitter: Split threshold or category split
+        :return: loss
         """
         index_left, index_right = get_indices(X[feature], splitter)
         p_left, p_right = self._get_split_probabilities(index_left, index_right)
@@ -209,10 +191,9 @@ class WeightedTree:
         return (loss_left_weighted + loss_right_weighted) / self.n
 
     def _initiate_daughter_nodes(self):
-        """Create daughter nodes
+        """Create daughter nodes.
 
-        Return:
-            tuple of two Trees. The one in the middle is None for non-trinary trees.
+        :return: Left and right daughter nodes
         """
         left = WeightedTree(
             min_samples_leaf=self.min_samples_leaf,
@@ -229,11 +210,10 @@ class WeightedTree:
 
         return left, right
 
-    def _calculate_importance(self):
+    def _calculate_importance(self) -> float:
         """ "Calculate node importance for the split in this node
 
-        Return:
-            Node importance as a float
+        :return: Node importance
         """
         # If no values of the training test_data actually end up here it is of no importance
         if self.n == 0:
@@ -246,14 +226,11 @@ class WeightedTree:
             )
         return importance
 
-    def _get_node_importances(self, node_importances):
+    def _get_node_importances(self, node_importances: Dict[str, List[float]] = None) -> Dict[str, List[float]]:
         """Get node importances for this node and all its daughters
 
-        Args:
-            node_importances: dict with keys corresponding to feature and values corresponding to their node importances.
-
-        Return:
-            dict with keys corresponding to feature and values corresponding to their feature importances.
+        :param node_importances: Dictionary of node importances
+        :return: Dictionary of node importances
         """
         if self.feature is not None:
             node_importances[self.feature].append(self.node_importance)
@@ -266,15 +243,13 @@ class WeightedTree:
             )
         return node_importances
 
-    def predict(self, X, prob=False):
+    def predict(self, X: Union[pd.DataFrame, np.ndarray], prob: bool=False) -> Union[pd.DataFrame, np.ndarray]:
         """Recursive method to predict from new of features
 
-        Args:
-            Covariate vector X (m x p) of same secondary dimension as training covariate vector
-            prob: True if predict probabilities rather than responses
+        :param X: Covariate vector
+        :param prob: Whether to return probabilities or response estimates
 
-        Returns:
-            response predictions y_hat as a pandas Series. DataFrame if probabilities.
+        :return: Predictions
         """
         X, _, _ = fix_datatypes(X)
         X = check_features(X, self.features)
@@ -346,7 +321,6 @@ class WeightedTree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    from src.common.functions import get_feature_importance
 
     folder_path = "/tests/test_data"
     df_train = pd.read_csv(f"{folder_path}/train_data_weighted_cat.csv", index_col=0)
