@@ -12,13 +12,13 @@ from src.common.functions import calculate_loss
 from sklearn.model_selection import StratifiedKFold, KFold
 
 
-def create_missing_Xs(X, ps, seed=None):
+def create_MCAR_Xs(X, ps, seed=None):
     """
     Takes a pandas DataFrame X and a list of probabilities ps, and returns a dictionary
     of modified versions of X, with values randomly set to NaN based on the corresponding
     probabilities in ps.
     """
-    rng = np.random.default_rng(seed) if seed else np.random.default_rng()
+    rng = np.random.default_rng(seed)
     Xs = {}
     n = len(X)
 
@@ -34,6 +34,27 @@ def create_missing_Xs(X, ps, seed=None):
         Xs[p] = X.copy()
     return Xs
 
+def create_IM_Xs(X, ps, seed = None):
+    """
+    Takes a pandas DataFrame X and a list of probabilities ps, and returns a dictionary
+    of modified versions of X, with values randomly set to NaN based on the corresponding
+    probabilities in ps, with the largest values always being dropped first.
+    """
+    rng = np.random.default_rng(seed)
+    Xs = {}
+    n = len(X)
+
+    X = X.copy()
+    n_to_drop = []
+    for i, p in enumerate(ps):
+        n_to_drop += [int(p * n) - sum(n_to_drop)]
+        for j in X.columns:
+            available_to_drop = X.loc[~X[j].isna(), j].index
+            size_order = np.argsort(X.loc[available_to_drop, j])
+            to_remove = available_to_drop[size_order[:n_to_drop[i]]]
+            X.loc[to_remove, j] = np.nan
+        Xs[p] = X.copy()
+    return Xs
 
 def split_dataset_into_folds(X, y, n_folds, seed=None):
     if y.dtype == "float" or y.dtype == "int":
@@ -175,12 +196,16 @@ def calculate_dataset_missing_losses(
     max_max_depth,
     tree_types,
     missing_set,
+    missingness = 'MCAR',
 ):
     logging.info(f"Pre-processing {data_set} data")
     X = pd.read_csv(f"{data_folder}/{data_set}.csv", index_col=0)
     y = X.pop("y")
 
-    Xs = create_missing_Xs(X, ps, seed=seed_missingness)
+    if missingness == 'MCAR':
+        Xs = create_MCAR_Xs(X, ps, seed=seed_missingness)
+    elif missingness == 'IM':
+        Xs = create_IM_Xs(X, ps, seed=seed_missingness)
     missing_folds = split_missing_datasets_into_folds(
         Xs, y, n_folds, seed=seed_fold_split
     )
@@ -210,6 +235,7 @@ def calculate_loss_for_files(
     tree_types,
     output_data_folder=None,
     missing_set="all",
+    missingness='MCAR',
 ):
     log_folder = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/logs"
     logging.basicConfig(level=logging.INFO)
@@ -226,10 +252,11 @@ def calculate_loss_for_files(
             max_max_depth,
             tree_types,
             missing_set=missing_set,
+            missingness=missingness,
         )
         if output_data_folder is not None:
             losses[data_set].to_csv(
-                f"{output_data_folder}/missing_{missing_set}/cv_results_{data_set}.csv"
+                f"{output_data_folder}/{missingness}_{missing_set}/{data_set}.csv"
             )
     return pd.concat(losses, names=["data_set", "missingness"])
 
@@ -243,24 +270,14 @@ if __name__ == "__main__":
         "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/data/results"
     )
     data_sets = [
-        # "auto_mpg",
-        #"cement",
-        "black_friday",
-        "boston_housing"
-        # Regression
-        #'auto_mpg',
-        #'black_friday',
-        #'cement',
-        # "life_expectancy",
-        # Classification
-        #'titanic',
-        # "lymphography",
-        #'boston_housing',
-        # "seeds",
-        # Remove
-        # 'iris',
-        # 'balance_scale',
-        # "kr_vs_kp",
+        'titanic',
+        'auto_mpg',
+        "life_expectancy",
+        "lymphography",
+        "seeds",
+        'cement',
+        'boston_housing',
+        'black_friday',
     ]
     tree_types = ["Majority", "MIA", "Weighted", "Trinary", "TrinaryMia"]
     seed_missingness = 10
@@ -270,6 +287,7 @@ if __name__ == "__main__":
     min_samples_leaf = 20
     max_max_depth = 5
     missing_set = "all"
+    missingness = 'IM'
 
     losses = calculate_loss_for_files(
         data_sets=data_sets,
@@ -283,4 +301,5 @@ if __name__ == "__main__":
         tree_types=tree_types,
         output_data_folder=output_data_folder,
         missing_set=missing_set,
+        missingness=missingness,
     )
