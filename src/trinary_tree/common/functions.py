@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 import itertools
 import warnings
-from src.common.custom_exceptions import MissingValuesInResponse
-from src.common.custom_warnings import MissingFeatureWarning, ExtraFeatureWarning
+from src.trinary_tree.common.custom_exceptions import MissingValuesInResponse
+from src.trinary_tree.common.custom_warnings import MissingFeatureWarning, ExtraFeatureWarning
 
 
 def fix_datatypes(X, y=None, w=None):

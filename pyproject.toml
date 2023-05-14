@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "trinary_tree"
+version = "0.0.1"
+authors = [
+  { name="Henning Zakrisson", email="henning.zakrisson@gmail.com" },
+]
+description = "Package for trinary trees for missing value handling"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]

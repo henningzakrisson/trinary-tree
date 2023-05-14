@@ -2,15 +2,15 @@ import itertools
 import warnings
 import pandas as pd
 import numpy as np
-from src.common.custom_exceptions import (
+from src.trinary_tree.common.custom_exceptions import (
     MissingValuesInResponse,
     CantPrintUnfittedTree,
 )
-from src.common.custom_warnings import (
+from .common.custom_warnings import (
     MissingFeatureWarning,
     ExtraFeatureWarning,
 )
-from src.common.functions import (
+from .common.functions import (
     fix_datatypes,
     fit_response,
     calculate_loss,
@@ -21,13 +21,10 @@ from src.common.functions import (
 )
 
 
-class BinaryTree:
+class WeightedTree:
     """Module for classification and regression trees with standard handling missing test_data
 
-    The missing test_data strategies are:
-     - Majority rule: missing datapoints go to the node with the most training test_data
-     - Missing Incorporated in Attributes (MIA): missing datapoints go to the node
-      which improved the loss the most in the training test_data
+    The missing test_data points are assigned weights as to which branch to join
     """
 
     def __init__(
@@ -36,7 +33,6 @@ class BinaryTree:
         max_depth=2,
         depth=0,
         categories=None,
-        missing_rule="majority",
     ):
         """Initiate the tree
 
@@ -54,7 +50,6 @@ class BinaryTree:
         self.max_depth = max_depth
         self.depth = depth
         self.categories = categories
-        self.missing_rule = missing_rule
         self.n = 0
         self.y_hat = None
         self.y_prob = {}
@@ -67,9 +62,11 @@ class BinaryTree:
         self.default_split = None
         self.left = None
         self.right = None
+        self.p_left = 1
+        self.p_right = 0
         self.node_importance = 0
 
-    def fit(self, X, y):
+    def fit(self, X, y, w=None):
         """Recursive method to fit the decision tree.
 
         Will call itself to create daughter nodes if applicable.
@@ -77,22 +74,27 @@ class BinaryTree:
         Args:
             X: covariate vector (n x p). numpy array or pandas DataFrame.
             y: response vector (n x 1). numpy array or pandas Series.
+            w: node membership weight vector (n x 1). numpy array or pandas Series.
 
         Raises:
             MissingValuesInResponse: Can not fit to missing categories, thus errors out
         """
-        X, y, _ = fix_datatypes(X, y)
+        X, y, w = fix_datatypes(X, y, w)
+        if w is None:
+            w = pd.Series(index=y.index, dtype=float)
+            w.loc[:] = 1
+
         self.features = X.columns
 
-        self.n = len(y)
+        self.n = w.sum()
 
-        self.y_hat, self.y_prob, self.categories = fit_response(y, self.categories)
+        self.y_hat, self.y_prob, self.categories = fit_response(y, self.categories, w)
         if self.categories is not None:
             self.response_type = "object"
         else:
             self.response_type = "float"
 
-        self.loss = calculate_loss(y)
+        self.loss = calculate_loss(y=y, w=w)
 
         # Check pruning conditions
         if check_terminal_node(self):
@@ -100,7 +102,7 @@ class BinaryTree:
             return
 
         # Find splitting parameters
-        self.feature, self.splitter, self.default_split = self._find_split(X, y)
+        self.feature, self.splitter = self._find_split(X, y, w)
 
         if self.feature is None:
             self.left, self.right = None, None
@@ -112,28 +114,44 @@ class BinaryTree:
             X[self.feature], self.splitter, self.default_split
         )
 
+        # Node weights
+        self.p_left, self.p_right = self._get_split_probabilities(
+            index_left, index_right
+        )
+        w_left, w_right = w.copy(), w.copy()
+        index_na = (~index_left) & (~index_right)
+        w_left.loc[index_na] *= self.p_left
+        w_right.loc[index_na] *= self.p_right
+        index_left |= index_na
+        index_right |= index_na
+
         # Send test_data to daughter nodes
         self.left, self.right = self._initiate_daughter_nodes()
-        self.left.fit(X.loc[index_left], y.loc[index_left])
-        self.right.fit(X.loc[index_right], y.loc[index_right])
+        self.left.fit(X.loc[index_left], y.loc[index_left], w_left.loc[index_left])
+        self.right.fit(X.loc[index_right], y.loc[index_right], w_right.loc[index_right])
 
         self.node_importance = self._calculate_importance()
 
-    def _find_split(self, X, y) -> tuple:
+    def _get_split_probabilities(self, index_left, index_right):
+        n_left, n_right = index_left.sum(), index_right.sum()
+        p_left, p_right = n_left / (n_left + n_right), n_right / (n_left + n_right)
+        return p_left, p_right
+
+    def _find_split(self, X, y, w) -> tuple:
         """Calculate the best split for a decision tree
 
         Args:
             X: Covariates to choose from
             y: response to fit nodes to
+            w: node weights
 
         Returns:
             best_feature: feature to split by for minimum loss
             best_splitter: threshold or left-category-set to split feature by for minimum loss
-            best_default split: node to send missing values to
         """
         # Initiate here in order to not grow more if this loss is not beaten
         loss_best = self.loss
-        best_feature, best_splitter, best_default_split = None, None, None
+        best_feature, best_splitter = None, None
 
         features = [
             feature for feature in X.columns if X[feature].isna().sum() < len(X)
@@ -141,76 +159,52 @@ class BinaryTree:
         for feature in features:
             splitters = get_splitter_candidates(X[feature])
             for splitter in splitters:
-                default_splits = self._get_default_split_candidates(
-                    X, feature, splitter
-                )
-                for default_split in default_splits:
-                    loss = self._calculate_split_loss(
-                        X, y, feature, splitter, default_split
+                loss = self._calculate_split_loss(X, y, w, feature, splitter)
+                if loss < loss_best:
+                    loss_best = loss
+                    best_feature, best_splitter = (
+                        feature,
+                        splitter,
                     )
-                    if loss < loss_best:
-                        loss_best = loss
-                        best_feature, best_splitter, best_default_split = (
-                            feature,
-                            splitter,
-                            default_split,
-                        )
 
-        return best_feature, best_splitter, best_default_split
+        return best_feature, best_splitter
 
-    def _get_default_split_candidates(self, X, feature, splitter):
-        """Get default split candidates given the rule, covariates and features
-
-        Args:
-            X: covariate vector
-            feature: feature to split on
-            splitter: threshold or sets
-
-        Return:
-            list of 'left' or 'right' depending on which node gets the most test_data
-        """
-        if (self.missing_rule == "majority") or (
-            (self.missing_rule == "mia") & (X[feature].isna().sum() == 0)
-        ):
-            if isinstance(splitter, float):
-                return (
-                    ["left"]
-                    if sum(X[feature] < splitter) > sum(X[feature] >= splitter)
-                    else ["right"]
-                )
-            elif isinstance(splitter, dict):
-                return (
-                    ["left"]
-                    if sum(X[feature].isin(splitter["left"]))
-                    > sum(X[feature].isin(splitter["right"]))
-                    else ["right"]
-                )
-        else:  # mia strategy
-            return ["left", "right"]
-
-    def _calculate_split_loss(self, X, y, feature, splitter, default_split):
+    def _calculate_split_loss(self, X, y, w, feature, splitter):
         """Calculates the sum of squared errors for this split
 
         Args:
             X: covariate vector
             y: response vector
+            w: node weights
             feature: feature of X to split test_data on
             splitter: threshold or set of categories that will go to the left node
-            default_split: node to put missing values in
 
         Returns:
             Total loss of this split for all daughter nodes
         """
-        index_left, index_right = get_indices(X[feature], splitter, default_split)
+        index_left, index_right = get_indices(X[feature], splitter)
+        p_left, p_right = self._get_split_probabilities(index_left, index_right)
+        w_left, w_right = w.copy(), w.copy()
+        index_na = (~index_left) & (~index_right)
+        w_left.loc[index_na] *= p_left
+        w_right.loc[index_na] *= p_right
+        index_left |= index_na
+        index_right |= index_na
 
         # To avoid hyperparameter-illegal splits
-        if (sum(index_left) < self.min_samples_leaf) or (
-            sum(index_right) < self.min_samples_leaf
+        if (w.loc[index_left].sum() < self.min_samples_leaf) or (
+            w.loc[index_right].sum() < self.min_samples_leaf
         ):
             return self.loss
 
-        loss_left_weighted = calculate_loss(y=y.loc[index_left]) * sum(index_left)
-        loss_right_weighted = calculate_loss(y=y.loc[index_right]) * sum(index_right)
+        loss_left_weighted = (
+            calculate_loss(y=y.loc[index_left], w=w_left.loc[index_left])
+            * w_left.loc[index_left].sum()
+        )
+        loss_right_weighted = (
+            calculate_loss(y=y.loc[index_right], w=w_right.loc[index_right])
+            * w_right.loc[index_right].sum()
+        )
 
         return (loss_left_weighted + loss_right_weighted) / self.n
 
@@ -218,20 +212,18 @@ class BinaryTree:
         """Create daughter nodes
 
         Return:
-            tuple of three Trees. The one in the middle is None for non-trinary trees.
+            tuple of two Trees. The one in the middle is None for non-trinary trees.
         """
-        left = BinaryTree(
+        left = WeightedTree(
             min_samples_leaf=self.min_samples_leaf,
             max_depth=self.max_depth,
             depth=self.depth + 1,
-            missing_rule=self.missing_rule,
             categories=self.categories,
         )
-        right = BinaryTree(
+        right = WeightedTree(
             min_samples_leaf=self.min_samples_leaf,
             max_depth=self.max_depth,
             depth=self.depth + 1,
-            missing_rule=self.missing_rule,
             categories=self.categories,
         )
 
@@ -245,13 +237,14 @@ class BinaryTree:
         """
         # If no values of the training test_data actually end up here it is of no importance
         if self.n == 0:
-            return 0
+            importance = 0
         else:
-            return (
+            importance = (
                 self.loss
                 - (self.left.n * self.left.loss + self.right.n * self.right.loss)
                 / self.n
             )
+        return importance
 
     def _get_node_importances(self, node_importances):
         """Get node importances for this node and all its daughters
@@ -292,26 +285,30 @@ class BinaryTree:
                 for category in self.categories:
                     y_prob[category] = self.y_prob[category]
             else:
-                index_left, index_right = get_indices(
-                    X[self.feature], self.splitter, default_split=self.default_split
-                )
+                index_left, index_right = get_indices(X[self.feature], self.splitter)
+                index_na = (~index_left) & (~index_right)
 
                 y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
                 y_prob.loc[index_right] = self.right.predict(
                     X.loc[index_right], prob=True
                 )
+                y_prob.loc[index_na] = self.p_left * self.left.predict(
+                    X.loc[index_na], prob=True
+                ) + self.p_right * self.right.predict(X.loc[index_na], prob=True)
 
         else:
             y_hat = pd.Series(index=X.index, dtype=self.response_type)
             if self.left is None:
                 y_hat.loc[:] = self.y_hat
             else:
-                index_left, index_right = get_indices(
-                    X[self.feature], self.splitter, default_split=self.default_split
-                )
+                index_left, index_right = get_indices(X[self.feature], self.splitter)
+                index_na = (~index_left) & (~index_right)
 
                 y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
                 y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
+                y_hat.loc[index_na] = self.p_left * self.left.predict(
+                    X.loc[index_na]
+                ) + self.p_right * self.right.predict(X.loc[index_na])
 
         if prob:
             return y_prob
@@ -326,7 +323,7 @@ class BinaryTree:
             raise CantPrintUnfittedTree("Can't print tree before fitting to test_data")
 
         hspace = "---" * self.depth
-        print(hspace + f"Number of observations: {self.n}")
+        print(hspace + f"Number of observations: {np.round(self.n,2)}")
         if isinstance(self.y_hat, float):
             print(hspace + f"Response estimate: {np.round(self.y_hat,2)}")
         else:
@@ -341,10 +338,6 @@ class BinaryTree:
                 right_rule = f"if {self.feature} is " + ", ".join(
                     self.splitter["right"]
                 )
-            if self.default_split == "left":
-                left_rule += " or n/a"
-            else:
-                right_rule += " or n/a"
             print(hspace + f"{left_rule}:")
             self.left.print()
             print(hspace + f"{right_rule}:")
@@ -353,16 +346,20 @@ class BinaryTree:
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    file_path = "/tests/test_data/test_data_cat.csv"
+    from src.common.functions import get_feature_importance
 
-    df = pd.read_csv(file_path, index_col=0)
-    X = df.drop("y", axis=1)
-    y = df["y"]
+    folder_path = "/tests/test_data"
+    df_train = pd.read_csv(f"{folder_path}/train_data_weighted_cat.csv", index_col=0)
+    X_train = df_train.drop("y", axis=1)
+    y_train = df_train["y"]
 
-    max_depth = 4
+    df_test = pd.read_csv(f"{folder_path}/test_data_weighted_cat.csv", index_col=0)
+    X_test = df_test[["number", "fruit"]]
+    y_prob = df_test[["bad", "good", "great"]]
+    y_test = df_test["y"]
 
-    tree = BinaryTree(max_depth=max_depth)
-    tree.fit(X, y)
-    y_hat = tree.predict(X)
+    tree = WeightedTree(max_depth=2, min_samples_leaf=1)
+    tree.fit(X_train, y_train)
 
-    print("h")
+    y_prob_hat = tree.predict(X_test, prob=True)
+    y_hat = tree.predict(X_test)

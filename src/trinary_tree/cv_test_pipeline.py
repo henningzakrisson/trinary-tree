@@ -4,11 +4,11 @@ import numpy as np
 import pandas as pd
 import logging
 
-from src.binary_tree import BinaryTree
-from src.trinary_tree import TrinaryTree
-from src.trinary_mia_tree import TrinaryMiaTree
-from src.weighted_tree import WeightedTree
-from src.common.functions import calculate_loss
+from .binary_tree import BinaryTree
+from .trinary_tree import TrinaryTree
+from .trinary_mia_tree import TrinaryMiaTree
+from .weighted_tree import WeightedTree
+from .common.functions import calculate_loss
 from sklearn.model_selection import StratifiedKFold, KFold
 
 
