@@ -2,18 +2,15 @@ import itertools
 import warnings
 import pandas as pd
 import numpy as np
-import warnings
-
-from src.common.custom_exceptions import (
+from src.trinary_tree.common.custom_exceptions import (
     MissingValuesInResponse,
     CantPrintUnfittedTree,
 )
-from src.common.custom_warnings import (
+from .common.custom_warnings import (
     MissingFeatureWarning,
     ExtraFeatureWarning,
 )
-
-from src.common.functions import (
+from .common.functions import (
     fix_datatypes,
     fit_response,
     calculate_loss,
@@ -21,14 +18,16 @@ from src.common.functions import (
     get_splitter_candidates,
     get_indices,
     check_features,
-    get_feature_importance,
 )
 
 
-class TrinaryMiaTree:
-    """Module for classification and regression trees with third-node handling of missing values
+class BinaryTree:
+    """Module for classification and regression trees with standard handling missing test_data
 
-    The missing test_data strategy creates a third node for missing values, which inherits test_data and output from mother node
+    The missing test_data strategies are:
+     - Majority rule: missing datapoints go to the node with the most training test_data
+     - Missing Incorporated in Attributes (MIA): missing datapoints go to the node
+      which improved the loss the most in the training test_data
     """
 
     def __init__(
@@ -37,6 +36,7 @@ class TrinaryMiaTree:
         max_depth=2,
         depth=0,
         categories=None,
+        missing_rule="majority",
     ):
         """Initiate the tree
 
@@ -54,6 +54,7 @@ class TrinaryMiaTree:
         self.max_depth = max_depth
         self.depth = depth
         self.categories = categories
+        self.missing_rule = missing_rule
         self.n = 0
         self.y_hat = None
         self.y_prob = {}
@@ -67,11 +68,8 @@ class TrinaryMiaTree:
         self.left = None
         self.right = None
         self.node_importance = 0
-        self.n_true = 0
-        self.loss_true = None
-        self.middle = None
 
-    def fit(self, X, y, X_true=None, y_true=None):
+    def fit(self, X, y):
         """Recursive method to fit the decision tree.
 
         Will call itself to create daughter nodes if applicable.
@@ -79,22 +77,14 @@ class TrinaryMiaTree:
         Args:
             X: covariate vector (n x p). numpy array or pandas DataFrame.
             y: response vector (n x 1). numpy array or pandas Series.
-            X_true: covariate vector (n x p) of test_data that ends up in this node
-            during training.
-            y_true: response vector (n x 1) of test_data that ends up in this node
-            during training.
 
         Raises:
             MissingValuesInResponse: Can not fit to missing categories, thus errors out
         """
         X, y, _ = fix_datatypes(X, y)
-        if X_true is None and y_true is None:
-            X_true, y_true = X, y
-        X_true, y_true, _ = fix_datatypes(X_true, y_true)
         self.features = X.columns
 
         self.n = len(y)
-        self.n_true = len(y_true)
 
         self.y_hat, self.y_prob, self.categories = fit_response(y, self.categories)
         if self.categories is not None:
@@ -102,56 +92,30 @@ class TrinaryMiaTree:
         else:
             self.response_type = "float"
 
-        self.loss = calculate_loss(y=y, y_hat=self.y_hat, y_prob=self.y_prob)
-        self.loss_true = calculate_loss(y=y_true, y_hat=self.y_hat, y_prob=self.y_prob)
+        self.loss = calculate_loss(y)
 
         # Check pruning conditions
         if check_terminal_node(self):
-            self.left, self.middle, self.right = None, None, None
+            self.left, self.right = None, None
             return
 
         # Find splitting parameters
         self.feature, self.splitter, self.default_split = self._find_split(X, y)
 
         if self.feature is None:
-            self.left, self.middle, self.right = None, None, None
+            self.left, self.right = None, None
             return
 
         self.feature_type = "float" if X[self.feature].dtype == "float" else "object"
 
         index_left, index_right = get_indices(
-            x=X[self.feature], splitter=self.splitter, default_split=self.default_split
+            X[self.feature], self.splitter, self.default_split
         )
-        index_left_true, index_right_true = get_indices(
-            x=X_true[self.feature],
-            splitter=self.splitter,
-            default_split=self.default_split,
-        )
-        index_middle_true = (~index_left_true) & (~index_right_true)
 
         # Send test_data to daughter nodes
-        self.left, self.middle, self.right = self._initiate_daughter_nodes()
-        self.left.fit(
-            X=X.loc[index_left],
-            y=y.loc[index_left],
-            X_true=X_true.loc[index_left_true],
-            y_true=y_true.loc[index_left_true],
-        )
-        self.right.fit(
-            X=X.loc[index_right],
-            y=y.loc[index_right],
-            X_true=X_true.loc[index_right_true],
-            y_true=y_true.loc[index_right_true],
-        )
-        if self.default_split == "middle":
-            X_middle = X.copy()
-            X_middle[self.feature] = np.nan
-            self.middle.fit(
-                X_middle,
-                y,
-                X_true=X_true.loc[index_middle_true],
-                y_true=y_true.loc[index_middle_true],
-            )
+        self.left, self.right = self._initiate_daughter_nodes()
+        self.left.fit(X.loc[index_left], y.loc[index_left])
+        self.right.fit(X.loc[index_right], y.loc[index_right])
 
         self.node_importance = self._calculate_importance()
 
@@ -177,7 +141,9 @@ class TrinaryMiaTree:
         for feature in features:
             splitters = get_splitter_candidates(X[feature])
             for splitter in splitters:
-                default_splits = self._get_default_split_candidates(X, feature)
+                default_splits = self._get_default_split_candidates(
+                    X, feature, splitter
+                )
                 for default_split in default_splits:
                     loss = self._calculate_split_loss(
                         X, y, feature, splitter, default_split
@@ -192,20 +158,35 @@ class TrinaryMiaTree:
 
         return best_feature, best_splitter, best_default_split
 
-    def _get_default_split_candidates(self, X, feature):
+    def _get_default_split_candidates(self, X, feature, splitter):
         """Get default split candidates given the rule, covariates and features
 
         Args:
             X: covariate vector
             feature: feature to split on
+            splitter: threshold or sets
 
         Return:
-            list of 'left' or 'right' or 'middle' elements
+            list of 'left' or 'right' depending on which node gets the most test_data
         """
-        if X[feature].isna().sum() == 0:
-            return ["middle"]
-        else:
-            return ["left", "middle", "right"]
+        if (self.missing_rule == "majority") or (
+            (self.missing_rule == "mia") & (X[feature].isna().sum() == 0)
+        ):
+            if isinstance(splitter, float):
+                return (
+                    ["left"]
+                    if sum(X[feature] < splitter) > sum(X[feature] >= splitter)
+                    else ["right"]
+                )
+            elif isinstance(splitter, dict):
+                return (
+                    ["left"]
+                    if sum(X[feature].isin(splitter["left"]))
+                    > sum(X[feature].isin(splitter["right"]))
+                    else ["right"]
+                )
+        else:  # mia strategy
+            return ["left", "right"]
 
     def _calculate_split_loss(self, X, y, feature, splitter, default_split):
         """Calculates the sum of squared errors for this split
@@ -215,12 +196,12 @@ class TrinaryMiaTree:
             y: response vector
             feature: feature of X to split test_data on
             splitter: threshold or set of categories that will go to the left node
+            default_split: node to put missing values in
 
         Returns:
             Total loss of this split for all daughter nodes
         """
         index_left, index_right = get_indices(X[feature], splitter, default_split)
-        index_middle = (~index_left) & (~index_right)
 
         # To avoid hyperparameter-illegal splits
         if (sum(index_left) < self.min_samples_leaf) or (
@@ -230,12 +211,8 @@ class TrinaryMiaTree:
 
         loss_left_weighted = calculate_loss(y=y.loc[index_left]) * sum(index_left)
         loss_right_weighted = calculate_loss(y=y.loc[index_right]) * sum(index_right)
-        loss_middle_weighted = calculate_loss(
-            y=y.loc[index_middle], y_hat=self.y_hat, y_prob=self.y_prob
-        ) * sum(index_middle)
-        return (
-            loss_left_weighted + loss_right_weighted + loss_middle_weighted
-        ) / self.n
+
+        return (loss_left_weighted + loss_right_weighted) / self.n
 
     def _initiate_daughter_nodes(self):
         """Create daughter nodes
@@ -243,28 +220,22 @@ class TrinaryMiaTree:
         Return:
             tuple of three Trees. The one in the middle is None for non-trinary trees.
         """
-        left = TrinaryMiaTree(
+        left = BinaryTree(
             min_samples_leaf=self.min_samples_leaf,
             max_depth=self.max_depth,
             depth=self.depth + 1,
+            missing_rule=self.missing_rule,
             categories=self.categories,
         )
-        if self.default_split == "middle":
-            middle = TrinaryMiaTree(
-                min_samples_leaf=self.min_samples_leaf,
-                max_depth=self.max_depth,
-                depth=self.depth,
-                categories=self.categories,
-            )
-        else:
-            middle = None
-        right = TrinaryMiaTree(
+        right = BinaryTree(
             min_samples_leaf=self.min_samples_leaf,
             max_depth=self.max_depth,
             depth=self.depth + 1,
+            missing_rule=self.missing_rule,
             categories=self.categories,
         )
-        return left, middle, right
+
+        return left, right
 
     def _calculate_importance(self):
         """ "Calculate node importance for the split in this node
@@ -273,30 +244,14 @@ class TrinaryMiaTree:
             Node importance as a float
         """
         # If no values of the training test_data actually end up here it is of no importance
-        if self.n_true == 0:
-            importance = 0
+        if self.n == 0:
+            return 0
         else:
-            if self.default_split == "middle":
-                importance = (
-                    self.loss_true
-                    - (
-                        self.left.n_true * self.left.loss_true
-                        + self.middle.n_true * self.middle.loss_true
-                        + self.right.n_true * self.right.loss_true
-                    )
-                    / self.n_true
-                )
-            else:
-                importance = (
-                    self.loss_true
-                    - (
-                        self.left.n_true * self.left.loss_true
-                        + self.right.n_true * self.right.loss_true
-                    )
-                    / self.n_true
-                )
-
-        return importance
+            return (
+                self.loss
+                - (self.left.n * self.left.loss + self.right.n * self.right.loss)
+                / self.n
+            )
 
     def _get_node_importances(self, node_importances):
         """Get node importances for this node and all its daughters
@@ -316,10 +271,6 @@ class TrinaryMiaTree:
             node_importances = self.right._get_node_importances(
                 node_importances=node_importances
             )
-            if self.default_split == "middle":
-                node_importances = self.middle._get_node_importances(
-                    node_importances=node_importances
-                )
         return node_importances
 
     def predict(self, X, prob=False):
@@ -342,19 +293,13 @@ class TrinaryMiaTree:
                     y_prob[category] = self.y_prob[category]
             else:
                 index_left, index_right = get_indices(
-                    x=X[self.feature],
-                    splitter=self.splitter,
-                    default_split=self.default_split,
+                    X[self.feature], self.splitter, default_split=self.default_split
                 )
-                index_middle = (~index_left) & (~index_right)
+
                 y_prob.loc[index_left] = self.left.predict(X.loc[index_left], prob=True)
                 y_prob.loc[index_right] = self.right.predict(
                     X.loc[index_right], prob=True
                 )
-                if self.default_split == "middle":
-                    y_prob.loc[index_middle] = self.middle.predict(
-                        X.loc[index_middle], prob=True
-                    )
 
         else:
             y_hat = pd.Series(index=X.index, dtype=self.response_type)
@@ -362,16 +307,11 @@ class TrinaryMiaTree:
                 y_hat.loc[:] = self.y_hat
             else:
                 index_left, index_right = get_indices(
-                    x=X[self.feature],
-                    splitter=self.splitter,
-                    default_split=self.default_split,
+                    X[self.feature], self.splitter, default_split=self.default_split
                 )
-                index_middle = (~index_left) & (~index_right)
 
                 y_hat.loc[index_left] = self.left.predict(X.loc[index_left])
                 y_hat.loc[index_right] = self.right.predict(X.loc[index_right])
-                if self.default_split == "middle":
-                    y_hat.loc[index_middle] = self.middle.predict(X.loc[index_middle])
 
         if prob:
             return y_prob
@@ -386,12 +326,12 @@ class TrinaryMiaTree:
             raise CantPrintUnfittedTree("Can't print tree before fitting to test_data")
 
         hspace = "---" * self.depth
-        print(hspace + f"Number of observations: {self.n_true}")
+        print(hspace + f"Number of observations: {self.n}")
         if isinstance(self.y_hat, float):
             print(hspace + f"Response estimate: {np.round(self.y_hat,2)}")
         else:
             print(hspace + f"Response estimate: {self.y_hat}")
-        print(hspace + f"loss: {np.round(self.loss_true,2)}")
+        print(hspace + f"loss: {np.round(self.loss,2)}")
         if self.left is not None:
             if self.feature_type == "float":
                 left_rule = f"if {self.feature} <  {np.round(self.splitter,2)}"
@@ -403,43 +343,26 @@ class TrinaryMiaTree:
                 )
             if self.default_split == "left":
                 left_rule += " or n/a"
-            elif self.default_split == "right":
+            else:
                 right_rule += " or n/a"
-
             print(hspace + f"{left_rule}:")
             self.left.print()
-            if self.default_split == "middle":
-                middle_rule = f"if {self.feature} n/a"
-                print(hspace + f"{middle_rule}:")
-                self.middle.print()
             print(hspace + f"{right_rule}:")
             self.right.print()
 
 
 if __name__ == "__main__":
     """Main function to make the file run- and debuggable."""
-    folder_path = (
-        "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/tests/test_data"
-    )
+    file_path = "/tests/test_data/test_data_cat.csv"
 
-    df_train = pd.read_csv(
-        f"{folder_path}/train_data_trinary.csv",
-        index_col=0,
-    )
+    df = pd.read_csv(file_path, index_col=0)
+    X = df.drop("y", axis=1)
+    y = df["y"]
 
-    missing_prob = 0.0
-    for feature in ["X_0", "X_1"]:
-        to_remove = np.random.binomial(1, missing_prob, len(df_train))
-        df_train.loc[to_remove, feature] = np.nan
+    max_depth = 4
 
-    df_test = pd.read_csv(
-        f"{folder_path}/test_data_trinary.csv",
-        index_col=0,
-    )
+    tree = BinaryTree(max_depth=max_depth)
+    tree.fit(X, y)
+    y_hat = tree.predict(X)
 
-    tree = TrinaryMiaTree(max_depth=2)
-    tree.fit(df_train[["X_0", "X_1"]], df_train["y"])
-
-    df_test["y_hat"] = tree.predict(df_test[["X_0", "X_1"]])
-
-    print(get_feature_importance(tree))
+    print("h")
