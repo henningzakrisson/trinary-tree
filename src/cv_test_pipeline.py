@@ -34,7 +34,8 @@ def create_MCAR_Xs(X, ps, seed=None):
         Xs[p] = X.copy()
     return Xs
 
-def create_IM_Xs(X, ps, seed = None):
+
+def create_IM_Xs(X, ps, seed=None):
     """
     Takes a pandas DataFrame X and a list of probabilities ps, and returns a dictionary
     of modified versions of X, with values randomly set to NaN based on the corresponding
@@ -51,10 +52,11 @@ def create_IM_Xs(X, ps, seed = None):
         for j in X.columns:
             available_to_drop = X.loc[~X[j].isna(), j].index
             size_order = np.argsort(X.loc[available_to_drop, j])
-            to_remove = available_to_drop[size_order[:n_to_drop[i]]]
+            to_remove = available_to_drop[size_order[: n_to_drop[i]]]
             X.loc[to_remove, j] = np.nan
         Xs[p] = X.copy()
     return Xs
+
 
 def split_dataset_into_folds(X, y, n_folds, seed=None):
     if y.dtype == "float" or y.dtype == "int":
@@ -196,15 +198,15 @@ def calculate_dataset_missing_losses(
     max_max_depth,
     tree_types,
     missing_set,
-    missingness = 'MCAR',
+    missingness="MCAR",
 ):
     logging.info(f"Pre-processing {data_set} data")
     X = pd.read_csv(f"{data_folder}/{data_set}.csv", index_col=0)
     y = X.pop("y")
 
-    if missingness == 'MCAR':
+    if missingness == "MCAR":
         Xs = create_MCAR_Xs(X, ps, seed=seed_missingness)
-    elif missingness == 'IM':
+    elif missingness == "IM":
         Xs = create_IM_Xs(X, ps, seed=seed_missingness)
     missing_folds = split_missing_datasets_into_folds(
         Xs, y, n_folds, seed=seed_fold_split
@@ -235,7 +237,7 @@ def calculate_loss_for_files(
     tree_types,
     output_data_folder=None,
     missing_set="all",
-    missingness='MCAR',
+    missingness="MCAR",
 ):
     log_folder = "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/logs"
     logging.basicConfig(level=logging.INFO)
@@ -270,14 +272,14 @@ if __name__ == "__main__":
         "/home/heza7322/PycharmProjects/missing-value-handling-in-carts/data/results"
     )
     data_sets = [
-        'titanic',
-        'auto_mpg',
+        "titanic",
+        "auto_mpg",
         "life_expectancy",
         "lymphography",
         "seeds",
-        'cement',
-        'boston_housing',
-        'black_friday',
+        "cement",
+        "boston_housing",
+        "black_friday",
     ]
     tree_types = ["Majority", "MIA", "Weighted", "Trinary", "TrinaryMia"]
     seed_missingness = 10
@@ -287,7 +289,7 @@ if __name__ == "__main__":
     min_samples_leaf = 20
     max_max_depth = 5
     missing_set = "all"
-    missingness = 'IM'
+    missingness = "IM"
 
     losses = calculate_loss_for_files(
         data_sets=data_sets,
