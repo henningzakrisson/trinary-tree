@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from src.trinary_tree.common.custom_exceptions import (
+from .common.custom_exceptions import (
     CantPrintUnfittedTree,
 )
 

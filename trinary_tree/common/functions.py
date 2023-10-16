@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 import itertools
 import warnings
-from src.trinary_tree.common.custom_exceptions import MissingValuesInResponse
-from src.trinary_tree.common.custom_warnings import (
+from trinary_tree.common.custom_exceptions import MissingValuesInResponse
+from trinary_tree.common.custom_warnings import (
     MissingFeatureWarning,
     ExtraFeatureWarning,
 )
