@@ -1,3 +1,7 @@
 venv
 
 *.pyc
+.DS_Store
+notebooks/
+/example_notebooks
+/data
