@@ -26,7 +26,7 @@ rule algorithm to a dataset with missing values.
 
 ````python
 # Import packages
-from src.trinary_tree import BinaryTree, TrinaryTree
+from trinary_tree import BinaryTree, TrinaryTree
 from sklearn.model_selection import train_test_split
 import numpy as np
 

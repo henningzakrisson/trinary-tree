@@ -1,16 +1,14 @@
 import unittest
 import pandas as pd
 import numpy as np
-from src.trinary_tree import TrinaryTree
-from src.trinary_tree import BinaryTree
-from src.trinary_tree import WeightedTree
+from trinary_tree import TrinaryTree,BinaryTree,WeightedTree
 
-from src.trinary_tree.common.custom_warnings import (
+from trinary_tree.common.custom_warnings import (
     MissingFeatureWarning,
     ExtraFeatureWarning,
 )
 
-from src.trinary_tree.common.functions import get_feature_importance
+from trinary_tree.common.functions import get_feature_importance
 
 
 class TreeTest(unittest.TestCase):
