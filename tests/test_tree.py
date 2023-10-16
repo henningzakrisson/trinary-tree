@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 import numpy as np
-from trinary_tree import TrinaryTree,BinaryTree,WeightedTree
+from trinary_tree import TrinaryTree, BinaryTree, WeightedTree
 
 from trinary_tree.common.custom_warnings import (
     MissingFeatureWarning,
