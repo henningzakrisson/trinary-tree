@@ -8,3 +8,4 @@ data/
 dist/
 trinary_tree.egg-info/
 build
+.idea/
