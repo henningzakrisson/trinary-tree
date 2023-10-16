@@ -1,0 +1,18 @@
+Metadata-Version: 2.1
+Name: trinary-tree
+Version: 0.1.0
+Summary: Python package for the Trinary Tree algorithm
+Home-page: https://github.com/henningz/trinary-tree
+Author: Henning Zakrisson
+Author-email: henning.zakrisson@gmail.com
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# missing-value-handling-in-carts
+Code for a project on missing value-handling in Classification And Regression Trees (CART).
+
+Work of Henning Zakrisson current PhD student at Stockholm University.

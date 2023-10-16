@@ -1,0 +1,8 @@
+LICENSE
+README.md
+setup.py
+trinary_tree.egg-info/PKG-INFO
+trinary_tree.egg-info/SOURCES.txt
+trinary_tree.egg-info/dependency_links.txt
+trinary_tree.egg-info/requires.txt
+trinary_tree.egg-info/top_level.txt
