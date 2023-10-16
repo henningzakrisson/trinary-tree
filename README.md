@@ -23,6 +23,11 @@ pip install git+https://github.com/henningzakrisson/trinary_tree.git
 ## Usage example
 Fitting a Trinary Tree and a Binary Tree using the majority
 rule algorithm to a dataset with missing values.
+Note that this code is in no way optimized for speed and
+training of the trees takes a lot of time compared to other tree packages.
+The package is a proof-of-concept and it is recommended
+to re-implement the algorithm if it is to be used in settings where computational speed
+matters.
 
 ````python
 # Import packages
