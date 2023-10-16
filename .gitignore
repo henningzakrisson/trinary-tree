@@ -6,5 +6,5 @@ notebooks/
 example_notebooks/
 data/
 dist/
-trinary_tree.egg-info
+trinary_tree.egg-info/
 build
